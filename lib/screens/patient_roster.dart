@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
 import '../screens/assessment.dart';
 
@@ -113,7 +114,7 @@ class _PatientRosterState extends State<PatientRoster> {
 // Helper for the POC to provide the "Gauge" configuration
   Map<String, dynamic> _getPhq9Template() {
     return {
-      "title": "PHQ-9 Depression Scale",
+      "title": "Patient Health Questionnaire (PHQ-9)",
       "column_headers" :[
         "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
         "Not at all",
@@ -121,9 +122,15 @@ class _PatientRosterState extends State<PatientRoster> {
         "More than half the days",
         "Nearly every day"],
       "questions": [
-        {"id": "q1", "text": "Little interest or pleasure in doing things?", "max_score": 3},
-        {"id": "q2", "text": "Feeling down, depressed, or hopeless?", "max_score": 3},
-        {"id": "q3", "text": "Trouble falling or staying asleep, or sleeping too much?", "max_score": 3},
+        {"id": "q1", "text": "1. Little interest or pleasure in doing things?", "max_score": 3},
+        {"id": "q2", "text": "2. Feeling down, depressed, or hopeless?", "max_score": 3},
+        {"id": "q3", "text": "3. Trouble falling or staying asleep, or sleeping too much?", "max_score": 3},
+        {"id": "q4", "text": "4. Feeling tired or having little energy", "max_score": 3},
+        {"id": "q5", "text": "5. Poor appetite or overeating", "max_score": 3},
+        {"id": "q6", "text": "6. Feeling bad about yourself - or that you are a failure to or have let yourself or your family down?", "max_score": 3},
+        {"id": "q7", "text": "7. Trouble concentrating on things, such as reading the newspaper or watching television?", "max_score": 3},
+        {"id": "q8", "text": "8. Moving or speaking so slowly that other people could have noticed?  Or the opposite – being so fidgety or restless that you have been moving around a lot more than usual?", "max_score": 3},
+        {"id": "q9", "text": "9. Thoughts that you would be better off dead or of hurting yourself in some way?", "max_score": 3},
         // ... add the rest here
       ]
     };
@@ -131,6 +138,7 @@ class _PatientRosterState extends State<PatientRoster> {
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
+
     return Scaffold(
       // Keeping the body as the main focus
       body: _patients.isEmpty

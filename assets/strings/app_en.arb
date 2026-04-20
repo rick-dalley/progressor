@@ -1,8 +1,0 @@
-{
-  "phq9_header": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
-  "@phq9_header": {
-    "description": "Instructional header for the PHQ-9 form"
-  },
-  "phq9_copyright": "Copyright © 1999 Pfizer Inc. All rights reserved. Adapted from PRIME MD TODAY...",
-  "phq9_score_mild": "Mild Depression: Use clinical judgment about treatment..."
-}

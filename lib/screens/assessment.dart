@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../generated/l10n.dart';
 
 class AssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
@@ -107,11 +108,24 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   }
 
   Widget _buildScoreFooter() {
+    final l10n = S.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.blueGrey.shade50,
       child: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Text(
+              l10n.phq9_impact,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+                color: Colors.black87,
+              ),
+            ),
+          ),
           Text("Current Score: $totalScore", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           ElevatedButton(
