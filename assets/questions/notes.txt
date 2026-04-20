@@ -1,0 +1,15 @@
+
+"certification_impact": [1, 4], // This question supports "Diagnosis" and "Risk to Others"
+"observation_prompts": ["Pressured speech", "Tangential thinking", "Hyper-vigilance"],
+
+Domain,Key Logic Driver,Purpose
+Acuity (Level 1/2),active_suicidality_01,"Triggers immediate ""Eyes-on"" protocol."
+Legal (MHA),insight_check_01,"""Do you think you need to be in the hospital?"" (Critical for Certification)."
+Substance Use,withdrawal_risk_01,Triggers the CIWA/COWS protocol (Physical safety).
+Social (4-Ps),housing_stability_01,"Determines if ""Perpetuating"" factors prevent discharge."
+
+"hints": {
+  "default": "Look for Ideas of Reference.",
+  "security": "Maintain exit path; patient may become defensive.",
+  "nurse_aide": "Note if patient is wearing seasonal clothing."
+}

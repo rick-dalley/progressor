@@ -1,0 +1,79 @@
+[
+  {
+    "patient_uuid": "p001-involuntary-cert",
+    "name": {"first": "Robert", "last": "Miller"},
+    "phn": "9123444555",
+    "dob": "1978-03-12",
+    "current_acuity": 1,
+    "status": "Triage",
+    "path": "Certify",
+    "flags": ["Form 4 Active", "Police Handoff"],
+    "narrative_hint": "Brought in by RCMP under Sec 28. High agitation. Needs Form 4 completion to meet MHA criteria."
+  },
+  {
+    "patient_uuid": "p002-decert-ready",
+    "name": {"first": "Sarah", "last": "Chen"},
+    "phn": "9876555111",
+    "dob": "1995-07-22",
+    "current_acuity": 4,
+    "status": "Inpatient",
+    "path": "Decertify",
+    "flags": ["Stabilized", "Voluntary Status Pending"],
+    "narrative_hint": "Admitted involuntary 72 hours ago. Now showing insight and compliance. Test the 'Decertification' logic flow."
+  },
+  {
+    "patient_uuid": "p003-medical-clearance",
+    "name": {"first": "Arthur", "last": "Gould"},
+    "phn": "9333444888",
+    "dob": "1954-11-30",
+    "current_acuity": 2,
+    "status": "ER Hold",
+    "path": "Medical-Psych-Split",
+    "flags": ["Delirium Risk", "History of COPD"],
+    "narrative_hint": "Senior patient. Is it Psychosis or Delirium? Path requires medical clearance (vitals/labs) before Psych admission."
+  },
+  {
+    "patient_uuid": "p004-substance-concurrent",
+    "name": {"first": "Leo", "last": "Vance"},
+    "phn": "9555666222",
+    "dob": "1988-01-05",
+    "current_acuity": 3,
+    "status": "Assessment",
+    "path": "Concurrent-Disorder",
+    "flags": ["Withdrawal Risk (CIWA)", "Opioid Use"],
+    "narrative_hint": "Dual diagnosis. Logic needs to trigger withdrawal monitoring alongside psychiatric triage."
+  },
+  {
+    "patient_uuid": "p005-social-admit",
+    "name": {"first": "Elena", "last": "Ross"},
+    "phn": "9222333444",
+    "dob": "1966-09-14",
+    "current_acuity": 3,
+    "status": "Triage",
+    "path": "Admit-Social-Complexity",
+    "flags": ["Housing Insecure", "No Next of Kin"],
+    "narrative_hint": "Clinically stable but can't be discharged due to lack of safe housing. Test the 'Social Determinants' process path."
+  },
+  {
+    "patient_uuid": "p006-student-deep-dive",
+    "name": {"first": "Marcus", "last": "Webb"},
+    "phn": "9666777888",
+    "dob": "2003-05-20",
+    "current_acuity": 4,
+    "status": "Interview",
+    "path": "Long-form-History",
+    "flags": ["First Episode Psychosis?", "Student Assigned"],
+    "narrative_hint": "Young adult. First interaction with system. Ideal for the hour-long Student Doctor 'Bespoke' interview path."
+  },
+  {
+    "patient_uuid": "p007-community-ready",
+    "name": {"first": "Fatima", "last": "Awan"},
+    "phn": "9444000111",
+    "dob": "1981-12-02",
+    "current_acuity": 5,
+    "status": "Discharge Prep",
+    "path": "GP-Handoff",
+    "flags": ["GP Report Pending", "Form 114 Needed"],
+    "narrative_hint": "Ready for home. Test the 'Administrative Velocity'—auto-drafting the GP letter and EI support forms."
+  }
+]

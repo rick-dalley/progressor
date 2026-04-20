@@ -1,0 +1,54 @@
+[
+  {
+
+    "question_id": "psy_psychosis_01",
+    "domain": "Psychosis",
+    "acuity_weight": 3,
+    "formal_prompt": "Do you ever feel like you have special powers or messages meant just for you?",
+    "hint": "Look for 'Ideas of Reference' or 'Grandiosity'. Use a soft tone.",
+    "certification_criteria": 2,
+    "logic_triggers": {
+      "if_yes": "psy_psychosis_deep_dive",
+      "if_no": "psy_mood_01"
+    }
+  },
+  {
+
+    "question_id": "psy_psychosis_01",
+    "domain": "Psychosis",
+    "acuity_weight": 3,
+    "formal_prompt": "Do you ever feel like you have special powers or messages meant just for you?",
+    "hint": "Look for 'Ideas of Reference' or 'Grandiosity'. Use a soft tone.",
+    "certification_criteria": 2,
+    "logic_triggers": {
+      "if_yes": "psy_psychosis_deep_dive",
+      "if_no": "psy_mood_01"
+    }
+  },
+  {
+
+    "question_id": "psy_psychosis_01",
+    "domain": "Psychosis",
+    "acuity_weight": 3,
+    "formal_prompt": "Do you ever feel like you have special powers or messages meant just for you?",
+    "hint": "Look for 'Ideas of Reference' or 'Grandiosity'. Use a soft tone.",
+    "certification_criteria": 2,
+    "logic_triggers": {
+      "if_yes": "psy_psychosis_deep_dive",
+      "if_no": "psy_mood_01"
+    }
+  },
+  {
+
+    "question_id": "psy_psychosis_01",
+    "domain": "Psychosis",
+    "acuity_weight": 3,
+    "formal_prompt": "Do you ever feel like you have special powers or messages meant just for you?",
+    "hint": "Look for 'Ideas of Reference' or 'Grandiosity'. Use a soft tone.",
+    "certification_criteria": 2,
+    "logic_triggers": {
+      "if_yes": "psy_psychosis_deep_dive",
+      "if_no": "psy_mood_01"
+    }
+  }
+]

@@ -1,0 +1,50 @@
+[
+  { "id": "psych_01_d", "name": "Dr. Aris (Psychiatrist)", "role": "Psychiatrist", "shift": "Day", "access": "Full" },
+  { "id": "psych_02_p", "name": "Dr. Bellamy (Psychiatrist)", "role": "Psychiatrist", "shift": "PM", "access": "Full" },
+  { "id": "psych_03_g", "name": "Dr. Calloway (Psychiatrist)", "role": "Psychiatrist", "shift": "Grave", "access": "Full" },
+
+  { "id": "rpn_01_d", "name": "Nurse Danton (RPN)", "role": "Psychiatric Nurse", "shift": "Day", "access": "Specialized" },
+  { "id": "rpn_02_p", "name": "Nurse Eklund (RPN)", "role": "Psychiatric Nurse", "shift": "PM", "access": "Specialized" },
+  { "id": "rpn_03_g", "name": "Nurse Farrow (RPN)", "role": "Psychiatric Nurse", "shift": "Grave", "access": "Specialized" },
+
+  { "id": "rn_01_d", "name": "Nurse Geller (RN)", "role": "Nurse", "shift": "Day", "access": "Standard" },
+  { "id": "rn_02_d", "name": "Nurse Halloway (RN)", "role": "Nurse", "shift": "Day", "access": "Standard" },
+  { "id": "rn_03_p", "name": "Nurse Iqbal (RN)", "role": "Nurse", "shift": "PM", "access": "Standard" },
+  { "id": "rn_04_p", "name": "Nurse Jenson (RN)", "role": "Nurse", "shift": "PM", "access": "Standard" },
+  { "id": "rn_05_g", "name": "Nurse Kovic (RN)", "role": "Nurse", "shift": "Grave", "access": "Standard" },
+  { "id": "rn_06_g", "name": "Nurse Lanza (RN)", "role": "Nurse", "shift": "Grave", "access": "Standard" },
+
+  { "id": "na_01_d", "name": "Aide Miller", "role": "Nurse Aide", "shift": "Day", "access": "Basic" },
+  { "id": "na_02_d", "name": "Aide Novak", "role": "Nurse Aide", "shift": "Day", "access": "Basic" },
+  { "id": "na_03_p", "name": "Aide O'Neill", "role": "Nurse Aide", "shift": "PM", "access": "Basic" },
+  { "id": "na_04_p", "name": "Aide Patel", "role": "Nurse Aide", "shift": "PM", "access": "Basic" },
+  { "id": "na_05_g", "name": "Aide Quinto", "role": "Nurse Aide", "shift": "Grave", "access": "Basic" },
+  { "id": "na_06_g", "name": "Aide Russo", "role": "Nurse Aide", "shift": "Grave", "access": "Basic" },
+
+  { "id": "sec_01_d", "name": "Guard Stone", "role": "Security Guard", "shift": "Day", "access": "Observer" },
+  { "id": "sec_02_d", "name": "Guard Trent", "role": "Security Guard", "shift": "Day", "access": "Observer" },
+  { "id": "sec_03_d", "name": "Guard Upton", "role": "Security Guard", "shift": "Day", "access": "Observer" },
+  { "id": "sec_04_p", "name": "Guard Vance", "role": "Security Guard", "shift": "PM", "access": "Observer" },
+  { "id": "sec_05_p", "name": "Guard Wong", "role": "Security Guard", "shift": "PM", "access": "Observer" },
+  { "id": "sec_06_p", "name": "Guard Xavier", "role": "Security Guard", "shift": "PM", "access": "Observer" },
+  { "id": "sec_07_g", "name": "Guard Young", "role": "Security Guard", "shift": "Grave", "access": "Observer" },
+  { "id": "sec_08_g", "name": "Guard Zane", "role": "Security Guard", "shift": "Grave", "access": "Observer" },
+  { "id": "sec_09_g", "name": "Guard Adams", "role": "Security Guard", "shift": "Grave", "access": "Observer" },
+
+  { "id": "gp_01", "name": "Dr. Boyd (GP)", "role": "Doctor", "shift": "On-Call", "access": "Medical" },
+  { "id": "gp_02", "name": "Dr. Carr (GP)", "role": "Doctor", "shift": "On-Call", "access": "Medical" },
+  { "id": "gp_03", "name": "Dr. Dunn (GP)", "role": "Doctor", "shift": "On-Call", "access": "Medical" },
+
+  { "id": "stud_01", "name": "Student Evans", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_02", "name": "Student Frost", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_03", "name": "Student Gray", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_04", "name": "Student Holt", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_05", "name": "Student Iverson", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_06", "name": "Student Jiles", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_07", "name": "Student Kent", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_08", "name": "Student Lane", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_09", "name": "Student Moss", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_10", "name": "Student Nash", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_11", "name": "Student Ortiz", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" },
+  { "id": "stud_12", "name": "Student Park", "role": "Student Doctor", "shift": "Rotation", "access": "Intermediate" }
+]

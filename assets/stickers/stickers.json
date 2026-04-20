@@ -1,0 +1,35 @@
+"stickers": [
+{
+"id": "s001",
+"type": "behavioral",
+"label": "Exam Stress",
+"note": "Patient squats at exits when frustrated. Use low-arousal redirection.",
+"created_by": "Dr. Aris",
+"timestamp": "2026-04-18T08:00:00Z"
+},
+{
+"id": "s002",
+"type": "info",
+"label": "Phone Permit",
+"note": "Allowed phone to manage anxiety per clinical exception.",
+"created_by": "Charge Nurse Smith"
+}
+]
+
+{
+"id": "s_004",
+"type": "behavioral",
+"linked_step_id": "step_intake_03", // Points to 'Identity & QR Banding'
+"label": "Identity Gap",
+"note": "Patient mute and non-compliant with identification. No wallet found.",
+"timestamp": "2026-04-18T11:50:00Z"
+}
+{
+"id": "s_005",
+"type": "behavioral",
+"acuity_level": 3,
+"linked_step_id": "step_intake_03",
+"label": "Identity Gap",
+"note": "Patient appeared in handcuffs missing shoes... met with silence.",
+"timestamp": "2026-04-18T12:15:00Z"
+}
