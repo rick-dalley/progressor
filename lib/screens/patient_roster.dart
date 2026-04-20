@@ -114,6 +114,12 @@ class _PatientRosterState extends State<PatientRoster> {
   Map<String, dynamic> _getPhq9Template() {
     return {
       "title": "PHQ-9 Depression Scale",
+      "column_headers" :[
+        "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+        "Not at all",
+        "Several days",
+        "More than half the days",
+        "Nearly every day"],
       "questions": [
         {"id": "q1", "text": "Little interest or pleasure in doing things?", "max_score": 3},
         {"id": "q2", "text": "Feeling down, depressed, or hopeless?", "max_score": 3},
