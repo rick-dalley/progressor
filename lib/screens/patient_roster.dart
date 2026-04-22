@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/vitals.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
@@ -68,6 +69,18 @@ class _PatientRosterState extends State<PatientRoster> {
               onTap: () {
                 Navigator.pop(context);
                 _launchAssessmentModal(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.local_police_outlined, color: Colors.indigo),
+              title: const Text("Law Enforcement Handoff"),
+              subtitle: const Text("Section 28, Form 10, or Verbal Report"),
+              onTap: () {
+                Navigator.pop(context); // Close the popup
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+                );
               },
             ),
             const SizedBox(height: 20),
