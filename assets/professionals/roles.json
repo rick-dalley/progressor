@@ -1,0 +1,106 @@
+[
+  {
+    "role_name": "Adult Justice",
+    "requires_value": false
+  },
+  {
+    "role_name": "Agency",
+    "requires_value": false
+  },
+  {
+    "role_name": "BC Centre for Disease Control",
+    "requires_value": false
+  },
+  {
+    "role_name": "Child Protection",
+    "requires_value": false
+  },
+  {
+    "role_name": "Emergency Room, Hospital",
+    "requires_value": false
+  },
+  {
+    "role_name": "Community Integration Specialist",
+    "requires_value": false
+  },
+  {
+    "role_name": "External Aboriginal Comm SVC",
+    "requires_value": false
+  },
+  {
+    "role_name": "External M.H. Service",
+    "requires_value": false
+  },
+  {
+    "role_name": "Lab",
+    "requires_value": false
+  },
+  {
+    "role_name": "External S.U. Service",
+    "requires_value": false
+  },
+  {
+    "role_name": "External Crisis Response SVC",
+    "requires_value": false
+  },
+  {
+    "role_name": "Housing Service",
+    "requires_value": false
+  },
+  {
+    "role_name": "Income Assistance",
+    "requires_value": false
+  },
+  {
+    "role_name": "Infection Control",
+    "requires_value": false
+  },
+  {
+    "role_name": "Internal Team",
+    "requires_value": false
+  },
+  {
+    "role_name": "Police",
+    "requires_value": false
+  },
+  {
+    "role_name": "Prison",
+    "requires_value": false
+  },
+  {
+    "role_name": "Self",
+    "requires_value": false
+  },
+  {
+    "role_name": "Ministry Child and Family Dev",
+    "requires_value": false
+  },
+  {
+    "role_name": "Tertiary Care",
+    "requires_value": false
+  },
+  {
+    "role_name": "Youth Forensics",
+    "requires_value": false
+  },
+  {
+    "role_name": "Physician (including GP Specialist)",
+    "requires_value": false
+  },
+  {
+    "role_name": "Schools and Education Facility",
+    "requires_value": false
+  },
+  {
+    "role_name": "Other",
+    "requires_value": true
+  },
+  {
+    "role_name": "Other Health Authority",
+    "requires_value": true
+  },
+  {
+    "role_name": "Other Health Professional",
+    "requires_value": true
+  }
+]
