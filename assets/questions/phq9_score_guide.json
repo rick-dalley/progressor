@@ -1,0 +1,7 @@
+[
+  {"max_score":4, "severity":"None-minimal", "action": "Patient may not need depression treatment."},
+  {"max_score":9, "severity": "Mild", "action": "Use clinical judgment about treatment, based on patient’s duration of symptoms and functional impairment."},
+  {"max_score":14, "severity": "Moderate" , "action": "Use clinical judgment about treatment, based on patient’s duration of symptoms and functional impairment."},
+  {"max_score":19, "severity": "Moderately severe", "action": "Treat using antidepressants, psychotherapy or a combination of treatment."},
+  {"max_score":27, "severity": "Severe" , "action": "Treat using antidepressants with or without psychotherapy."}
+]

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:triage/screens/vitals.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
 import '../screens/assessment.dart';
+import 'observation.dart';
 
 class PatientRoster extends StatefulWidget {
   const PatientRoster({super.key});
@@ -50,12 +52,15 @@ class _PatientRosterState extends State<PatientRoster> {
             ListTile(
               leading: const Icon(Icons.monitor_heart, color: Colors.redAccent),
               title: const Text("Vitals"),
-              onTap: () => Navigator.pop(context), // Link to Vitals Screen
+              onTap: () {
+                Navigator.pop(context);
+                _launchVitalsModal(context);
+              }, // Link to Vitals Screen
             ),
             ListTile(
               leading: const Icon(Icons.note_add, color: Colors.amber),
               title: const Text("Observation (Sticker)"),
-              onTap: () => Navigator.pop(context), // Link to Sticky Note Entry
+              onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
             ),
             ListTile(
               leading: const Icon(Icons.assignment, color: Colors.blueAccent),
@@ -71,6 +76,73 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
+
+  void _launchVitalsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent, // Let the container handle the color
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9, // Opens at 90% of screen height
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                // A small handle to indicate the modal is draggable
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+
+                Expanded(
+                  child: VitalsScreen(),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _launchObservationsModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent, // Let the container handle the color
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9, // Opens at 90% of screen height
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                // A small handle to indicate the modal is draggable
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+
+                Expanded(
+                  child: ObservationScreen(),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
 
   void _launchAssessmentModal(BuildContext context) {
     showModalBottomSheet(
@@ -121,7 +193,7 @@ class _PatientRosterState extends State<PatientRoster> {
         "Several days",
         "More than half the days",
         "Nearly every day"],
-      "questions": [
+      "questions_score": [
         {"id": "q1", "text": "1. Little interest or pleasure in doing things?", "max_score": 3},
         {"id": "q2", "text": "2. Feeling down, depressed, or hopeless?", "max_score": 3},
         {"id": "q3", "text": "3. Trouble falling or staying asleep, or sleeping too much?", "max_score": 3},
@@ -132,7 +204,14 @@ class _PatientRosterState extends State<PatientRoster> {
         {"id": "q8", "text": "8. Moving or speaking so slowly that other people could have noticed?  Or the opposite – being so fidgety or restless that you have been moving around a lot more than usual?", "max_score": 3},
         {"id": "q9", "text": "9. Thoughts that you would be better off dead or of hurting yourself in some way?", "max_score": 3},
         // ... add the rest here
-      ]
+      ],
+      "questions_impact_text": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+      "questions_impact": [
+        {"id": "q10", "text": "Not difficult at all", "bool": false},
+        {"id": "q11", "text": "Somewhat difficult", "bool": false},
+        {"id": "q12", "text": "Very difficult", "bool": false},
+        {"id": "q13", "text": "Extremely difficult", "bool": false},
+      ],
     };
   }
   @override

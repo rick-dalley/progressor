@@ -29,5 +29,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/patients/patients.json
+    - assets/questions/phq9_score_guide.json
 flutter_intl:
   enabled: true
