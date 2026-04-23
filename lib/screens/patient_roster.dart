@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:triage/screens/cssrs.dart';
 import 'package:triage/screens/gad7.dart';
+import 'package:triage/screens/pcl5.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
@@ -126,10 +127,11 @@ class _PatientRosterState extends State<PatientRoster> {
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
                     title: const Text("PCL-5"),
-                    // onTap: () {
-                    //   Navigator.pop(context);
-                    //   _launchCSSRAssessmentModal(context);
-                    // },
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "pcl-5.json",
+                        screenBuilder: (data, controller) => PCL5AssessmentScreen(template: data, scrollController: controller),
+                      )
                   ),
                   ListTile(
                     leading: const Icon(Icons.local_police_outlined, color: Colors.greenAccent),

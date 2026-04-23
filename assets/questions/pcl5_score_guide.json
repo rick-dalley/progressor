@@ -1,0 +1,6 @@
+[
+  {"max_score":4, "severity": "Minimal anxiety"},
+  {"max_score":9, "severity": "Mild anxiety"},
+  {"max_score":14, "severity": "Moderate anxiety"},
+  {"max_score":21, "severity": "Severe anxiety"}
+]
