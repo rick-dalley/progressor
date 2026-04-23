@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:triage/screens/c-ssrs.dart';
+import 'package:triage/screens/gad-7.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
@@ -36,78 +37,121 @@ class _PatientRosterState extends State<PatientRoster> {
       _patients = data.where((item) => item != null).toList();
     });
   }
+
   void _showEntryMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Required to let the modal expand
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
+        // Limit the height so it doesn't hit the very top of the screen
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).canvasColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min, // Container hugs the content
           children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text("QUICK RECORD", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
             ),
-            ListTile(
-              leading: const Icon(Icons.monitor_heart, color: Colors.redAccent),
-              title: const Text("Vitals"),
-              onTap: () {
-                Navigator.pop(context);
-                _launchVitalsModal(context);
-              }, // Link to Vitals Screen
+
+            Flexible( // Use Flexible so the ListView takes only the remaining space
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.monitor_heart, color: Colors.redAccent),
+                    title: const Text("Vitals"),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _launchVitalsModal(context);
+                    }, // Link to Vitals Screen
+                  ),
+                  ListTile(
+                      leading: const Icon(Icons.note_add, color: Colors.amber),
+                      title: const Text("Observations"),
+                      onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
+                  ),
+                  ListTile(
+                      leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                      title: const Text("PHQ-9"),
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "phq-9.json",
+                        screenBuilder: (data, controller) => PHQ9AssessmentScreen(template: data, scrollController: controller),
+                      )
+                  ),
+                  ListTile(
+                      leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                      title: const Text("GAD-7"),
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "gad-7.json",
+                        screenBuilder: (data, controller) => GAD7AssessmentScreen(template: data, scrollController: controller),
+                      )
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    title: const Text("C-SSRS"),
+                    // onTap: () => _launchAssessment(
+                    //   context,
+                    //   templateName: "c-ssrs.json",
+                    //   screenBuilder: (data, controller) => CSSRSAssessmentScreen(template: data, scrollController: controller),
+                    // )
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    title: const Text("DAST-10"),
+                    // onTap: () {
+                    //   Navigator.pop(context);
+                    //   _launchCSSRAssessmentModal(context);
+                    // },
+                  ),
+                  //ASRS-V1.1
+                  ListTile(
+                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    title: const Text("ASRS-V1.1"),
+                    // onTap: () {
+                    //   Navigator.pop(context);
+                    //   _launchCSSRAssessmentModal(context);
+                    // },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    title: const Text("PCL-5"),
+                    // onTap: () {
+                    //   Navigator.pop(context);
+                    //   _launchCSSRAssessmentModal(context);
+                    // },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.local_police_outlined, color: Colors.greenAccent),
+                    title: const Text("Law Enforcement Handoff"),
+                    subtitle: const Text("Section 28, Form 10, or Verbal Report"),
+                    onTap: () {
+                      Navigator.pop(context); // Close the popup
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.note_add, color: Colors.amber),
-              title: const Text("Observations"),
-              onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-              title: const Text("PHQ-9"),
-              onTap: () {
-                Navigator.pop(context);
-                _launchPHQ9AssessmentModal(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-              title: const Text("GAD-7"),
-              onTap: () {
-                Navigator.pop(context);
-                _launchGAD7AssessmentModal(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-              title: const Text("C-SSRS"),
-              onTap: () {
-                Navigator.pop(context);
-                _launchCSSRAssessmentModal(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.local_police_outlined, color: Colors.greenAccent),
-              title: const Text("Law Enforcement Handoff"),
-              subtitle: const Text("Section 28, Form 10, or Verbal Report"),
-              onTap: () {
-                Navigator.pop(context); // Close the popup
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
-
   void _launchVitalsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -173,15 +217,22 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-
-  Future<void> _launchPHQ9AssessmentModal(BuildContext context) async {
-    Map<String, dynamic> phq9Template = await Templates.getTemplate("phq-9.json");
+  
+  Future<void> _launchAssessment(
+      BuildContext context, {
+        required String templateName,
+        required Widget Function(Map<String, dynamic> template, ScrollController controller) screenBuilder,
+      }) async {
+    // 1. Fetch the requested template
+    Map<String, dynamic> template = await Templates.getTemplate(templateName);
+    // 2. Standardized Modal Plumbing
+    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent, // Let the container handle the color
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens at 90% of screen height
+        initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
@@ -193,93 +244,15 @@ class _PatientRosterState extends State<PatientRoster> {
             ),
             child: Column(
               children: [
-                // A small handle to indicate the modal is draggable
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-
-                Expanded(
-                  child: PHQ9AssessmentScreen(
-                    // Pass your JSON template here
-                    template: phq9Template,
-                    // If your AssessmentScreen has a ListView, pass this controller to it
-                    // so the scrolling feels integrated with the modal
-                    scrollController: scrollController,
-                  ),
+                Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))
                 ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Future<void> _launchGAD7AssessmentModal(BuildContext context) async {
-    Map<String, dynamic> gad7Template = await Templates.getTemplate("gad-7.json");
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent, // Let the container handle the color
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens at 90% of screen height
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController)  {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                // A small handle to indicate the modal is draggable
-                const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-
                 Expanded(
-                  child: PHQ9AssessmentScreen(
-                    // Pass your JSON template here
-                    template: gad7Template,
-                    // If your AssessmentScreen has a ListView, pass this controller to it
-                    // so the scrolling feels integrated with the modal
-                    scrollController: scrollController,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Future<void> _launchCSSRAssessmentModal(BuildContext context) async {
-    Map<String, dynamic> gad7Template = await Templates.getTemplate("gad-7.json");
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent, // Let the container handle the color
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens at 90% of screen height
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController)  {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                // A small handle to indicate the modal is draggable
-                const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-
-                Expanded(
-                  child: CSSRSAssessmentScreen(
-                  ),
+                  // 3. Inject the specific screen here
+                  child: screenBuilder(template, scrollController),
                 ),
               ],
             ),
