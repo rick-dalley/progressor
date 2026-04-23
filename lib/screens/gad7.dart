@@ -3,23 +3,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
+import '../widgets/likert_question.dart';
 
-class PHQ9AssessmentScreen extends StatefulWidget {
+class GAD7AssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const PHQ9AssessmentScreen({
+  const GAD7AssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  PHQ9AssessmentScreenState createState() => PHQ9AssessmentScreenState();
+  GAD7AssessmentScreenState createState() => GAD7AssessmentScreenState();
 }
 
-class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
+class GAD7AssessmentScreenState extends State<GAD7AssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
@@ -29,7 +30,7 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
   List<dynamic>? _scoreGuide;
 
   Future<void> _loadScoreGuide() async {
-    final String response = await rootBundle.loadString('assets/questions/phq9_score_guide.json');
+    final String response = await rootBundle.loadString('assets/questions/gad7_score_guide.json');
     final data = await json.decode(response);
     setState(() {
       _scoreGuide = data;
@@ -84,21 +85,37 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
         Expanded(
           child: ListView.builder(
             controller: widget.scrollController, // Link to the DraggableSheet
-            itemCount: questions.length + 1, // Questions + 1 for Footer
+            itemCount: questions.length, // Questions + 1 for Footer
             itemBuilder: (context, index) {
-              // Render Questions
-              if (index < questions.length) {
-                final q = questions[index];
-                return _buildQuestionItem(q);
+
+              final q = questions[index];
+
+              Widget questionTile = LikertQuestionTile(
+                // Cast 'q' and 'template' to the Map types expected by the widget
+                q: q as Map<String, dynamic>,
+                template: widget.template,
+                currentValue: answers[q['id']],
+                showWarning: _showValidationErrors && !answers.containsKey(q['id']),
+                onChanged: (score) {
+                  setState(() {
+                    answers[q['id']] = score;
+                  });
+                },
+              );
+              if (index == questions.length - 1) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    questionTile, // The last question is still rendered here!
+                    _buildImpactSelector(widget.template['questions_impact']),
+                    _buildScoreFooter(),
+                    const SizedBox(height: 40), // iPhone bottom-area padding
+                  ],
+                );
               }
 
-              // Render Footer at the very bottom of the scroll
-              return Column(
-                children: [
-                  _buildImpactSelector(widget.template['questions_impact']),
-                  _buildScoreFooter(),
-                ],
-              );
+              // 3. For all other indices, just return the tile
+              return questionTile;
             },
           ),
         ),
@@ -106,88 +123,28 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
     );
   }
 
-  // Added the missing helper method here
-  Widget _buildQuestionItem(Map<String, dynamic> q) {
-    // Check if the question is missing an answer
-    bool isMissing = !answers.containsKey(q['id']);
+  Map<String, String>? getInterpretation() {
+    final questions = widget.template['questions_score'] as List;
 
-    // Only show the "error" state if the user has tried to submit
-    bool showWarning = _showValidationErrors && isMissing;
+    // 1. Check for missing values
+    if (answers.length < questions.length) return null;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16.0),
-      // Give it a subtle red background and border if missing
-      decoration: BoxDecoration(
-        color: showWarning ? Colors.red.withValues(alpha:0.05) : Colors.transparent,
-        border: Border(
-          left: BorderSide(
-            color: showWarning ? Colors.red : Colors.transparent,
-            width: 4,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  q['text'],
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    // Turn the text red if missing
-                    color: showWarning ? Colors.red.shade900 : Colors.black,
-                  ),
-                ),
-              ),
-              if (showWarning)
-                const Icon(Icons.error_outline, color: Colors.red, size: 20),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(q['max_score'] + 1, (score) {
-              String labelText = widget.template['column_headers'][score + 1] ?? "";
+    // 4. Match Total Score against JSON Assets
+    int score = totalScore;
+    String severity = "Unknown";
 
-              return Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      labelText,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 10, color: Colors.black54),
-                    ),
-                    const SizedBox(height: 4),
-                    ChoiceChip(
-                      label: Text(
-                        score.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      selected: answers[q['id']] == score,
-                      onSelected: (selected) {
-                        setState(() {
-                          answers[q['id']] = score;
-                          // Optional: remove error once they pick a value
-                          if (answers.length == widget.template['questions_score'].length) {
-                            _showValidationErrors = false;
-                          }
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
+    if (_scoreGuide != null) {
+      for (var entry in _scoreGuide!) {
+        if (score <= entry['max_score']) {
+          severity = entry['severity'];
+          break;
+        }
+      }
+    }
+
+    return {
+      "summary": "Severity: $severity (Score: $score).",
+    };
   }
 
   Widget _buildImpactSelector(List<dynamic> options) {
@@ -254,55 +211,6 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
     );
   }
 
-  Map<String, String>? getInterpretation() {
-    final questions = widget.template['questions_score'] as List;
-
-    // 1. Check for missing values
-    if (answers.length < questions.length) return null;
-
-    // 2. PHQ-9 Clinical Logic: Count symptoms >= 2 (More than half the days)
-    int highFreqCount = 0;
-    bool q1OrQ2HighFreq = false;
-
-    for (var q in questions) {
-      int score = answers[q['id']] ?? 0;
-      if (score >= 2) {
-        highFreqCount++;
-        if (q['id'] == 'q1' || q['id'] == 'q2') q1OrQ2HighFreq = true;
-      }
-    }
-
-    // 3. Determine Syndrome Suggestion
-    String syndrome = "No specific depressive syndrome suggested.";
-    if (q1OrQ2HighFreq) {
-      if (highFreqCount >= 5) {
-        syndrome = "Major Depressive Disorder suggested.";
-      } else if (highFreqCount >= 2) {
-        syndrome = "Other Depressive Syndrome suggested.";
-      }
-    }
-
-    // 4. Match Total Score against JSON Assets
-    int score = totalScore;
-    String severity = "Unknown";
-    String action = "No action defined.";
-
-    if (_scoreGuide != null) {
-      for (var entry in _scoreGuide!) {
-        if (score <= entry['max_score']) {
-          severity = entry['severity'];
-          action = entry['action'];
-          break;
-        }
-      }
-    }
-
-    return {
-      "summary": "$syndrome Severity: $severity (Score: $score).",
-      "action": action
-    };
-  }
-  void _submitAssessment(){}
   Widget _buildScoreFooter() {
     final questions = widget.template['questions_score'] as List;
 
@@ -329,12 +237,6 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
             Text(
               interpretation['summary']!,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Recommended Action: ${interpretation['action']}",
-              style: const TextStyle(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -368,5 +270,8 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
       ),
     );
   }
+
+  void _submitAssessment(){}
+
 }
 

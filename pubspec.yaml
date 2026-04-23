@@ -28,8 +28,8 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
-    - assets/patients/patients.json
+    - assets/patients/
     - assets/assessments/
-    - assets/questions/phq9_score_guide.json
+    - assets/questions/
 flutter_intl:
   enabled: true

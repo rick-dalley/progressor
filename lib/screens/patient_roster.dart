@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:triage/screens/c-ssrs.dart';
-import 'package:triage/screens/gad-7.dart';
+import 'package:triage/screens/cssrs.dart';
+import 'package:triage/screens/gad7.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
-import '../screens/phq-9.dart';
+import '../screens/phq9.dart';
 import 'observation.dart';
 
 class PatientRoster extends StatefulWidget {

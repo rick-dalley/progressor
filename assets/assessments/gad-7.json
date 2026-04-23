@@ -35,8 +35,15 @@
 },
 {
 "id": "q7",
-"text": "7. Feeling afrais as if something awful might happen",
+"text": "7. Feeling afraid as if something awful might happen",
 "max_score": 3
 }
-]
+],
+   "questions_impact_text": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+   "questions_impact": [
+     {"id": "q10", "text": "Not difficult at all", "bool": false},
+     {"id": "q11", "text": "Somewhat difficult", "bool": false},
+     {"id": "q12", "text": "Very difficult", "bool": false},
+     {"id": "q13", "text": "Extremely difficult", "bool": false}
+   ]
 }

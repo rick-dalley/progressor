@@ -2,10 +2,10 @@ import 'package:flutter/material.dart' show StatefulWidget, BuildContext, State,
 
 class CSSRSAssessmentScreen extends StatefulWidget {
   @override
-  _CSSRSAssessmentScreenState createState() => _CSSRSAssessmentScreenState();
+  CSSRSAssessmentScreenState createState() => CSSRSAssessmentScreenState();
 }
 
-class _CSSRSAssessmentScreenState extends State<CSSRSAssessmentScreen> {
+class CSSRSAssessmentScreenState extends State<CSSRSAssessmentScreen> {
   Map<String, dynamic> responses = {};
 
   @override

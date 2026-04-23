@@ -3,23 +3,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
+import '../widgets/likert_question.dart';
 
-class GAD7AssessmentScreen extends StatefulWidget {
+class PHQ9AssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const GAD7AssessmentScreen({
+  const PHQ9AssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  GAD7AssessmentScreenState createState() => GAD7AssessmentScreenState();
+  PHQ9AssessmentScreenState createState() => PHQ9AssessmentScreenState();
 }
 
-class GAD7AssessmentScreenState extends State<GAD7AssessmentScreen> {
+class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
@@ -84,21 +85,37 @@ class GAD7AssessmentScreenState extends State<GAD7AssessmentScreen> {
         Expanded(
           child: ListView.builder(
             controller: widget.scrollController, // Link to the DraggableSheet
-            itemCount: questions.length + 1, // Questions + 1 for Footer
+            itemCount: questions.length, // Questions + 1 for Footer
             itemBuilder: (context, index) {
-              // Render Questions
-              if (index < questions.length) {
-                final q = questions[index];
-                return _buildQuestionItem(q);
+
+              final q = questions[index];
+
+              Widget questionTile = LikertQuestionTile(
+                // Cast 'q' and 'template' to the Map types expected by the widget
+                q: q as Map<String, dynamic>,
+                template: widget.template,
+                currentValue: answers[q['id']],
+                showWarning: _showValidationErrors && !answers.containsKey(q['id']),
+                onChanged: (score) {
+                  setState(() {
+                    answers[q['id']] = score;
+                  });
+                },
+              );
+              if (index == questions.length - 1) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    questionTile, // The last question is still rendered here!
+                    _buildImpactSelector(widget.template['questions_impact']),
+                    _buildScoreFooter(),
+                    const SizedBox(height: 40), // iPhone bottom-area padding
+                  ],
+                );
               }
 
-              // Render Footer at the very bottom of the scroll
-              return Column(
-                children: [
-                  _buildImpactSelector(widget.template['questions_impact']),
-                  _buildScoreFooter(),
-                ],
-              );
+              // 3. For all other indices, just return the tile
+              return questionTile;
             },
           ),
         ),
