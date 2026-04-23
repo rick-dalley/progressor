@@ -5,22 +5,22 @@ import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
-class PHQ9AssessmentScreen extends StatefulWidget {
+class DAST10AssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const PHQ9AssessmentScreen({
+  const DAST10AssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  PHQ9AssessmentScreenState createState() => PHQ9AssessmentScreenState();
+  DAST10AssessmentScreenState createState() => DAST10AssessmentScreenState();
 }
 
-class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
+class DAST10AssessmentScreenState extends State<DAST10AssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
@@ -30,7 +30,7 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
   List<dynamic>? _scoreGuide;
 
   Future<void> _loadScoreGuide() async {
-    final String response = await rootBundle.loadString('assets/questions/phq9_score_guide.json');
+    final String response = await rootBundle.loadString('assets/questions/dast10_score_guide.json');
     final data = await json.decode(response);
     setState(() {
       _scoreGuide = data;
@@ -107,7 +107,6 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     questionTile, // The last question is still rendered here!
-                    _buildImpactSelector(widget.template['questions_impact']),
                     _buildScoreFooter(),
                     const SizedBox(height: 40), // iPhone bottom-area padding
                   ],
@@ -123,105 +122,17 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
     );
   }
 
-  Widget _buildImpactSelector(List<dynamic> options) {
-    final l10n = S.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // The instruction text from the template
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            widget.template['questions_impact_text'] ?? "",
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        // Vertical selection list
-        Column(
-          children: options.map((option) {
-            final String id = option['id'];
-            final String text = option['text'];
-            final bool isSelected = answers.containsKey(id);
-
-            return InkWell(
-              onTap: () {
-                setState(() {
-                  // Clear out any previous impact selection (q10-q13)
-                  for (var opt in options) {
-                    answers.remove(opt['id']);
-                  }
-                  // Store the new one with value 0 to keep totalScore accurate
-                  answers[id] = 0;
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Row(
-                  children: [
-                    // Mimics the paper checkbox/radio look
-                    Icon(
-                      isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                      color: isSelected ? Colors.blue : Colors.grey,
-                    ),
-                    const SizedBox(width: 12),
-                    // The text now has the full width to breathe
-                    Expanded(
-                      child: Text(
-                        text,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isSelected ? Colors.black : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
   Map<String, String>? getInterpretation() {
     final questions = widget.template['questions_score'] as List;
-
-    // 1. Check for missing values
     if (answers.length < questions.length) return null;
 
-    // 2. PHQ-9 Clinical Logic: Count symptoms >= 2 (More than half the days)
-    int highFreqCount = 0;
-    bool q1OrQ2HighFreq = false;
-
-    for (var q in questions) {
-      int score = answers[q['id']] ?? 0;
-      if (score >= 2) {
-        highFreqCount++;
-        if (q['id'] == 'q1' || q['id'] == 'q2') q1OrQ2HighFreq = true;
-      }
-    }
-
-    // 3. Determine Syndrome Suggestion
-    String syndrome = "No specific depressive syndrome suggested.";
-    if (q1OrQ2HighFreq) {
-      if (highFreqCount >= 5) {
-        syndrome = "Major Depressive Disorder suggested.";
-      } else if (highFreqCount >= 2) {
-        syndrome = "Other Depressive Syndrome suggested.";
-      }
-    }
-
-    // 4. Match Total Score against JSON Assets
     int score = totalScore;
     String severity = "Unknown";
-    String action = "No action defined.";
+    String action = "None";
 
     if (_scoreGuide != null) {
       for (var entry in _scoreGuide!) {
+        // Find the first entry where the current score is <= the threshold
         if (score <= entry['max_score']) {
           severity = entry['severity'];
           action = entry['action'];
@@ -231,25 +142,16 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
     }
 
     return {
-      "summary": "$syndrome Severity: $severity (Score: $score).",
-      "action": action
+      "summary": "Score: $score - $severity",
+      "action": "Action: $action",
     };
   }
-
-  void _submitAssessment(){}
 
   Widget _buildScoreFooter() {
     final questions = widget.template['questions_score'] as List;
 
-    // 1. Check if all 9 clinical questions are answered
-    bool allQuestionsAnswered = questions.every((q) => answers.containsKey(q['id']));
-
-    // 2. Check if the impact question (q10-q13) is answered
-    // We check if any key starting with 'q10', 'q11', etc., exists
-    // or if you used the 'impact_id' key approach we discussed.
-    bool impactAnswered = answers.keys.any((key) => ['q10', 'q11', 'q12', 'q13'].contains(key));
-
-    final bool isFormComplete = allQuestionsAnswered && impactAnswered;
+    // Check if all 9 clinical questions are answered
+    bool isFormComplete = questions.every((q) => answers.containsKey(q['id']));
 
     // Only get interpretation if the form is actually complete
     final interpretation = isFormComplete ? getInterpretation() : null;
@@ -268,7 +170,7 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Recommended Action: ${interpretation['action']}",
+              "Recommended ${interpretation['action']}",
               style: const TextStyle(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
@@ -286,7 +188,7 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
               if (!isFormComplete) {
                 setState(() => _showValidationErrors = true);
 
-                String message = !allQuestionsAnswered
+                String message = !isFormComplete
                     ? "Please answer all 9 clinical questions."
                     : "Please select the impact of these symptoms.";
 
@@ -303,6 +205,8 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
       ),
     );
   }
+
+  void _submitAssessment(){}
 
 }
 

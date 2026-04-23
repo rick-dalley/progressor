@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:triage/screens/cssrs.dart';
+import 'package:triage/screens/dast10.dart';
 import 'package:triage/screens/gad7.dart';
 import 'package:triage/screens/pcl5.dart';
 import 'package:triage/screens/police_report.dart';
@@ -110,10 +111,11 @@ class _PatientRosterState extends State<PatientRoster> {
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
                     title: const Text("DAST-10"),
-                    // onTap: () {
-                    //   Navigator.pop(context);
-                    //   _launchCSSRAssessmentModal(context);
-                    // },
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "dast-10.json",
+                        screenBuilder: (data, controller) => DAST10AssessmentScreen(template: data, scrollController: controller),
+                      )
                   ),
                   //ASRS-V1.1
                   ListTile(

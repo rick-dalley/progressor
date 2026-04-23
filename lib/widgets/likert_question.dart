@@ -20,7 +20,7 @@ class LikertQuestionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int maxScore = q['max_score'] ?? 3;
-
+    final bool isBoolean = q['type'] == 'boolean';
     // Safety check: Cast the headers as a List as seen in your GAD-7 JSON
     final List<dynamic> headers = template['column_headers'] as List<dynamic>;
 
@@ -71,7 +71,29 @@ class LikertQuestionTile extends StatelessWidget {
               }
 
               final bool isSelected = currentValue == score;
-
+              // BOOLEAN LAYOUT (DAST-10)
+              if (isBoolean) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    child: ChoiceChip(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      label: Center(
+                        child: Text(
+                          labelText, // "No" or "Yes" inside the pill
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedColor: Colors.blueAccent,
+                      onSelected: (selected) => onChanged(score),
+                    ),
+                  ),
+                );
+              }
               return Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
