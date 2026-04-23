@@ -1,0 +1,125 @@
+{
+  "title": "Columbia-Suicide Severity Rating Scale (C-SSRS)",
+  "version": "Since Last Visit",
+  "sections": [
+    {
+      "id": "suicidal_ideation",
+      "header": "Suicidal Ideation",
+      "instructions": "Ask questions 1 and 2. If both are negative, proceed to 'Suicidal Behavior'. If 2 is 'yes', ask 3-5. If 1 or 2 is 'yes', complete 'Intensity'.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "1. Wish to be Dead",
+          "description": "Have you thought about being dead or what it would be like to be dead? Have you wished you were dead or wished you could go to sleep and never wake up? Do you wish you weren’t alive anymore?",
+          "type": "boolean_with_desc"
+        },
+        {
+          "id": "q2",
+          "text": "2. Non-Specific Active Suicidal Thoughts",
+          "description": "Have you thought about doing something to make yourself not alive anymore? Have you had any thoughts about killing yourself?",
+          "type": "boolean_with_desc"
+        },
+        {
+          "id": "q3",
+          "text": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
+          "description": "Have you thought about how you would do that or how you would make yourself not alive anymore (kill yourself)? What did you think about?",
+          "type": "boolean_with_desc",
+          "depends_on": "q2"
+        },
+        {
+          "id": "q4",
+          "text": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
+          "description": "When you thought about making yourself not alive anymore, did you think that this was something you might actually do?",
+          "type": "boolean_with_desc",
+          "depends_on": "q2"
+        },
+        {
+          "id": "q5",
+          "text": "5. Active Suicidal Ideation with Specific Plan and Intent",
+          "description": "Have you decided how or when you would make yourself not alive anymore? Have you planned out the details?",
+          "type": "boolean_with_desc",
+          "depends_on": "q2"
+        }
+      ]
+    },
+    {
+      "id": "intensity_of_ideation",
+      "header": "Intensity of Ideation",
+      "instructions": "Rate with respect to the most severe type of ideation (1-5 above).",
+      "questions": [
+        {
+          "id": "intensity_freq",
+          "text": "Most Severe Frequency",
+          "description": "How many times have you had these thoughts?",
+          "type": "choice",
+          "options": [
+            {"label": "Don’t know/Not applicable", "value": 0},
+            {"label": "Only one time", "value": 1},
+            {"label": "A few times", "value": 2},
+            {"label": "A lot", "value": 3},
+            {"label": "All the time", "value": 4}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suicidal_behavior",
+      "header": "Suicidal Behavior",
+      "questions": [
+        {
+          "id": "b1",
+          "text": "Actual Attempt",
+          "description": "Did you do anything to try to kill yourself? Did you hurt yourself on purpose?",
+          "type": "behavior_tally"
+        },
+        {
+          "id": "b2",
+          "text": "Interrupted Attempt",
+          "description": "Was there a time when you started to do something but someone or something stopped you?",
+          "type": "behavior_tally"
+        },
+        {
+          "id": "b3",
+          "text": "Aborted Attempt",
+          "description": "Was there a time when you started to do something but you changed your mind?",
+          "type": "behavior_tally"
+        },
+        {
+          "id": "b4",
+          "text": "Preparatory Acts",
+          "description": "Have you done anything to get ready—like giving things away or writing a note?",
+          "type": "behavior_tally"
+        }
+      ]
+    },
+    {
+      "id": "lethality",
+      "header": "Lethality",
+      "questions": [
+        {
+          "id": "actual_lethality",
+          "text": "Actual Lethality/Medical Damage",
+          "type": "choice",
+          "options": [
+            {"label": "0: No/minor damage", "value": 0},
+            {"label": "1: Minor (lethargic, first-degree burns)", "value": 1},
+            {"label": "2: Moderate (conscious but sleepy)", "value": 2},
+            {"label": "3: Moderately Severe (hospitalization required)", "value": 3},
+            {"label": "4: Severe (ICU required)", "value": 4},
+            {"label": "5: Death", "value": 5}
+          ]
+        },
+        {
+          "id": "potential_lethality",
+          "text": "Potential Lethality (Only if Actual=0)",
+          "type": "choice",
+          "options": [
+            {"label": "0: Not likely result in injury", "value": 0},
+            {"label": "1: Likely injury, not death", "value": 1},
+            {"label": "2: Likely death despite medical care", "value": 2}
+          ]
+        }
+      ]
+    }
+  ]
+}

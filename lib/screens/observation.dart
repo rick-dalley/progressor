@@ -31,7 +31,7 @@ class _ObservationScreenState extends State<ObservationScreen> {
   void _saveNote() {
     if (_noteController.text
         .trim()
-        .isEmpty) return;
+        .isEmpty) {return;}
 
     setState(() {
       _history.insert(0, ObservationNote(

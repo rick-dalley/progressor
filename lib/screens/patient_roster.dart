@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:triage/screens/c-ssrs.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/vitals.dart';
-import 'package:triage/templates.dart';
+import 'package:triage/classes/templates.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
-import '../screens/assessment.dart';
+import '../screens/phq-9.dart';
 import 'observation.dart';
 
 class PatientRoster extends StatefulWidget {
@@ -61,15 +62,31 @@ class _PatientRosterState extends State<PatientRoster> {
             ),
             ListTile(
               leading: const Icon(Icons.note_add, color: Colors.amber),
-              title: const Text("Observation (Sticker)"),
+              title: const Text("Observations"),
               onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
             ),
             ListTile(
               leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-              title: const Text("Assessment"),
+              title: const Text("PHQ-9"),
               onTap: () {
                 Navigator.pop(context);
-                _launchAssessmentModal(context);
+                _launchPHQ9AssessmentModal(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+              title: const Text("GAD-7"),
+              onTap: () {
+                Navigator.pop(context);
+                _launchGAD7AssessmentModal(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+              title: const Text("C-SSRS"),
+              onTap: () {
+                Navigator.pop(context);
+                _launchCSSRAssessmentModal(context);
               },
             ),
             ListTile(
@@ -157,8 +174,8 @@ class _PatientRosterState extends State<PatientRoster> {
     );
   }
 
-
-  void _launchAssessmentModal(BuildContext context) {
+  Future<void> _launchPHQ9AssessmentModal(BuildContext context) async {
+    Map<String, dynamic> phq9Template = await Templates.getTemplate("phq-9.json");
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
@@ -181,12 +198,87 @@ class _PatientRosterState extends State<PatientRoster> {
                 Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
 
                 Expanded(
-                  child: AssessmentScreen(
+                  child: PHQ9AssessmentScreen(
                     // Pass your JSON template here
-                    template: templates.getPhq9Template(),
+                    template: phq9Template,
                     // If your AssessmentScreen has a ListView, pass this controller to it
                     // so the scrolling feels integrated with the modal
                     scrollController: scrollController,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _launchGAD7AssessmentModal(BuildContext context) async {
+    Map<String, dynamic> gad7Template = await Templates.getTemplate("gad-7.json");
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent, // Let the container handle the color
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9, // Opens at 90% of screen height
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController)  {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                // A small handle to indicate the modal is draggable
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+
+                Expanded(
+                  child: PHQ9AssessmentScreen(
+                    // Pass your JSON template here
+                    template: gad7Template,
+                    // If your AssessmentScreen has a ListView, pass this controller to it
+                    // so the scrolling feels integrated with the modal
+                    scrollController: scrollController,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _launchCSSRAssessmentModal(BuildContext context) async {
+    Map<String, dynamic> gad7Template = await Templates.getTemplate("gad-7.json");
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent, // Let the container handle the color
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9, // Opens at 90% of screen height
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController)  {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                // A small handle to indicate the modal is draggable
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+
+                Expanded(
+                  child: CSSRSAssessmentScreen(
                   ),
                 ),
               ],

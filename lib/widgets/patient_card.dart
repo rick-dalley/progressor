@@ -30,11 +30,11 @@ class PatientCard extends StatelessWidget {
     final String lastName = (patient['name']?['last'] ?? 'Patient').toString();
     final String firstName = (patient['name']?['first'] ?? 'Unknown').toString();
     final String phn = (patient['phn'] ?? '000-000-000').toString();
-    final String zone = (patient['zone'] ?? 'Unknown Zone').toString();
     final String status = (patient['status'] ?? 'Triage').toString();
     final List<dynamic> flags = patient['flags'] ?? [];
     final Color statusColor = _getDispositionColor();
-  final isTriage = patient['status'] == 'Triage';
+    final isTriage = patient['status'] == 'Triage';
+
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -51,13 +51,13 @@ class PatientCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${patient['name']?['last'] ?? 'Unknown'}, ${patient['name']?['first'] ?? 'Patient'}",
+                  "$lastName, $firstName",
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
+                    color: statusColor.withValues(alpha:0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.circle, color: statusColor, size: 16),
@@ -67,10 +67,10 @@ class PatientCard extends StatelessWidget {
             const Divider(height: 24),
             Row(
               children: [
-                _buildInfoChip(Icons.badge, "PHN: ${patient['phn'] ?? 'N/A'}"),
+                _buildInfoChip(Icons.badge, "PHN: $phn"),
                 const SizedBox(width: 12),
                 // Use 'status' instead of the missing 'zone'
-                _buildInfoChip(Icons.location_on, patient['status'] ?? 'Unassigned'),
+                _buildInfoChip(Icons.location_on, status),
                 const SizedBox(width: 12),
                 // Added Acuity so you can see the 1-5 scale at a glance
                 _buildInfoChip(Icons.speed, "Acuity: ${patient['current_acuity']}"),
@@ -80,13 +80,13 @@ class PatientCard extends StatelessWidget {
             _buildVitalsBar(),
             const SizedBox(height: 8),
             Text(
-              "Current Status: ${patient['status']}",
+              "Current Status: $status",
               style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6.0,
-              children: (patient['flags'] as List<dynamic>).map((flag) {
+              children: flags.map((flag) {
                 return Chip(
                   label: Text(flag, style: const TextStyle(fontSize: 10, color: Colors.white)),
                   backgroundColor: Colors.blueGrey.shade700,

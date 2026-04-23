@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
 
-class AssessmentScreen extends StatefulWidget {
+class GAD7AssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const AssessmentScreen({
+  const GAD7AssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  _AssessmentScreenState createState() => _AssessmentScreenState();
+  GAD7AssessmentScreenState createState() => GAD7AssessmentScreenState();
 }
 
-class _AssessmentScreenState extends State<AssessmentScreen> {
+class GAD7AssessmentScreenState extends State<GAD7AssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
@@ -119,7 +119,7 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
       padding: const EdgeInsets.all(16.0),
       // Give it a subtle red background and border if missing
       decoration: BoxDecoration(
-        color: showWarning ? Colors.red.withOpacity(0.05) : Colors.transparent,
+        color: showWarning ? Colors.red.withValues(alpha:0.05) : Colors.transparent,
         border: Border(
           left: BorderSide(
             color: showWarning ? Colors.red : Colors.transparent,

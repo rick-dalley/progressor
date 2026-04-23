@@ -42,7 +42,6 @@ class LuminescaApp extends StatelessWidget {
           primary: navyIntelligent,
           secondary: greenTherapeutic,
           surface: surfaceWhite,
-          background: Colors.white,
         ),
 
         // Styling for all AppBars in the suite

@@ -5,10 +5,10 @@ class QuestionWidget extends StatefulWidget {
   const QuestionWidget({super.key, required this.question});
 
   @override
-  _QuestionWidgetState createState() => _QuestionWidgetState();
+  QuestionWidgetState createState() => QuestionWidgetState();
 }
 
-class _QuestionWidgetState extends State<QuestionWidget> {
+class QuestionWidgetState extends State<QuestionWidget> {
   bool _showNote = false;
   final TextEditingController _noteController = TextEditingController();
 

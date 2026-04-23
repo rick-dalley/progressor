@@ -17,11 +17,14 @@ final List<VitalEntry> vitalsList = [
 ];
 
 class VitalsScreen extends StatefulWidget {
+
+  const VitalsScreen({super.key});
+
   @override
-  _VitalsScreenState createState() => _VitalsScreenState();
+  VitalsScreenState createState() => VitalsScreenState();
 }
 
-class _VitalsScreenState extends State<VitalsScreen> {
+class VitalsScreenState extends State<VitalsScreen> {
   final Map<String, TextEditingController> _controllers = {
     'sys': TextEditingController(),
     'dia': TextEditingController(),
@@ -70,7 +73,7 @@ class _VitalsScreenState extends State<VitalsScreen> {
                 ...vitalsList.map((vital) => Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: _buildVitalInput(vital),
-                )).toList(),
+                )),
               ],
             ),
           ),

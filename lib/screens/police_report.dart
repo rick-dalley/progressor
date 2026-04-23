@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PoliceReportScreen extends StatefulWidget {
@@ -25,7 +24,7 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
           const Text("Officer & Agency Details", style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _selectedAgency,
+            initialValue: _selectedAgency,
             items: ['RCMP', 'VPD', 'Transit Police', 'Other'].map((String value) {
               return DropdownMenuItem<String>(value: value, child: Text(value));
             }).toList(),
