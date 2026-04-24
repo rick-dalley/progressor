@@ -52,7 +52,7 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-  void _showEntryMenu(BuildContext context) {
+  void _showAssessmentsMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Required to let the modal expand
@@ -277,7 +277,7 @@ class _PatientRosterState extends State<PatientRoster> {
           return PatientCard(
             patient: _patients[index],
             onVitalsTap: () => _launchVitalsModal(context),
-            onAssessmentsTap: () => _showEntryMenu(context),
+            onAssessmentsTap: () => _showAssessmentsMenu(context),
             onMedsTap: () {
               Navigator.push(
                 context,

@@ -49,6 +49,8 @@ class PatientCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text("$lastName, $firstName",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Divider(height: 8),
             const SizedBox(height: 8),
             Row(
@@ -92,13 +94,13 @@ class PatientCard extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                    child:
-                    OutlinedButton.icon(
-                      onPressed: onPoliceTap ?? () {},
-                      icon: const Icon(Icons.medication, size: 18),
-                      label: const Text("Police"),
-                      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
-                    ),
+                  child:
+                  OutlinedButton.icon(
+                    onPressed: onPoliceTap ?? () {},
+                    icon: const Icon(Icons.medication, size: 18),
+                    label: const Text("Police"),
+                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                  ),
                 )
               ],
             ),
