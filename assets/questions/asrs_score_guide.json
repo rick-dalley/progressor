@@ -1,0 +1,7 @@
+[
+  {"max_score":0, "severity": "No problems reported", "action":"None at this time"},
+  {"max_score":2, "severity": "Low Level Monitor", "action":"Re-assess at a later date"},
+  {"max_score":5, "severity": "Moderate level", "action":"Further Investigatio"},
+  {"max_score":8, "severity": "Substantial level", "action":"Intensive assessment"},
+  {"max_score":10, "severity": "Severe level", "action":"Intensive assessment"}
+]

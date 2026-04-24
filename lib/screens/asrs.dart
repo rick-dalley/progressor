@@ -3,22 +3,22 @@ import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
-class C_SSRSAssessmentScreen extends StatefulWidget {
+class ASRSAssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const C_SSRSAssessmentScreen({
+  const ASRSAssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  C_SSRSAssessmentScreenState createState() => C_SSRSAssessmentScreenState();
+  ASRSAssessmentScreenState createState() => ASRSAssessmentScreenState();
 }
 
-class C_SSRSAssessmentScreenState extends State<C_SSRSAssessmentScreen> {
+class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
@@ -141,70 +141,59 @@ class C_SSRSAssessmentScreenState extends State<C_SSRSAssessmentScreen> {
   }
 
   Map<String, String>? getInterpretation() {
-    // 1. Minimum check: If the user hasn't touched the app, hide the footer box
-    if (answers.isEmpty) return null;
+    final questions = widget.template['questions_score'] as List;
+    if (answers.length < questions.length) return null;
 
-    // 2. Mandatory Core: Questions 1 & 2, plus the 4 main Behavior questions
-    final coreIds = ['q1', 'q2', 'b1', 'b2', 'b3', 'b4'];
+    int partAShadedCount = 0;
 
-    // If these core items aren't in the answers map, the form is incomplete
-    bool coreComplete = coreIds.every((id) => answers.containsKey(id));
+    for (var q in questions) {
+      // Only look at Part A for the initial "Positive Screen" check
+      if (q['cluster'] == 'A') {
+        int score = answers[q['id']] ?? 0;
+        int threshold = q['threshold'] ?? 99; // Fallback if missing
 
-    if (!coreComplete) {
-      return {"summary": "", "action": ""};
+        if (score >= threshold) {
+          partAShadedCount++;
+        }
+      }
     }
 
-    // 3. Clinical Logic (Cascading Severity)
-    String summary = "Negative Screen";
-    String action = "STABLE: No suicidal ideation or behavior endorsed.";
+    bool isPositiveScreen = partAShadedCount >= 4;
 
-    // High Risk: Any Behavior (b1-b4) OR High Ideation (q4-q5)
-    bool behaviorEndorsed = ['b1', 'b2', 'b3', 'b4'].any((id) => answers[id] == 1);
-    bool highIdeation = (answers['q4'] == 1 || answers['q5'] == 1);
-
-    if (behaviorEndorsed || highIdeation) {
-      summary = "High Risk Endorsed";
-      action = "HIGH RISK: Immediate safety protocol required. Endorsement of intent, plan, or behavior.";
-    }
-    // Moderate Risk: Method (q3)
-    else if (answers['q3'] == 1) {
-      summary = "Moderate Ideation";
-      action = "MODERATE RISK: Urgent clinical consultation recommended. Method endorsed without intent.";
-    }
-    // Low Risk: Passive (q1 or q2)
-    else if (answers['q1'] == 1 || answers['q2'] == 1) {
-      summary = "Low Ideation (Passive)";
-      action = "LOW RISK: Passive ideation detected. Routine mental health referral suggested.";
-    }
+    String resultText = isPositiveScreen
+        ? "Positive Screen: Symptoms are highly consistent with ADHD in adults."
+        : "Negative Screen: Symptoms do not meet the threshold for a provisional ADHD diagnosis.";
 
     return {
-      "summary": "Severity: $summary",
-      "action": action,
+      "summary": "Part A Endorsed: $partAShadedCount/6",
+      "action": resultText,
     };
   }
 
   Widget _buildScoreFooter() {
-    final interpretation = getInterpretation();
+    final questions = widget.template['questions_score'] as List;
 
-    // The form is "Ready" if the interpretation returned actual text
-    bool isActionable = interpretation != null &&
-        interpretation['summary']!.isNotEmpty &&
-        interpretation['action']!.isNotEmpty;
+    // Check if all 9 clinical questions are answered
+    bool isFormComplete = questions.every((q) => answers.containsKey(q['id']));
+
+    // Only get interpretation if the form is actually complete
+    final interpretation = isFormComplete ? getInterpretation() : null;
 
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.blueGrey.shade50,
       child: Column(
         children: [
-          if (isActionable) ...[
+          // Display interpretation ONLY when everything is filled
+          if (interpretation != null) ...[
             Text(
               interpretation['summary']!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueAccent),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              interpretation['action']!,
+              "Recommended ${interpretation['action']}",
               style: const TextStyle(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
@@ -217,21 +206,23 @@ class C_SSRSAssessmentScreenState extends State<C_SSRSAssessmentScreen> {
           ),
           const SizedBox(height: 10),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                if (!isActionable) {
-                  setState(() => _showValidationErrors = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please complete the required clinical indicators.")),
-                  );
-                } else {
-                  _submitAssessment();
-                }
-              },
-              child: const Text("Finalize & Map to DSM"),
-            ),
+          ElevatedButton(
+            onPressed: () {
+              if (!isFormComplete) {
+                setState(() => _showValidationErrors = true);
+
+                String message = !isFormComplete
+                    ? "Please answer all 9 clinical questions."
+                    : "Please select the impact of these symptoms.";
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              } else {
+                _submitAssessment();
+              }
+            },
+            child: const Text("Finalize & Map to DSM"),
           ),
         ],
       ),

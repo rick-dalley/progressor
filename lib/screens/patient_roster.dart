@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:triage/screens/asrs.dart';
 import 'package:triage/screens/cssrs.dart';
 import 'package:triage/screens/dast10.dart';
 import 'package:triage/screens/gad7.dart';
@@ -11,6 +12,8 @@ import 'package:triage/classes/templates.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
 import '../screens/phq9.dart';
+import 'intake.dart';
+import 'meds.dart';
 import 'observation.dart';
 
 class PatientRoster extends StatefulWidget {
@@ -39,7 +42,16 @@ class _PatientRosterState extends State<PatientRoster> {
       _patients = data.where((item) => item != null).toList();
     });
   }
-
+  void _launchIntakeScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => IntakeScreen(),
+        // This ensures the screen slides up like a focused task
+        fullscreenDialog: true,
+      ),
+    );
+  }
   void _showEntryMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -69,14 +81,6 @@ class _PatientRosterState extends State<PatientRoster> {
                 shrinkWrap: true,
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.monitor_heart, color: Colors.redAccent),
-                    title: const Text("Vitals"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _launchVitalsModal(context);
-                    }, // Link to Vitals Screen
-                  ),
-                  ListTile(
                       leading: const Icon(Icons.note_add, color: Colors.amber),
                       title: const Text("Observations"),
                       onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
@@ -102,11 +106,11 @@ class _PatientRosterState extends State<PatientRoster> {
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
                     title: const Text("C-SSRS"),
-                    // onTap: () => _launchAssessment(
-                    //   context,
-                    //   templateName: "c-ssrs.json",
-                    //   screenBuilder: (data, controller) => CSSRSAssessmentScreen(template: data, scrollController: controller),
-                    // )
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "c-ssrs.json",
+                        screenBuilder: (data, controller) => C_SSRSAssessmentScreen(template: data, scrollController: controller),
+                      )
                   ),
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
@@ -121,10 +125,11 @@ class _PatientRosterState extends State<PatientRoster> {
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
                     title: const Text("ASRS-V1.1"),
-                    // onTap: () {
-                    //   Navigator.pop(context);
-                    //   _launchCSSRAssessmentModal(context);
-                    // },
+                      onTap: () => _launchAssessment(
+                        context,
+                        templateName: "asrs.json",
+                        screenBuilder: (data, controller) => ASRSAssessmentScreen(template: data, scrollController: controller),
+                      )
                   ),
                   ListTile(
                     leading: const Icon(Icons.assignment, color: Colors.blueAccent),
@@ -134,18 +139,6 @@ class _PatientRosterState extends State<PatientRoster> {
                         templateName: "pcl-5.json",
                         screenBuilder: (data, controller) => PCL5AssessmentScreen(template: data, scrollController: controller),
                       )
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.local_police_outlined, color: Colors.greenAccent),
-                    title: const Text("Law Enforcement Handoff"),
-                    subtitle: const Text("Section 28, Form 10, or Verbal Report"),
-                    onTap: () {
-                      Navigator.pop(context); // Close the popup
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-                      );
-                    },
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -188,7 +181,6 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-
   void _launchObservationsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -282,22 +274,41 @@ class _PatientRosterState extends State<PatientRoster> {
         padding: const EdgeInsets.only(top: 8, bottom: 80), // Added top padding for breathing room
         itemCount: _patients.length,
         itemBuilder: (context, index) {
-          return PatientCard(patient: _patients[index]);
+          return PatientCard(
+            patient: _patients[index],
+            onVitalsTap: () => _launchVitalsModal(context),
+            onAssessmentsTap: () => _showEntryMenu(context),
+            onMedsTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MedicationScreen(patient: _patients[index]),
+                ),
+              );
+            },
+            onPoliceTap: () {
+            // We don't need Navigator.pop(context) here because
+            // there is no menu to close—we're tapping the card directly.
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+            );
+          },// Your existing assessment menu
+            // Leave the others out for now; they will default to null (disabled/grey)
+          );
         },
       ),
 
-      // Floating Action Button updated to match the new brand palette
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEntryMenu(context),
+        onPressed: () => _launchIntakeScreen(context), // New dedicated screen
         label: const Text(
-          "RECORD",
+          "INTAKE",
           style: TextStyle(
             letterSpacing: 1.0,
             fontWeight: FontWeight.w600,
           ),
         ),
-        icon: const Icon(Icons.add),
-        // Using the Navy color from your main brand for a focused, intelligent action
+        icon: const Icon(Icons.qr_code_scanner), // Signals scanning capability
         backgroundColor: const Color(0xFF1A365D),
         foregroundColor: Colors.white,
       ),

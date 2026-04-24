@@ -1,46 +1,29 @@
 {
   "title": "Adult ADHD Self-Report Scale (ASRS-V1.1)",
-  "timeframe": "Past 6 months",
-  "instructions": "Rate yourself on each of the criteria using the scale provided. Answer based on how you have felt and conducted yourself over the past 6 months.",
-  "options": [
-    {"label": "Never", "value": 0},
-    {"label": "Rarely", "value": 1},
-    {"label": "Sometimes", "value": 2},
-    {"label": "Often", "value": 3},
-    {"label": "Very Often", "value": 4}
-  ],
-  "sections": [
-    {
       "id": "part_a",
       "name": "Part A",
-      "instructions": "The first six questions are the most predictive of ADHD.",
-      "questions": [
-        {"id": "asrs_q1", "text": "How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?", "threshold": 2},
-        {"id": "asrs_q2", "text": "How often do you have difficulty getting things in order when you have to do a task that requires organization?", "threshold": 2},
-        {"id": "asrs_q3", "text": "How often do you have problems remembering appointments or obligations?", "threshold": 2},
-        {"id": "asrs_q4", "text": "When you have a task that requires a lot of thought, how often do you avoid or delay getting started?", "threshold": 3},
-        {"id": "asrs_q5", "text": "How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?", "threshold": 3},
-        {"id": "asrs_q6", "text": "How often do you feel overly active and compelled to do things, like you were driven by a motor?", "threshold": 3}
+      "column_headers": [
+        "Please answer the questions below, rating yourself on each of the criteria shown using the scale on the right side of the page. As you answer each question, place an X in the box that best describes how you have felt and conducted yourself over the past 6 months. Please give this completed checklist to your healthcare professional to discuss during your appointment.",
+        "Never", "Rarely", "Sometimes", "Often", "Very Often"
+      ],
+      "questions_score": [
+        {"id": "asrs_q1", "cluster":"A", "cluster_name":"Part A","text": "How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q2", "cluster":"A", "cluster_name":"Part A", "text": "How often do you have difficulty getting things in order when you have to do a task that requires organization?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q3", "cluster":"A", "cluster_name":"Part A", "text": "How often do you have problems remembering appointments or obligations?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q4", "cluster":"A", "cluster_name":"Part A", "text": "When you have a task that requires a lot of thought, how often do you avoid or delay getting started?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q5", "cluster":"A", "cluster_name":"Part A","text": "How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q6", "cluster":"A", "cluster_name":"Part A", "text": "How often do you feel overly active and compelled to do things, like you were driven by a motor?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q7", "cluster":"B", "cluster_name":"Part B", "text": "How often do you make careless mistakes when you have to work on a boring or difficult project?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q8", "cluster":"B", "cluster_name":"Part B", "text": "How often do you have difficulty keeping your attention when you are doing boring or repetitive work?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q9", "cluster":"B", "cluster_name":"Part B", "text": "How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q10", "cluster":"B", "cluster_name":"Part B", "text": "How often do you misplace or have difficulty finding things at home or at work?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q11", "cluster":"B", "cluster_name":"Part B", "text": "How often are you distracted by activity or noise around you?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q12", "cluster":"B", "cluster_name":"Part B", "text": "How often do you leave your seat in meetings or in other situations in which you are expected to stay seated?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q13", "cluster":"B", "cluster_name":"Part B", "text": "How often do you feel restless or fidgety?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q14", "cluster":"B", "cluster_name":"Part B", "text": "How often do you have difficulty unwinding and relaxing when you have time to yourself?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q15", "cluster":"B", "cluster_name":"Part B", "text": "How often do you find yourself talking too much when you are in social situations?", "threshold": 3, "max_score": 4},
+        {"id": "asrs_q16", "cluster":"B", "cluster_name":"Part B", "text": "When you’re in a conversation, how often do you find yourself finishing the sentences of the people you are talking to?", "threshold": 2, "max_score": 4},
+        {"id": "asrs_q17", "cluster":"B", "cluster_name":"Part B", "text": "How often do you have difficulty waiting your turn in situations when turn taking is required?", "max_score": 4},
+        {"id": "asrs_q18", "cluster":"B", "cluster_name":"Part B", "text": "How often do you interrupt others when they are busy?", "threshold": 2, "max_score": 4}
       ]
-    },
-    {
-      "id": "part_b",
-      "name": "Part B",
-      "instructions": "The following questions provide additional cues to your symptoms.",
-      "questions": [
-        {"id": "asrs_q7", "text": "How often do you make careless mistakes when you have to work on a boring or difficult project?"},
-        {"id": "asrs_q8", "text": "How often do you have difficulty keeping your attention when you are doing boring or repetitive work?"},
-        {"id": "asrs_q9", "text": "How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?"},
-        {"id": "asrs_q10", "text": "How often do you misplace or have difficulty finding things at home or at work?"},
-        {"id": "asrs_q11", "text": "How often are you distracted by activity or noise around you?"},
-        {"id": "asrs_q12", "text": "How often do you leave your seat in meetings or in other situations in which you are expected to stay seated?"},
-        {"id": "asrs_q13", "text": "How often do you feel restless or fidgety?"},
-        {"id": "asrs_q14", "text": "How often do you have difficulty unwinding and relaxing when you have time to yourself?"},
-        {"id": "asrs_q15", "text": "How often do you find yourself talking too much when you are in social situations?"},
-        {"id": "asrs_q16", "text": "When you’re in a conversation, how often do you find yourself finishing the sentences of the people you are talking to?"},
-        {"id": "asrs_q17", "text": "How often do you have difficulty waiting your turn in situations when turn taking is required?"},
-        {"id": "asrs_q18", "text": "How often do you interrupt others when they are busy?"}
-      ]
-    }
-  ]
 }
