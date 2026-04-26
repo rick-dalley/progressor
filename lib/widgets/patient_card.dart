@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class PatientCard extends StatelessWidget {
   final Map<String, dynamic> patient;
+
   // Made these optional so your Roster doesn't break
   final VoidCallback? onVitalsTap;
   final VoidCallback? onPoliceTap;
   final VoidCallback? onAssessmentsTap;
   final VoidCallback? onMedsTap;
+  final VoidCallback? onTimeLineTap;
 
   const PatientCard({
     super.key,
@@ -15,6 +17,7 @@ class PatientCard extends StatelessWidget {
     this.onPoliceTap,
     this.onAssessmentsTap,
     this.onMedsTap,
+    this.onTimeLineTap,
   });
 
   Color _getDispositionColor() {
@@ -23,14 +26,16 @@ class PatientCard extends StatelessWidget {
     final String status = patient['status'] ?? '';
 
     if (flags.contains('Form 4 Active')) return Colors.green.shade600;
-    if (path == 'GP-Handoff' || status == 'Discharge Prep') return Colors.red.shade600;
+    if (path == 'GP-Handoff' || status == 'Discharge Prep')
+      return Colors.red.shade600;
     return Colors.yellow.shade700;
   }
 
   @override
   Widget build(BuildContext context) {
     final String lastName = (patient['name']?['last'] ?? 'Patient').toString();
-    final String firstName = (patient['name']?['first'] ?? 'Unknown').toString();
+    final String firstName = (patient['name']?['first'] ?? 'Unknown')
+        .toString();
     final String phn = (patient['phn'] ?? '000-000-000').toString();
     final String status = (patient['status'] ?? 'Triage').toString();
     final List<dynamic> flags = patient['flags'] ?? [];
@@ -49,8 +54,25 @@ class PatientCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("$lastName, $firstName",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Text(
+                  "$lastName, $firstName",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: onTimeLineTap ?? () {},
+                  icon: const Icon(Icons.monitor_heart, size: 24),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
             const Divider(height: 8),
             const SizedBox(height: 8),
             Row(
@@ -59,7 +81,10 @@ class PatientCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 _buildInfoChip(Icons.location_on, status),
                 const SizedBox(width: 12),
-                _buildInfoChip(Icons.speed, "Acuity: ${patient['current_acuity']}"),
+                _buildInfoChip(
+                  Icons.speed,
+                  "Acuity: ${patient['current_acuity']}",
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -79,29 +104,34 @@ class PatientCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onAssessmentsTap ?? () {},
-                    icon: const Icon(Icons.psychology, size: 18),
+                    icon: const Icon(Icons.psychology, size: 24),
                     label: const Text("Assess"),
-                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onMedsTap ?? () {},
-                    icon: const Icon(Icons.medication, size: 18),
+                    icon: const Icon(Icons.medication, size: 24),
                     label: const Text("Meds"),
-                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ),
                 Expanded(
-                  child:
-                  OutlinedButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: onPoliceTap ?? () {},
-                    icon: const Icon(Icons.medication, size: 18),
+                    icon: const Icon(Icons.local_police, size: 24),
                     label: const Text("Police"),
-                    style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
-                )
+                ),
               ],
             ),
 
@@ -110,7 +140,10 @@ class PatientCard extends StatelessWidget {
               spacing: 6.0,
               children: flags.map((flag) {
                 return Chip(
-                  label: Text(flag, style: const TextStyle(fontSize: 10, color: Colors.white)),
+                  label: Text(
+                    flag,
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                  ),
                   backgroundColor: Colors.blueGrey.shade700,
                   padding: EdgeInsets.zero,
                   visualDensity: VisualDensity.compact,
@@ -118,7 +151,7 @@ class PatientCard extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            _buildProcessTimeline(isTriage)
+            _buildProcessTimeline(isTriage),
           ],
         ),
       ),
@@ -130,7 +163,10 @@ class PatientCard extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: Colors.grey.shade600),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
       ],
     );
   }
@@ -158,7 +194,10 @@ class PatientCard extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, size: 14, color: Colors.blueGrey.shade300),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         Text(unit, style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
       ],
     );
@@ -173,7 +212,14 @@ class PatientCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("PROCESS PATHWAY", style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
+        const Text(
+          "PROCESS PATHWAY",
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: List.generate(stages.length, (index) {
@@ -183,12 +229,25 @@ class PatientCard extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    isCompleted ? Icons.check_circle : (isCurrent ? Icons.play_circle : Icons.circle_outlined),
+                    isCompleted
+                        ? Icons.check_circle
+                        : (isCurrent
+                              ? Icons.play_circle
+                              : Icons.circle_outlined),
                     size: 16,
-                    color: isCompleted ? Colors.green : (isCurrent ? Colors.yellow : Colors.grey),
+                    color: isCompleted
+                        ? Colors.green
+                        : (isCurrent ? Colors.yellow : Colors.grey),
                   ),
                   if (index < stages.length - 1)
-                    Expanded(child: Container(height: 2, color: isCompleted ? Colors.green : Colors.grey.shade800)),
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        color: isCompleted
+                            ? Colors.green
+                            : Colors.grey.shade800,
+                      ),
+                    ),
                 ],
               ),
             );

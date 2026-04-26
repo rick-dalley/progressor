@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../classes/med_data.dart';
+
 class MedicationScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
 
@@ -11,6 +13,8 @@ class MedicationScreen extends StatefulWidget {
 
 class _MedicationScreenState extends State<MedicationScreen> {
   // Mocking the current baseline list
+  bool _isLoading = false;
+
   final List<Map<String, String>> _meds = [
     {"name": "Sertraline", "dose": "50mg", "freq": "QD"},
     {"name": "Quetiapine", "dose": "25mg", "freq": "QHS"},
@@ -18,7 +22,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
-
+  bool _auditRun = false;
+  bool _hasContraIndications = false;
+  bool _hasPrecautions = false;
+  bool _acceptedIndications = false;
   void _addMedication() {
     if (_nameController.text.isNotEmpty) {
       setState(() {
@@ -31,6 +38,280 @@ class _MedicationScreenState extends State<MedicationScreen> {
         _doseController.clear();
       });
     }
+  }
+// Helper to show the Bottom Sheet
+  void _showClinicalModal(String title, Widget content) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        height: MediaQuery.of(context).size.height * 0.4,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Expanded(child: content),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Data Sheet Lookup
+  void _viewDataSheet(String drugName) async {
+    final data = await MedicationService.getDrugClass(drugName);
+    _showClinicalModal(
+      "Data Sheet: $drugName",
+      data.isEmpty
+          ? const Text("No clinical data found.")
+          : Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("RxCUI: ${data['rxcui']}"),
+          Text("Therapeutic Class: ${data['className']}"),
+          Text("ATC Code: ${data['classId']}"),
+          const SizedBox(height: 20),
+          const Text("Status: Verified via NLM RxNav (Live)", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConflictList(List items) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items.map((item) {
+        // Cast the item to a Map for safe access
+        final data = item as Map<String, dynamic>;
+        final bool isCritical = data['severity'] == 'Red';
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                isCritical ? Icons.block : Icons.warning_amber_rounded,
+                color: isCritical ? Colors.red : Colors.orange,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data['pair'] ?? "Unknown Interaction",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      data['desc'] ?? "No description provided.",
+                      style: TextStyle(color: Colors.grey[800], fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSafeMessage() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.verified, color: Colors.green, size: 48),
+        const SizedBox(height: 16),
+        const Text(
+          "Medication List Safe",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "The safety audit detected no contraindications or precautions for the current regimen.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey[700]),
+        ),
+      ],
+    );
+  }
+
+  // Multi-Drug Audit
+  void _runSafetyAudit() async {
+    List<String> classIds = [];
+    for (var med in _meds) {
+      final info = await MedicationService.getDrugClass(med['name']!);
+      if (info['classId'] != null) classIds.add(info['classId']);
+    }
+
+    final warning = MedicationService.checkInteractions(classIds);
+    setState(() {
+      _isLoading = false;
+      _auditRun = true;
+      _hasContraIndications = false;
+      _hasPrecautions = false;
+      _acceptedIndications = false;
+      //_currentInteraction = interaction; // Store the result for the banner
+
+      // 3. Trigger the "Slam Dunk" Sort
+      // This moves Red/Amber meds to the top of the list immediately
+      //_sortMedsByRisk();
+    });
+// Safely extract the list, defaulting to an empty list if null
+    final List items = (warning != null && warning['interactions'] != null)
+        ? (warning['interactions'] as List)
+        : [];
+
+    bool hasRed = items.any((item) => item['severity'] == 'Red');
+    bool hasAmber = items.any((item) => item['severity'] == 'Amber'); // or 'Orange' depending on your API
+
+    setState(() {
+      _auditRun = true;
+      // _currentItems = items; // Store the list to build the modal/icons
+
+      if (hasRed) {
+        _hasContraIndications = true; // Red
+      } else if (hasAmber) {
+        _hasPrecautions = true;// Amber
+      }
+      //_sortMedsByRisk(); // Moves the highest level risks to the top
+    });
+
+    _showClinicalModal(
+      "Safety Audit Results",
+      items.isNotEmpty
+          ? _buildConflictList(items) // Pass the already-extracted list
+          : _buildSafeMessage(),      // The "Clearance" path
+    );
+  }
+
+  Color fromHex(String hexString) {
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
+  void _confirmAndSave() async {
+    setState(() => _isLoading = true);
+
+    List<String> classIds = [];
+
+    // 1. Audit every drug in the list live
+    for (var med in _meds) {
+      final data = await MedicationService.getDrugClass(med['name']!);
+      if (data['classId'] != null) {
+        classIds.add(data['classId']);
+      }
+    }
+
+    setState(() => _isLoading = false);
+
+    // 2. Run the interaction check
+    final risk = MedicationService.checkInteractions(classIds);
+
+    if (risk != null) {
+      // If a risk is found, force an interruption modal
+      _showSafetyAlert(risk);
+    } else {
+      // All clear - return the list to the previous screen
+      Navigator.pop(context, _meds);
+    }
+  }
+
+  void _showSafetyAlert(Map<String, dynamic> risk) {
+    final alertColor = fromHex(risk['color']);
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Force interaction
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: alertColor),
+            const SizedBox(width: 10),
+            const Text("SAFETY ALERT"),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("SEVERITY: ${risk['severity']}",
+                style: TextStyle(fontWeight: FontWeight.bold, color: alertColor)),
+            const SizedBox(height: 10),
+            Text(risk['warning']),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Go back to edit meds
+            child: const Text("GO BACK & EDIT"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context, _meds); // Proceed with save
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade900),
+            child: const Text("ACKNOWLEDGE & SAVE ANYWAY"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Logic-driven Banner Widget
+  Widget _buildStatusBanner() {
+    // Determine state based on your list logic
+    Color bannerColor;
+    String message;
+    IconData icon;
+
+    // Example Logic check:
+    if (!_auditRun) {
+      bannerColor = Colors.grey[600]!;
+      message = "Safety Audit: Status Unknown";
+      icon = Icons.help_outline;
+    } else if (_hasContraIndications) {
+      bannerColor = const Color(0xFFD32F2F); // Red
+      message = "CRITICAL: Contraindication Detected";
+      icon = Icons.block;
+    } else if (_hasPrecautions) {
+      bannerColor = const Color(0xFFFF8F00); // Amber
+      message = "ADVISORY: Precautions Required";
+      icon = Icons.warning_amber_rounded;
+    } else if (_acceptedIndications) {
+      bannerColor = const Color(0xFF673AB7); // Purple
+      message = "All Risks Acknowledged & Accepted";
+      icon = Icons.check_circle_outline;
+    } else {
+      bannerColor = const Color(0xFF2E7D32); // Green
+      message = "No Interactions Detected";
+      icon = Icons.verified_user_outlined;
+    }
+
+    return Container(
+      width: double.infinity,
+      color: bannerColor,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -45,6 +326,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       ),
       body: Column(
         children: [
+          _buildStatusBanner(),
           // INTAKE AREA: High-speed entry
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -92,31 +374,84 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   leading: const Icon(Icons.medication_liquid, color: Colors.blueGrey),
                   title: Text(med['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text("Dose: ${med['dose']} — Freq: ${med['freq']}"),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                    onPressed: () {
-                      setState(() => _meds.removeAt(index));
-                    },
+                  trailing: Wrap(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.info_outline, color: Colors.blue),
+                        onPressed: () => _viewDataSheet(med['name']!),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                        onPressed: () => setState(() => _meds.removeAt(index)),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
           ),
+          if (_meds.length > 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: OutlinedButton.icon(
+                onPressed: _runSafetyAudit,
+                icon: const Icon(Icons.security, color: Colors.orange),
+                label: const Text("RUN SAFETY AUDIT"),
+                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(45)),
+              ),
+            ),
           // SAVE BAR
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              // 1. Call the function directly.
+              // Do NOT pop here; let _confirmAndSave handle the navigation.
+              onPressed: _isLoading ? null : _confirmAndSave,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
                 backgroundColor: const Color(0xFF1A365D),
                 foregroundColor: Colors.white,
               ),
-              child: const Text("CONFIRM BASELINE"),
+              child: _isLoading
+                  ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+              )
+                  : const Text("CONFIRM BASELINE"),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+
+class SafetyAudit {
+  static const String severityMajor = "MAJOR / CONTRAINDICATED";
+  static const String severityModerate = "MODERATE";
+
+  // Using ATC Class IDs for robust logic
+  static Map<String, dynamic>? run(List<String> classIds) {
+    // 1. SSRI (N06AB) + Opioid (N02AX) -> Serotonin Syndrome
+    if (classIds.contains("N06AB") && classIds.contains("N02AX")) {
+      return {
+        "severity": severityMajor,
+        "warning": "Risk of Serotonin Syndrome: Potentially life-threatening interaction between SSRI and specific opioids.",
+        "color": Colors.red,
+      };
+    }
+
+    // 2. Sertraline (N06AB) + Quetiapine (N05AH) -> QT Prolongation
+    if (classIds.contains("N06AB") && classIds.contains("N05AH")) {
+      return {
+        "severity": severityModerate,
+        "warning": "Risk of QT Prolongation: Both medications can affect heart rhythm. Monitoring (ECG) may be required.",
+        "color": Colors.orange,
+      };
+    }
+
+    return null;
   }
 }

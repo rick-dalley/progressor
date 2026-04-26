@@ -7,6 +7,7 @@ import 'package:triage/screens/dast10.dart';
 import 'package:triage/screens/gad7.dart';
 import 'package:triage/screens/pcl5.dart';
 import 'package:triage/screens/police_report.dart';
+import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
 import '../generated/l10n.dart';
@@ -213,7 +214,56 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-  
+  void _launchTimelineModal(BuildContext context, Map<String, dynamic> patient) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Essential for large/tall content
+      backgroundColor: Colors.transparent, // Allows for rounded top corners
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9, // Opens almost full screen
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                // The "Drag Handle" - Essential for UX
+                const SizedBox(height: 12),
+                Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10)
+                    )
+                ),
+
+                // The Header
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    "TIMELINE: ${patient['name']['last'].toString().toUpperCase()}",
+                    style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
+                  ),
+                ),
+
+                // The actual Timeline Content
+                Expanded(
+                  child: PatientTimelineScreen(patient: patient),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _launchAssessment(
       BuildContext context, {
         required String templateName,
@@ -278,14 +328,21 @@ class _PatientRosterState extends State<PatientRoster> {
             patient: _patients[index],
             onVitalsTap: () => _launchVitalsModal(context),
             onAssessmentsTap: () => _showAssessmentsMenu(context),
-            onMedsTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
+              onMedsTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                  // 1. Add rounded corners to the top
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  // 2. Ensure the AppBar doesn't "bleed" over the rounded corners
+                  clipBehavior: Clip.antiAliasWithSaveLayer,
                   builder: (context) => MedicationScreen(patient: _patients[index]),
-                ),
-              );
-            },
+                );
+              },
             onPoliceTap: () {
             // We don't need Navigator.pop(context) here because
             // there is no menu to close—we're tapping the card directly.
@@ -294,7 +351,7 @@ class _PatientRosterState extends State<PatientRoster> {
               MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
             );
           },// Your existing assessment menu
-            // Leave the others out for now; they will default to null (disabled/grey)
+            onTimeLineTap: () => _launchTimelineModal(context, _patients[index])
           );
         },
       ),
