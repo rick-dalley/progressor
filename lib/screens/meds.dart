@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-import '../classes/med_data.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../classes/medication_services.dart';
+import '../widgets/medication_card.dart';
 
 class MedicationScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
@@ -15,10 +19,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   // Mocking the current baseline list
   bool _isLoading = false;
 
-  final List<Map<String, String>> _meds = [
-    {"name": "Sertraline", "dose": "50mg", "freq": "QD"},
-    {"name": "Quetiapine", "dose": "25mg", "freq": "QHS"},
-  ];
+  List<Map<String, dynamic>> _meds = [];
 
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
@@ -26,6 +27,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   bool _hasContraIndications = false;
   bool _hasPrecautions = false;
   bool _acceptedIndications = false;
+
   void _addMedication() {
     if (_nameController.text.isNotEmpty) {
       setState(() {
@@ -39,7 +41,44 @@ class _MedicationScreenState extends State<MedicationScreen> {
       });
     }
   }
-// Helper to show the Bottom Sheet
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMedsForPatient();
+  }
+
+  Future<void> _loadMedsForPatient() async {
+    try {
+      // 1. Load the string from assets
+      final String response = await rootBundle.loadString('assets/medications/meds.json');
+      final List<dynamic> data = json.decode(response);
+
+      // 2. Find the entry matching your current patient's ID
+      // widget.patient.id is the UUID from the card you clicked
+      final patientRecord = data.firstWhere(
+        // Use brackets [] because widget.patient is a Map
+            (element) => element['patient_uuid'] == widget.patient['patient_uuid'],
+        orElse: () => null,
+      );
+
+      if (patientRecord != null) {
+        setState(() {
+          // 3. Map the prescription list and cast to our expected format
+          _meds = List<Map<String, dynamic>>.from(patientRecord['prescription']);
+
+          // 4. Important: Set initial severity for each so the UI doesn't crash
+          for (var med in _meds) {
+            med['severity'] = 'Neutral';
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading medications: $e");
+    }
+  }
+
+  // Helper to show the Bottom Sheet
   void _showClinicalModal(String title, Widget content) {
     showModalBottomSheet(
       context: context,
@@ -50,31 +89,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const Divider(),
             Expanded(child: content),
           ],
         ),
-      ),
-    );
-  }
-
-  // Data Sheet Lookup
-  void _viewDataSheet(String drugName) async {
-    final data = await MedicationService.getDrugClass(drugName);
-    _showClinicalModal(
-      "Data Sheet: $drugName",
-      data.isEmpty
-          ? const Text("No clinical data found.")
-          : Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("RxCUI: ${data['rxcui']}"),
-          Text("Therapeutic Class: ${data['className']}"),
-          Text("ATC Code: ${data['classId']}"),
-          const SizedBox(height: 20),
-          const Text("Status: Verified via NLM RxNav (Live)", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-        ],
       ),
     );
   }
@@ -105,7 +127,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
                   children: [
                     Text(
                       data['pair'] ?? "Unknown Interaction",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     Text(
                       data['desc'] ?? "No description provided.",
@@ -145,8 +170,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
   void _runSafetyAudit() async {
     List<String> classIds = [];
     for (var med in _meds) {
-      final info = await MedicationService.getDrugClass(med['name']!);
-      if (info['classId'] != null) classIds.add(info['classId']);
+      final info = await MedicationService.getDrugDataSheet(med['name']!);
+
     }
 
     final warning = MedicationService.checkInteractions(classIds);
@@ -156,37 +181,40 @@ class _MedicationScreenState extends State<MedicationScreen> {
       _hasContraIndications = false;
       _hasPrecautions = false;
       _acceptedIndications = false;
-      //_currentInteraction = interaction; // Store the result for the banner
-
-      // 3. Trigger the "Slam Dunk" Sort
-      // This moves Red/Amber meds to the top of the list immediately
-      //_sortMedsByRisk();
     });
-// Safely extract the list, defaulting to an empty list if null
-    final List items = (warning != null && warning['interactions'] != null)
-        ? (warning['interactions'] as List)
-        : [];
 
-    bool hasRed = items.any((item) => item['severity'] == 'Red');
-    bool hasAmber = items.any((item) => item['severity'] == 'Amber'); // or 'Orange' depending on your API
+      // 1. Get the names from your _meds list
+      final List<String> drugNames = _meds.map((m) => m['name'] as String).toList();
+
+      // 2. Hit the "Clean Pipe" service we designed
+      final result = await MedicationService.checkInteractions(drugNames);
+    final List conflicts = (result != null && result['interactions'] != null)
+        ? result['interactions'] as List
+        : [];
+      setState(() {
+        _isLoading = false;
+        _auditRun = true;
+        //_sortMedsByRisk(); // Re-sort based on NIH findings
+      });
+
+    bool hasRed = conflicts.any((item) => item['severity'] == 'Red' || item['severity'] == 'high');
+    bool hasAmber = conflicts.any((item) => item['severity'] == 'Amber' || item['severity'] == 'moderate'); //or 'Orange' depending on your API
 
     setState(() {
       _auditRun = true;
-      // _currentItems = items; // Store the list to build the modal/icons
-
       if (hasRed) {
-        _hasContraIndications = true; // Red
+        _hasContraIndications = hasRed; // Red
       } else if (hasAmber) {
-        _hasPrecautions = true;// Amber
+        _hasPrecautions = hasAmber; // Amber
       }
       //_sortMedsByRisk(); // Moves the highest level risks to the top
     });
 
     _showClinicalModal(
       "Safety Audit Results",
-      items.isNotEmpty
-          ? _buildConflictList(items) // Pass the already-extracted list
-          : _buildSafeMessage(),      // The "Clearance" path
+      conflicts.isNotEmpty
+          ? _buildConflictList(conflicts) // Pass the already-extracted list
+          : _buildSafeMessage(), // The "Clearance" path
     );
   }
 
@@ -204,10 +232,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     // 1. Audit every drug in the list live
     for (var med in _meds) {
-      final data = await MedicationService.getDrugClass(med['name']!);
-      if (data['classId'] != null) {
-        classIds.add(data['classId']);
-      }
+      final data = await MedicationService.getDrugDataSheet(med['name']!);
+
     }
 
     setState(() => _isLoading = false);
@@ -217,7 +243,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     if (risk != null) {
       // If a risk is found, force an interruption modal
-      _showSafetyAlert(risk);
+      _showSafetyAlert(risk as Map<String, dynamic>);
     } else {
       // All clear - return the list to the previous screen
       Navigator.pop(context, _meds);
@@ -241,8 +267,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("SEVERITY: ${risk['severity']}",
-                style: TextStyle(fontWeight: FontWeight.bold, color: alertColor)),
+            Text(
+              "SEVERITY: ${risk['severity']}",
+              style: TextStyle(fontWeight: FontWeight.bold, color: alertColor),
+            ),
             const SizedBox(height: 10),
             Text(risk['warning']),
           ],
@@ -257,7 +285,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context, _meds); // Proceed with save
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade900),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade900,
+            ),
             child: const Text("ACKNOWLEDGE & SAVE ANYWAY"),
           ),
         ],
@@ -306,7 +336,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -358,8 +391,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 IconButton.filled(
                   onPressed: _addMedication,
                   icon: const Icon(Icons.add),
-                  style: IconButton.styleFrom(backgroundColor: const Color(0xFF1A365D)),
-                )
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A365D),
+                  ),
+                ),
               ],
             ),
           ),
@@ -370,22 +405,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
               itemCount: _meds.length,
               itemBuilder: (context, index) {
                 final med = _meds[index];
-                return ListTile(
-                  leading: const Icon(Icons.medication_liquid, color: Colors.blueGrey),
-                  title: Text(med['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("Dose: ${med['dose']} — Freq: ${med['freq']}"),
-                  trailing: Wrap(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.info_outline, color: Colors.blue),
-                        onPressed: () => _viewDataSheet(med['name']!),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                        onPressed: () => setState(() => _meds.removeAt(index)),
-                      ),
-                    ],
-                  ),
+
+                // We swap the old ListTile for our new smart card
+                return MedicationCard(
+                  medData: med,
+                  onDelete: () {
+                    setState(() {
+                      _meds.removeAt(index);
+                    });
+                  },
                 );
               },
             ),
@@ -397,7 +425,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 onPressed: _runSafetyAudit,
                 icon: const Icon(Icons.security, color: Colors.orange),
                 label: const Text("RUN SAFETY AUDIT"),
-                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(45)),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(45),
+                ),
               ),
             ),
           // SAVE BAR
@@ -414,10 +444,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
               ),
               child: _isLoading
                   ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-              )
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text("CONFIRM BASELINE"),
             ),
           ),
@@ -425,8 +458,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
       ),
     );
   }
-}
 
+}
 
 class SafetyAudit {
   static const String severityMajor = "MAJOR / CONTRAINDICATED";
@@ -438,7 +471,8 @@ class SafetyAudit {
     if (classIds.contains("N06AB") && classIds.contains("N02AX")) {
       return {
         "severity": severityMajor,
-        "warning": "Risk of Serotonin Syndrome: Potentially life-threatening interaction between SSRI and specific opioids.",
+        "warning":
+            "Risk of Serotonin Syndrome: Potentially life-threatening interaction between SSRI and specific opioids.",
         "color": Colors.red,
       };
     }
@@ -447,7 +481,8 @@ class SafetyAudit {
     if (classIds.contains("N06AB") && classIds.contains("N05AH")) {
       return {
         "severity": severityModerate,
-        "warning": "Risk of QT Prolongation: Both medications can affect heart rhythm. Monitoring (ECG) may be required.",
+        "warning":
+            "Risk of QT Prolongation: Both medications can affect heart rhythm. Monitoring (ECG) may be required.",
         "color": Colors.orange,
       };
     }

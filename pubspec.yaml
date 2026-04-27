@@ -22,6 +22,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # The core SQLite engine for Flutter
+  sqflite: ^2.3.3+1
+  # Provides utility functions for manipulating file system paths
+  path: ^1.9.0
+
   flutter_lints: ^6.0.0
 
 flutter:
@@ -30,6 +35,7 @@ flutter:
   assets:
     - assets/patients/
     - assets/assessments/
+    - assets/medications/
     - assets/questions/
 flutter_intl:
   enabled: true
