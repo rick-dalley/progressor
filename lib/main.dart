@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'classes/database_manager.dart';
 import 'screens/patient_roster.dart';
 import 'generated/l10n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final dbManager = DatabaseManager();
+  dbManager.init(overwrite:true);
   runApp(const LuminescaApp());
 }
 

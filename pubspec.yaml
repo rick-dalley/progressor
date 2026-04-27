@@ -37,5 +37,6 @@ flutter:
     - assets/assessments/
     - assets/medications/
     - assets/questions/
+    - assets/sql/
 flutter_intl:
   enabled: true
