@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
 import '../widgets/medication_card.dart';
 
@@ -28,14 +30,25 @@ class _MedicationScreenState extends State<MedicationScreen> {
   bool _hasPrecautions = false;
   bool _acceptedIndications = false;
 
-  void _addMedication() {
+  void _addMedication() async {
     if (_nameController.text.isNotEmpty) {
+      var uuid = const Uuid();
+      final String uniqueId = uuid.v4(); // Generates a random version 4 UUID
+
+      final newMed = {
+        "id": uniqueId,
+        "patient_uuid": widget.patient["patient_uuid"],
+        "name": _nameController.text,
+        "dose": _doseController.text,
+        "freq": "PRN",
+        "set_id": "",
+      };
+
+      // Save to DB (returns the UUID we just generated)
+      await DatabaseManager().insertMedication(newMed);
+
       setState(() {
-        _meds.add({
-          "name": _nameController.text,
-          "dose": _doseController.text,
-          "freq": "PRN", // Defaulting to PRN for quick entry
-        });
+        _meds.add(newMed);
         _nameController.clear();
         _doseController.clear();
       });
@@ -170,7 +183,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   void _runSafetyAudit() async {
     List<String> classIds = [];
     for (var med in _meds) {
-      final info = await MedicationService.getDrugDataSheet(med['name']!);
+      final info = await MedicationService.getDrugDataSheet(med['id'], med['name']!, med['set_id']);
 
     }
 
@@ -232,7 +245,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     // 1. Audit every drug in the list live
     for (var med in _meds) {
-      final data = await MedicationService.getDrugDataSheet(med['name']!);
+      final data = await MedicationService.getDrugDataSheet(med['id'],med['name']!, med['set_id']);
 
     }
 
@@ -349,11 +362,11 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name = widget.patient['name']?['last'] ?? "Patient";
+    final name = "${widget.patient['first_name']} ${widget.patient['last_name']}";
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Meds: $name"),
+        title: Text("Medications: $name"),
         backgroundColor: const Color(0xFF1A365D), // Your Navy brand color
         foregroundColor: Colors.white,
       ),

@@ -6,7 +6,7 @@
     },
     {
       "table": "datasheet",
-      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY,id TEXT,effective_time TEXT,version TEXT, rxcui TEXT, unii TEXT, spl_id TEXT,spl_set_id TEXT, application_number TEXT, brand_name TEXT, generic_name TEXT, manufacturer_name TEXT, product_ndc TEXT, package_ndc TEXT, product_type TEXT, route TEXT, substance_name TEXT, is_original_packager TEXT, boxed_warning TEXT, indications_and_usage TEXT, contraindications TEXT, warnings_and_cautions TEXT, adverse_reactions TEXT, drug_interactions TEXT, interaction_data TEXT, use_in_specific_populations TEXT, pregnancy TEXT, nursing_mothers TEXT, pediatric_use TEXT, geriatric_use TEXT, dosage_and_administration TEXT,  dosage_forms_and_strengths TEXT, overdosage TEXT, description TEXT, clinical_pharmacology TEXT, mechanism_of_action TEXT, pharmacodynamics TEXT, pharmacokinetics TEXT, nonclinical_toxicology TEXT, carcinogenesis_and_mutagenesis_and_impairment_of_fertility TEXT, clinical_studies TEXT, clinical_studies_table TEXT, how_supplied TEXT, information_for_patients TEXT, package_label_principal_display_panel TEXT, spl_product_data_elements TEXT, openfda TEXT, raw_json_blob TEXT, last_synced_at DATETIME DEFAULT CURRENT_TIMESTAMP);"
+      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, raw_json_blob TEXT,  last_synced_at TEXT);"
     },
     {
       "table": "assessment",
@@ -18,7 +18,7 @@
     },
     {
       "table": "medication",
-      "query": "CREATE TABLE IF NOT EXISTS medication (patient_uuid TEXT, set_id TEXT, dosage TEXT, frequency TEXT, PRIMARY KEY (patient_uuid, set_id), FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid), FOREIGN KEY (set_id) REFERENCES datasheet(set_id) ON DELETE RESTRICT);"
+      "query": "CREATE TABLE IF NOT EXISTS medication (id TEXT PRIMARY KEY, patient_uuid TEXT, name TEXT, set_id TEXT, dose TEXT, freq TEXT, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid), FOREIGN KEY (set_id) REFERENCES datasheet(set_id) ON DELETE RESTRICT);"
     },
     {
       "table": "completed_assessment",

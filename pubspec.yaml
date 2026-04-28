@@ -26,7 +26,7 @@ dev_dependencies:
   sqflite: ^2.3.3+1
   # Provides utility functions for manipulating file system paths
   path: ^1.9.0
-
+  uuid: ^4.4.0
   flutter_lints: ^6.0.0
 
 flutter:

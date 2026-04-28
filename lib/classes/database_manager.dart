@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
@@ -88,7 +89,7 @@ class DatabaseManager {
     Batch batch = db.batch();
     for (var entry in data) {
       // Match the schema: patient_uuid, first_name, last_name, etc.
-      batch.insert('patient', {
+      batch.insert('medication', {
         'patient_uuid': entry['patient_uuid'],
         'first_name': entry['first_name'] ?? 'Unknown',
         'last_name': entry['last_name'] ?? 'Unknown',
@@ -124,6 +125,92 @@ class DatabaseManager {
 
     // commit(noResult: true) is perfect here for performance
     await batch.commit(noResult: true);
+  }
+  Future<Map<String, dynamic>?> getStoredDatasheet(String setId) async {
+    final db = await database;
+
+    // We query by set_id since it is our Primary Key
+    final List<Map<String, dynamic>> results = await db.query(
+      'datasheet',
+      where: 'set_id = ?',
+      whereArgs: [setId],
+      limit: 1,
+    );
+
+    if (results.isNotEmpty) {
+      final String? blob = results.first['raw_json_blob'];
+
+      if (blob != null && blob.isNotEmpty) {
+        try {
+          // Decode the stringified JSON back into a Map
+          return json.decode(blob) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('Error decoding stored blob for $setId: $e');
+          return null;
+        }
+      }
+    }
+
+    return null; // No local record found
+  }
+
+  Future<void> insertMedication(Map<String, dynamic> medication) async {
+    final db = await database;
+
+    // Since we generate the UUID in the UI, it's already in the map
+    await db.insert(
+      'medication',
+      {
+        'id': medication['id'], // Our Flutter-generated UUID
+        'patient_uuid': medication['patient_uuid'],
+        'name': medication['name'],
+        'dose': medication['dose'],
+        'freq': medication['freq'],
+        'set_id': medication['set_id'] ?? '',
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    debugPrint('Inserted medication record with UUID: ${medication['id']}');
+  }
+// The Tether (Updating the set_id)
+  Future<void> updateMedicationSetId(String localUuid, String newSetId) async {
+    final db = await database;
+    await db.update(
+      'medication',
+      {'set_id': newSetId},
+      where: 'id = ?',
+      whereArgs: [localUuid],
+    );
+    debugPrint('Tethered medication $localUuid to FDA set_id: $newSetId');
+  }
+
+  Future<void> saveDatasheet(Map<String, dynamic> fdaJson) async {
+    final db = await database;
+
+    // Extract metadata for dedicated columns
+    final openfda = fdaJson['openfda'] ?? {};
+
+    await db.insert(
+      'datasheet',
+      {
+        'set_id': fdaJson['set_id'],
+        'version': fdaJson['version'],
+        // RXCUI is often an array in openfda, grab the first one
+        'rxcui': (openfda['rxcui'] != null && openfda['rxcui'].isNotEmpty)
+            ? openfda['rxcui'][0]
+            : null,
+        'brand_name': (openfda['brand_name'] != null && openfda['brand_name'].isNotEmpty)
+            ? openfda['brand_name'][0]
+            : null,
+        'generic_name': (openfda['generic_name'] != null && openfda['generic_name'].isNotEmpty)
+            ? openfda['generic_name'][0]
+            : null,
+        'raw_json_blob': json.encode(fdaJson),
+        'last_synced_at': DateTime.now().toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
 }

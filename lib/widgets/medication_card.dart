@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../classes/medication_services.dart';
 
 class MedicationCard extends StatefulWidget {
@@ -19,7 +18,10 @@ class _MedicationCardState extends State<MedicationCard> {
     if (_datasheetFuture == null) {
       setState(() {
         // Fetch only when requested
-        _datasheetFuture = MedicationService.getDrugDataSheet(widget.medData['name']);
+        String set_id = widget.medData['set_id'] ?? "";
+        String medication_id = widget.medData['id'] ?? "";
+        String medication_name = widget.medData['name'] ?? "";
+        _datasheetFuture = MedicationService.getDrugDataSheet(medication_id, medication_name, set_id);
       });
     }
   }

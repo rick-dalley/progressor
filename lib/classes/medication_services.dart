@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
+import 'database_manager.dart';
+
 class Medication {
   final String setId;
   final String genericName;
@@ -45,11 +47,24 @@ class Medication {
 
 class MedicationService {
 
-  static Future<Medication?> getDrugDataSheet(String name) async {
-    // We use quotes around the name to handle multi-word generic names
-    final url = Uri.parse(
-        'https://api.fda.gov/drug/label.json?search=openfda.generic_name:"$name"+AND+openfda.product_type:"HUMAN+PRESCRIPTION+DRUG"&limit=1'
-    );
+  static Future<Medication?> getDrugDataSheet(String medication_id, String name, String set_id) async {
+    final db = DatabaseManager();
+
+    // 1. Check local DB first
+    if (set_id.isNotEmpty) {
+      final localData = await db.getStoredDatasheet(set_id);
+      if (localData != null) {
+        debugPrint('Found local datasheet for: $name ($set_id)');
+        return Medication.fromFdaJson(localData);
+      }
+    }
+
+    // 2. Build the URL - Prefer set_id search over name search for accuracy
+    final String query = set_id.isNotEmpty
+        ? 'set_id:"$set_id"'
+        : 'openfda.generic_name:"$name"+AND+openfda.product_type:"HUMAN+PRESCRIPTION+DRUG"';
+
+    final url = Uri.parse('https://api.fda.gov/drug/label.json?search=$query&limit=1');
 
     try {
       final response = await http.get(url, headers: {"Accept": "application/json"});
@@ -58,8 +73,13 @@ class MedicationService {
         final data = jsonDecode(response.body);
 
         if (data['results'] != null && data['results'].isNotEmpty) {
-          // Pass the first result to our factory
-          return Medication.fromFdaJson(data['results'][0]);
+          final result = data['results'][0];
+          String newSetId = result['set_id'];
+          // 3. Save to DB - The saveDatasheet method will peel off your
+          // metadata columns (version, rxcui, etc.) and store the blob.
+          await db.saveDatasheet(result);
+          await db.updateMedicationSetId(medication_id, newSetId);
+          return Medication.fromFdaJson(result);
         }
       } else {
         debugPrint('FDA API Error: ${response.statusCode}');
@@ -68,7 +88,7 @@ class MedicationService {
       debugPrint('Connection Error: $e');
     }
 
-    return null; // Return null if not found or error occurred
+    return null;
   }
 
 
