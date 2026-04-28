@@ -1,7 +1,7 @@
 [
   {
     "patient_uuid": "p001-involuntary-cert",
-    "name": {"first": "Robert", "last": "Miller"},
+    "first_name": "Robert",  "last_name": "Miller",
     "phn": "9123444555",
     "dob": "1978-03-12",
     "current_acuity": 1,
@@ -12,7 +12,7 @@
   },
   {
     "patient_uuid": "p002-decert-ready",
-    "name": {"first": "Sarah", "last": "Chen"},
+    "first_name": "Sarah",  "last_name": "Chen",
     "phn": "9876555111",
     "dob": "1995-07-22",
     "current_acuity": 4,
@@ -23,7 +23,7 @@
   },
   {
     "patient_uuid": "p003-medical-clearance",
-    "name": {"first": "Arthur", "last": "Gould"},
+    "first_name": "Arthur",  "last_name": "Gould",
     "phn": "9333444888",
     "dob": "1954-11-30",
     "current_acuity": 2,
@@ -34,7 +34,7 @@
   },
   {
     "patient_uuid": "p004-substance-concurrent",
-    "name": {"first": "Leo", "last": "Vance"},
+    "first_name": "Leo",  "last_name": "Vance",
     "phn": "9555666222",
     "dob": "1988-01-05",
     "current_acuity": 3,
@@ -45,7 +45,7 @@
   },
   {
     "patient_uuid": "p005-social-admit",
-    "name": {"first": "Elena", "last": "Ross"},
+    "first_name": "Elena",  "last_name": "Ross",
     "phn": "9222333444",
     "dob": "1966-09-14",
     "current_acuity": 3,
@@ -56,7 +56,7 @@
   },
   {
     "patient_uuid": "p006-student-deep-dive",
-    "name": {"first": "Marcus", "last": "Webb"},
+    "first_name": "Marcus",  "last_name": "Webb",
     "phn": "9666777888",
     "dob": "2003-05-20",
     "current_acuity": 4,
@@ -67,7 +67,7 @@
   },
   {
     "patient_uuid": "p007-community-ready",
-    "name": {"first": "Fatima", "last": "Awan"},
+    "first_name": "Fatima",  "last_name": "Awan",
     "phn": "9444000111",
     "dob": "1981-12-02",
     "current_acuity": 5,

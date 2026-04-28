@@ -115,57 +115,57 @@
     {
       "name": "patients_all",
       "table": "patient",
-      "query": "SELECT * FROM patient"
+      "query": "SELECT * FROM patient;"
     },
     {
       "name": "patients_single",
       "table": "patient",
-      "query": "SELECT  *  FROM  patient WHERE patient_uuid = ?"
+      "query": "SELECT  *  FROM  patient WHERE patient_uuid = ?;"
       },
     {
       "name": "patient_medications",
       "table": "medication",
-      "query": "SELECT * FROM medication WHERE patient_uuid = ?"
+      "query": "SELECT * FROM medication WHERE patient_uuid = ?;"
     },
     {
       "name": "patient_datasheets",
       "table": "datasheet",
-      "query": "SELECT d.* FROM datasheet d INNER JOIN medications m ON d.set_id = m.set_id WHERE m.patient_uuid = ?"
+      "query": "SELECT d.* FROM datasheet d INNER JOIN medications m ON d.set_id = m.set_id WHERE m.patient_uuid = ?;"
     },
     {
       "name": "datasheet",
       "table": "datasheet",
-      "query": "SELECT * FROM datasheet WHERE set_id = ?"
+      "query": "SELECT * FROM datasheet WHERE set_id = ?;"
     },
     {
       "name": "patient_conditions",
       "table": "condition",
-      "query": "SELECT * FROM condition WHERE patient_uuid = ?"
+      "query": "SELECT * FROM condition WHERE patient_uuid = ?;"
     },
     {
       "name": "patient_allergies",
       "table": "condition",
-      "query": "SELECT condition_name FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active'"
+      "query": "SELECT condition_name FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active';"
     },
     {
       "name": "patient_vitals",
       "table": "vitals",
-      "query": "SELECT * FROM vitals WHERE patient_uuid = ? ORDER BY recorded_at DESC LIMIT 1"
+      "query": "SELECT * FROM vitals WHERE patient_uuid = ? ORDER BY recorded_at DESC LIMIT 1;"
     },
     {
       "name": "assessment_template",
       "table": "assessment",
-      "query": "SELECT a.*, q.id as question_id, q.question_text, q.question_type, q.cluster, q.cluster_name, q.description, q.depends_on, q.max_score FROM assessment a INNER JOIN question q ON q.assessment_id = a.id WHERE a.id = ? ORDER BY q.cluster, q.id"
+      "query": "SELECT a.*, q.id as question_id, q.question_text, q.question_type, q.cluster, q.cluster_name, q.description, q.depends_on, q.max_score FROM assessment a INNER JOIN question q ON q.assessment_id = a.id WHERE a.id = ? ORDER BY q.cluster, q.id;"
     },
     {
       "name": "patient_completed_sessions",
       "table": "completed_assessment",
-      "query": "SELECT c.*, a.title FROM completed_assessment c INNER JOIN assessments a ON c.assessment_id = a.id WHERE c.patient_id = ?"
+      "query": "SELECT c.*, a.title FROM completed_assessment c INNER JOIN assessments a ON c.assessment_id = a.id WHERE c.patient_id = ?;"
     },
     {
       "name": "patient_completed_answers",
       "table": "completed_question",
-      "query": "SELECT q.question_text, cq.answer, q.cluster_name FROM completed_question cq INNER JOIN question q ON cq.question_id = q.id WHERE cq.completed_assessment_id = ? ORDER BY q.cluster, q.id"
+      "query": "SELECT q.question_text, cq.answer, q.cluster_name FROM completed_question cq INNER JOIN question q ON cq.question_id = q.id WHERE cq.completed_assessment_id = ? ORDER BY q.cluster, q.id;"
     }
   ],
   "DROP": [

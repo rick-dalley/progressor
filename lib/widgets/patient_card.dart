@@ -33,9 +33,8 @@ class PatientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String lastName = (patient['name']?['last'] ?? 'Patient').toString();
-    final String firstName = (patient['name']?['first'] ?? 'Unknown')
-        .toString();
+    final String lastName = (patient['first_name']?? 'Patient').toString();
+    final String firstName = (patient['last_name']?? 'Unknown').toString();
     final String phn = (patient['phn'] ?? '000-000-000').toString();
     final String status = (patient['status'] ?? 'Triage').toString();
     final List<dynamic> flags = patient['flags'] ?? [];

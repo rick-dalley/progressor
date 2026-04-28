@@ -7,7 +7,8 @@ class DatabaseManager {
   // Singleton pattern
   static final DatabaseManager _instance = DatabaseManager._internal();
   Database? _db;
-
+// Cache the SQL configuration in memory
+  Map<String, dynamic>? sqlConfig;
   DatabaseManager._internal();
   factory DatabaseManager() => _instance;
 
@@ -19,6 +20,10 @@ class DatabaseManager {
   }
 
   Future<Database> init({bool overwrite = false}) async {
+
+    final String response = await rootBundle.loadString('assets/sql/sql.json');
+    sqlConfig = json.decode(response);
+
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'triage_data.db');
 
@@ -38,13 +43,31 @@ class DatabaseManager {
     );
   }
 
-  Future<void> _createTablesFromConfig(Database db) async {
-    // 1. Load the JSON file from assets
-    final String response = await rootBundle.loadString('assets/sql/sql.json');
-    final Map<String, dynamic> config = json.decode(response);
+  // 3. The New Patient Retrieval Function
+  Future<List<Map<String, dynamic>>> getAllPatients() async {
+    final db = await database;
 
+    // Find the specific query in our cached SELECT list
+    final List<dynamic> selectQueries = sqlConfig?['SELECT'] ?? [];
+    final patientQueryObj = selectQueries.firstWhere(
+          (q) => q['name'] == 'patients_all',
+      orElse: () => null,
+    );
+
+    if (patientQueryObj != null) {
+      return await db.rawQuery(patientQueryObj['query']);
+    }
+
+    // Fallback if the JSON name doesn't match
+    return await db.query('patient');
+  }
+
+
+  Future<void> _createTablesFromConfig(Database db) async {
+
+    if (sqlConfig == null) return;
     // 2. Extract the CREATE array
-    final List<dynamic> createScripts = config['CREATE'];
+    final List<dynamic> createScripts = sqlConfig?['CREATE'];
 
     // 3. Execute each query in the order provided in the JSON
     for (var entry in createScripts) {
@@ -58,7 +81,7 @@ class DatabaseManager {
     await db.execute('PRAGMA foreign_keys = ON;');
   }
 
-  Future<void> _seedFromLegacyJson(Database db) async {
+  Future<void> _seedMedsFromLegacyJson(Database db) async {
     final String response = await rootBundle.loadString('assets/medications/meds.json');
     final List<dynamic> data = json.decode(response);
 
@@ -68,7 +91,7 @@ class DatabaseManager {
       batch.insert('patient', {
         'patient_uuid': entry['patient_uuid'],
         'first_name': entry['first_name'] ?? 'Unknown',
-        'last_name': entry['last_name'] ?? 'Subject',
+        'last_name': entry['last_name'] ?? 'Unknown',
         'current_acuity': 3 // Default for Robert Miller and others
       });
     }
@@ -76,22 +99,31 @@ class DatabaseManager {
     await batch.commit(noResult: true);
   }
 
-  Future<List<Map<String, dynamic>>> getPatientMeds(String patientUuid) async {
-    final db = await database;
+  Future<void> _seedFromLegacyJson(Database db) async {
+    // 1. Load the correct source file
+    final String response = await rootBundle.loadString('assets/patients/patients.json');
+    final List<dynamic> data = json.decode(response);
 
-    // Joins the local patient med record with the full FDA datasheet
-    return await db.rawQuery('''
-    SELECT 
-      m.dosage, 
-      m.frequency, 
-      d.brand_name, 
-      d.generic_name, 
-      d.boxed_warning,
-      d.interaction_data
-    FROM medication m 
-    INNER JOIN datasheet d ON m.set_id = d.set_id 
-    WHERE m.patient_uuid = ?
-  ''', [patientUuid]);
+    Batch batch = db.batch();
+
+    for (var entry in data) {
+      // Extract the nested name map
+
+      batch.insert('patient', {
+        'patient_uuid': entry['patient_uuid'],
+        'first_name': entry['first_name'] ?? 'Unknown',
+        'last_name': entry['last_name'] ?? 'Subject',
+        'phn': entry['phn'],
+        'dob': entry['dob'],
+        'current_acuity': entry['current_acuity'] ?? 3,
+        'status': entry['status'] ?? 'Active',
+        'path': entry['path'],
+        'narrative_hint': entry['narrative_hint']
+      });
+    }
+
+    // commit(noResult: true) is perfect here for performance
+    await batch.commit(noResult: true);
   }
 
 }

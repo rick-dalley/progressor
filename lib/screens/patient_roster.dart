@@ -10,6 +10,7 @@ import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
+import '../classes/database_manager.dart';
 import '../generated/l10n.dart';
 import '../widgets/patient_card.dart';
 import '../screens/phq9.dart';
@@ -33,16 +34,17 @@ class _PatientRosterState extends State<PatientRoster> {
     _loadPatientData();
   }
 
-  // Future-proof: Loading from local JSON for the POC
   Future<void> _loadPatientData() async {
-    final String response = await rootBundle.loadString('assets/patients/patients.json');
-    final List<dynamic> data = await json.decode(response);
+    // DatabaseManager is a singleton, so this is safe and fast
+    final data = await DatabaseManager().getAllPatients();
 
     setState(() {
-      // Filter out any nulls just in case the JSON has a trailing comma
-      _patients = data.where((item) => item != null).toList();
+      _patients = data;
+      // Since it's already a List<Map<String, dynamic>>,
+      // you don't need to manually decode anymore.
     });
   }
+
   void _launchIntakeScreen(BuildContext context) {
     Navigator.push(
       context,
@@ -247,7 +249,7 @@ class _PatientRosterState extends State<PatientRoster> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    "TIMELINE: ${patient['name']['last'].toString().toUpperCase()}",
+                    "TIMELINE: ${patient['first_name']} ${patient['last_name'].toString().toUpperCase()}",
                     style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
                   ),
                 ),

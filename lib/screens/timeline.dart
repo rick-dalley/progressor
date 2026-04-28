@@ -17,7 +17,7 @@ class PatientTimelineScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Timeline: ${patient['name']['last']}"),
+        title: Text("Timeline: ${patient['first_name']} ${patient['last_name']}"),
         backgroundColor: const Color(0xFF1A365D),
         foregroundColor: Colors.white,
       ),
