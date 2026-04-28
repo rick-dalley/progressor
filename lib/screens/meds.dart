@@ -60,34 +60,25 @@ class _MedicationScreenState extends State<MedicationScreen> {
     super.initState();
     _loadMedsForPatient();
   }
-
   Future<void> _loadMedsForPatient() async {
     try {
-      // 1. Load the string from assets
-      final String response = await rootBundle.loadString('assets/medications/meds.json');
-      final List<dynamic> data = json.decode(response);
+      // 1. Call the database instead of the JSON asset
+      final List<Map<String, dynamic>> dbMeds = await DatabaseManager()
+          .getMedicationsForPatient(widget.patient['patient_uuid']);
 
-      // 2. Find the entry matching your current patient's ID
-      // widget.patient.id is the UUID from the card you clicked
-      final patientRecord = data.firstWhere(
-        // Use brackets [] because widget.patient is a Map
-            (element) => element['patient_uuid'] == widget.patient['patient_uuid'],
-        orElse: () => null,
-      );
+      setState(() {
+        // 2. We need to create a mutable copy because db results are read-only
+        _meds = dbMeds.map((m) => Map<String, dynamic>.from(m)).toList();
 
-      if (patientRecord != null) {
-        setState(() {
-          // 3. Map the prescription list and cast to our expected format
-          _meds = List<Map<String, dynamic>>.from(patientRecord['prescription']);
+        // 3. Inject your UI-specific state (Severity)
+        for (var med in _meds) {
+          med['severity'] = med['severity'] ?? 'Neutral';
+        }
+      });
 
-          // 4. Important: Set initial severity for each so the UI doesn't crash
-          for (var med in _meds) {
-            med['severity'] = 'Neutral';
-          }
-        });
-      }
+      debugPrint("Loaded ${_meds.length} meds from DB for ${widget.patient['patient_uuid']}");
     } catch (e) {
-      debugPrint("Error loading medications: $e");
+      debugPrint("Error loading medications from DB: $e");
     }
   }
 

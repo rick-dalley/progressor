@@ -39,7 +39,8 @@ class DatabaseManager {
         // 1. Setup Tables via external config
         await _createTablesFromConfig(db);
         // 2. Initial Seed from your JSON files
-        await _seedFromLegacyJson(db);
+        await seedPatientData(db);
+        await seedMedicationData(db);
       },
     );
   }
@@ -82,25 +83,35 @@ class DatabaseManager {
     await db.execute('PRAGMA foreign_keys = ON;');
   }
 
-  Future<void> _seedMedsFromLegacyJson(Database db) async {
-    final String response = await rootBundle.loadString('assets/medications/meds.json');
-    final List<dynamic> data = json.decode(response);
+  // UPDATED: Added 'Database db' parameter
+  Future<void> seedMedicationData(Database db) async {
+    try {
+      final String response = await rootBundle.loadString('assets/medications/meds.json');
+      final List<dynamic> data = json.decode(response);
 
-    Batch batch = db.batch();
-    for (var entry in data) {
-      // Match the schema: patient_uuid, first_name, last_name, etc.
-      batch.insert('medication', {
-        'patient_uuid': entry['patient_uuid'],
-        'first_name': entry['first_name'] ?? 'Unknown',
-        'last_name': entry['last_name'] ?? 'Unknown',
-        'current_acuity': 3 // Default for Robert Miller and others
-      });
+      for (var patientEntry in data) {
+        String patientUuid = patientEntry['patient_uuid'];
+        List<dynamic> prescriptions = patientEntry['prescription'];
+
+        for (var med in prescriptions) {
+          // Use a local helper or the raw insert to avoid 'await database' deadlock
+          await _rawInsertMedication(db, {
+            "id": med['id'],
+            "patient_uuid": patientUuid,
+            "name": med['name'],
+            "dose": med['dose'],
+            "freq": med['freq'],
+            "set_id": "",
+          });
+        }
+      }
+      debugPrint('Medication seeding complete.');
+    } catch (e) {
+      debugPrint('Error seeding medication data: $e');
     }
-    // noResult: true is faster for initial seeds
-    await batch.commit(noResult: true);
   }
 
-  Future<void> _seedFromLegacyJson(Database db) async {
+  Future<void> seedPatientData(Database db) async {
     // 1. Load the correct source file
     final String response = await rootBundle.loadString('assets/patients/patients.json');
     final List<dynamic> data = json.decode(response);
@@ -152,6 +163,22 @@ class DatabaseManager {
     }
 
     return null; // No local record found
+  }
+
+  // Internal helper to avoid calling 'await database' during initialization
+  Future<void> _rawInsertMedication(Database db, Map<String, dynamic> medication) async {
+    await db.insert(
+      'medication',
+      {
+        'id': medication['id'],
+        'patient_uuid': medication['patient_uuid'],
+        'name': medication['name'],
+        'dose': medication['dose'],
+        'freq': medication['freq'],
+        'set_id': medication['set_id'] ?? '',
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> insertMedication(Map<String, dynamic> medication) async {
@@ -210,6 +237,18 @@ class DatabaseManager {
         'last_synced_at': DateTime.now().toIso8601String(),
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getMedicationsForPatient(String patientUuid) async {
+    final db = await database;
+
+    return await db.query(
+      'medication',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      // Optional: Sort by name so the list doesn't jump around
+      orderBy: 'name ASC',
     );
   }
 
