@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
-class C_SSRSAssessmentScreen extends StatefulWidget {
+class CSSRSAssessmentScreen extends StatefulWidget {
   final Map<String, dynamic> template;
 
   // CHANGE 1: Add this optional controller to the class
   final ScrollController? scrollController;
 
-  const C_SSRSAssessmentScreen({
+  const CSSRSAssessmentScreen({
     super.key,
     required this.template,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
   @override
-  C_SSRSAssessmentScreenState createState() => C_SSRSAssessmentScreenState();
+  CSSRSAssessmentScreenState createState() => CSSRSAssessmentScreenState();
 }
 
-class C_SSRSAssessmentScreenState extends State<C_SSRSAssessmentScreen> {
+class CSSRSAssessmentScreenState extends State<CSSRSAssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);

@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
@@ -25,41 +23,18 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
+  final _acceptedIndications = false;
   bool _auditRun = false;
   bool _hasContraIndications = false;
   bool _hasPrecautions = false;
-  bool _acceptedIndications = false;
-
-  void _addMedication() async {
-    if (_nameController.text.isNotEmpty) {
-      var uuid = const Uuid();
-      final String uniqueId = uuid.v4(); // Generates a random version 4 UUID
-
-      final newMed = {
-        "id": uniqueId,
-        "patient_uuid": widget.patient["patient_uuid"],
-        "name": _nameController.text,
-        "dose": _doseController.text,
-        "freq": "PRN",
-        "set_id": "",
-      };
-
-      // Save to DB (returns the UUID we just generated)
-      await DatabaseManager().insertMedication(newMed);
-
-      setState(() {
-        _meds.add(newMed);
-        _nameController.clear();
-        _doseController.clear();
-      });
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     _loadMedsForPatient();
+    _runSafetyAudit();
   }
+
   Future<void> _loadMedsForPatient() async {
     try {
       // 1. Call the database instead of the JSON asset
@@ -150,76 +125,94 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
-  Widget _buildSafeMessage() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.verified, color: Colors.green, size: 48),
-        const SizedBox(height: 16),
-        const Text(
-          "Medication List Safe",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "The safety audit detected no contraindications or precautions for the current regimen.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey[700]),
-        ),
-      ],
-    );
-  }
+  Future<void> _updateLocalInteractionFlags(Map<String, dynamic> conflict) async {
+    final db = DatabaseManager();
 
-  // Multi-Drug Audit
-  void _runSafetyAudit() async {
-    List<String> classIds = [];
-    for (var med in _meds) {
-      final info = await MedicationService.getDrugDataSheet(med['id'], med['name']!, med['set_id']);
+    // 1. Extract the names involved in the conflict from the API result
+    // Note: Adjust the keys ('drugA', 'drugB') based on your actual API response structure
+    final String drugAName = conflict['drugA']?.toString() ?? "";
+    final String drugBName = conflict['drugB']?.toString() ?? "";
+    final String severity = conflict['severity']?.toString().toLowerCase() ?? "";
 
+    // 2. Map the severity to an integer for the database
+    // 0 = None, 1 = Amber/Moderate, 2 = Red/High
+    int riskLevel = 0;
+    if (severity == 'red' || severity == 'high') {
+      riskLevel = 2;
+    } else if (severity == 'amber' || severity == 'moderate') {
+      riskLevel = 1;
     }
 
-    final warning = MedicationService.checkInteractions(classIds);
+    // // 3. Find the local UUIDs for these drugs for this specific patient
+    // // We use the patientUuid to ensure we don't accidentally flag a different patient's meds
+    // final List<String> affectedIds = await db.getMedIdsByNames(patientUuid, [drugAName, drugBName]);
+    //
+    // // 4. Update the 'has_interaction' column in the database
+    // for (var id in affectedIds) {
+    //   await db.updateMedicationInteractionStatus(id, riskLevel);
+    // }
+
+    debugPrint("Database updated: $drugAName and $drugBName flagged with severity $riskLevel");
+  }
+
+  void _runSafetyAudit() async {
+    // 1. Gather all names for the audit
+    final List<String> drugNames = _meds
+        .map((m) => m['name'] as String)
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    if (drugNames.length < 2) {
+      setState(() => _auditRun = true);
+      return;
+    }
+
+    // 2a. External API Check (for known Drug-Drug Interactions)
+    final apiResult = await MedicationService.checkInteractions(drugNames);
+    final List apiConflicts = (apiResult != null && apiResult['interactions'] != null)
+    ? apiResult['interactions'] as List
+        : [];
+
+    // 2b. Internal Label Scan (for absolute Contraindications)
+    // This catches things the API might miss by scanning the raw FDA text
+    final List localConflicts = await DatabaseManager().scanLocalDatasheetsForContraindications(drugNames);
+
+    // Merge the two lists
+    final List conflicts = [...apiConflicts, ...localConflicts];
+
+    // 3. Determine Severities (Check both Red and Amber)
+    bool hasRed = conflicts.any((item) =>
+    item['severity']?.toString().toLowerCase() == 'red' ||
+    item['severity']?.toString().toLowerCase() == 'high' ||
+    item['type'] == 'contraindication' // New flag
+    );
+
+    bool hasAmber = conflicts.any((item) =>
+    item['severity']?.toString().toLowerCase() == 'amber' ||
+        item['severity']?.toString().toLowerCase() == 'moderate'
+    );
+
+    // 4. Update the Database so the "Traffic Light" icons persist
+    for (var conflict in conflicts) {
+      // Assuming the conflict object tells us which two drugs clashed
+      // We update the local 'medication' table to set has_interaction = 1
+      await _updateLocalInteractionFlags(conflict);
+    }
+
     setState(() {
       _isLoading = false;
       _auditRun = true;
-      _hasContraIndications = false;
-      _hasPrecautions = false;
-      _acceptedIndications = false;
+      _hasContraIndications = hasRed;
+      _hasPrecautions = hasAmber;
     });
 
-      // 1. Get the names from your _meds list
-      final List<String> drugNames = _meds.map((m) => m['name'] as String).toList();
-
-      // 2. Hit the "Clean Pipe" service we designed
-      final result = await MedicationService.checkInteractions(drugNames);
-    final List conflicts = (result != null && result['interactions'] != null)
-        ? result['interactions'] as List
-        : [];
-      setState(() {
-        _isLoading = false;
-        _auditRun = true;
-        //_sortMedsByRisk(); // Re-sort based on NIH findings
-      });
-
-    bool hasRed = conflicts.any((item) => item['severity'] == 'Red' || item['severity'] == 'high');
-    bool hasAmber = conflicts.any((item) => item['severity'] == 'Amber' || item['severity'] == 'moderate'); //or 'Orange' depending on your API
-
-    setState(() {
-      _auditRun = true;
-      if (hasRed) {
-        _hasContraIndications = hasRed; // Red
-      } else if (hasAmber) {
-        _hasPrecautions = hasAmber; // Amber
-      }
-      //_sortMedsByRisk(); // Moves the highest level risks to the top
-    });
-
-    _showClinicalModal(
-      "Safety Audit Results",
-      conflicts.isNotEmpty
-          ? _buildConflictList(conflicts) // Pass the already-extracted list
-          : _buildSafeMessage(), // The "Clearance" path
-    );
+    // 5. Only interrupt the nurse with a modal if there are actual conflicts
+    if (conflicts.isNotEmpty) {
+      _showClinicalModal(
+        "Safety Audit Results",
+        _buildConflictList(conflicts),
+      );
+    }
   }
 
   Color fromHex(String hexString) {
@@ -234,24 +227,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     List<String> classIds = [];
 
-    // 1. Audit every drug in the list live
-    for (var med in _meds) {
-      final data = await MedicationService.getDrugDataSheet(med['id'],med['name']!, med['set_id']);
-
-    }
 
     setState(() => _isLoading = false);
 
-    // 2. Run the interaction check
+    // Run the interaction check
     final risk = MedicationService.checkInteractions(classIds);
 
-    if (risk != null) {
-      // If a risk is found, force an interruption modal
-      _showSafetyAlert(risk as Map<String, dynamic>);
-    } else {
-      // All clear - return the list to the previous screen
-      Navigator.pop(context, _meds);
-    }
+    // If a risk is found, force an interruption modal
+    _showSafetyAlert(risk as Map<String, dynamic>);
   }
 
   void _showSafetyAlert(Map<String, dynamic> risk) {
@@ -351,6 +334,80 @@ class _MedicationScreenState extends State<MedicationScreen> {
     );
   }
 
+  void _addMedication() async {
+    if (_nameController.text.isNotEmpty) {
+      var uuid = const Uuid();
+      final String medName = _nameController.text;
+      final String medId = uuid.v4(); // Generates a random version 4 UUID
+
+      final newMed = {
+        "id": medId,
+        "patient_uuid": widget.patient["patient_uuid"],
+        "name": medName,
+        "dose": _doseController.text,
+        "freq": "PRN",
+        "set_id": "",
+      };
+
+      // Save to DB (returns the UUID we just generated)
+      await DatabaseManager().insertMedication(newMed);
+
+      setState(() {
+        _meds.add({...newMed, "is_syncing": true});
+        _nameController.clear();
+        _doseController.clear();
+      });
+      // 2. Background Sync (Do not 'await' this)
+      _startBackgroundSync(medId, medName);
+    }
+  }
+
+  void _refreshMedInUI(String medId, String setId) {
+    setState(() {
+      final index = _meds.indexWhere((m) => m['id'] == medId);
+      if (index != -1) {
+        _meds[index]['set_id'] = setId;
+        _meds[index]['is_syncing'] = false;
+      }
+    });
+  }
+
+  Future<void> _startBackgroundSync(String medId, String medName) async {
+    try {
+      //Local Cache Check
+      String? existingSetId = await DatabaseManager().getSetIdByName(medName);
+      if (existingSetId != null) {
+        await DatabaseManager().updateMedicationSetId(medId, existingSetId);
+        _refreshMedInUI(medId, existingSetId);
+        _runSafetyAudit();
+        return;
+      }
+
+      // FDA Check
+      final drugDataSheet = await MedicationService.getDrugDataSheet(medName, "", medId);
+      if (drugDataSheet != null) {
+
+        _refreshMedInUI(medId, drugDataSheet.setId);
+        _runSafetyAudit();
+      }
+    } catch (e) {
+      debugPrint("Background sync failed for $medName: $e");
+    } finally {
+      // 3. Ensure the 'is_syncing' flag is cleared even on failure
+      _stopSyncSpinner(medId);
+    }
+  }
+
+  void _stopSyncSpinner(String medId) {
+    setState(() {
+      final index = _meds.indexWhere((m) => m['id'] == medId);
+      if (index != -1) {
+        _meds[index]['is_syncing'] = false;
+      }
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final name = "${widget.patient['first_name']} ${widget.patient['last_name']}";
@@ -413,10 +470,18 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 // We swap the old ListTile for our new smart card
                 return MedicationCard(
                   medData: med,
-                  onDelete: () {
+                  onDelete: () async {
+                    final String medIdToDelete = med['id'];
+
+                    // 1. Remove from the local database
+                    await DatabaseManager().deleteMedication(medIdToDelete);
+
+                    // 2. Remove from the UI state
                     setState(() {
                       _meds.removeAt(index);
                     });
+
+                    debugPrint('Permanently deleted medication: $medIdToDelete');
                   },
                 );
               },

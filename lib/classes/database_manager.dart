@@ -200,7 +200,8 @@ class DatabaseManager {
 
     debugPrint('Inserted medication record with UUID: ${medication['id']}');
   }
-// The Tether (Updating the set_id)
+
+  // The Tether (Updating the set_id)
   Future<void> updateMedicationSetId(String localUuid, String newSetId) async {
     final db = await database;
     await db.update(
@@ -210,6 +211,15 @@ class DatabaseManager {
       whereArgs: [localUuid],
     );
     debugPrint('Tethered medication $localUuid to FDA set_id: $newSetId');
+  }
+
+  Future<int> deleteMedication(String medUuid) async {
+    final db = await database;
+    return await db.delete(
+      'medication',
+      where: 'id = ?',
+      whereArgs: [medUuid],
+    );
   }
 
   Future<void> saveDatasheet(Map<String, dynamic> fdaJson) async {
@@ -240,6 +250,73 @@ class DatabaseManager {
     );
   }
 
+  Future<Map<String, dynamic>?> getDatasheetByName(String name) async {
+    final db = await database;
+
+    // We use COLLATE NOCASE to ensure the lookup is case-insensitive
+    final List<Map<String, dynamic>> results = await db.query(
+      'datasheet',
+      where: 'generic_name = ? COLLATE NOCASE OR brand_name = ? COLLATE NOCASE',
+      whereArgs: [name, name],
+      limit: 1,
+    );
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+
+    debugPrint('DatabaseManager: No local datasheet found for $name');
+    return null;
+  }
+
+  Future<void> updateDatasheetClasses(String setId, String classes) async {
+    final db = await database;
+    await db.update(
+      'datasheet',
+      {'classes': classes},
+      where: 'set_id = ?',
+      whereArgs: [setId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> scanLocalDatasheetsForContraindications(List<String> drugNames) async {
+    List<Map<String, dynamic>> found = [];
+
+    for (var name in drugNames) {
+      // 1. Get the local blob for this drug
+      // Ensure getDatasheetByName handles the case-insensitive lookup
+      final Map<String, dynamic>? blob = await getDatasheetByName(name);
+      if (blob == null) continue;
+
+      // 2. Normalize the haystack (The FDA Label Text)
+      // We combine the high-risk fields into one searchable string
+      final String contra = blob['contraindications']?.toString() ?? "";
+      final String interactions = blob['drug_interactions']?.toString() ?? "";
+
+      final String haystack = (contra + interactions).toLowerCase();
+
+      for (var otherName in drugNames) {
+        // Don't compare a drug against itself
+        if (name.toLowerCase() == otherName.toLowerCase()) continue;
+
+        // 3. Normalize the needle
+        final String needle = otherName.toLowerCase().trim();
+
+        // 4. Perform the Scan
+        if (needle.isNotEmpty && haystack.contains(needle)) {
+          found.add({
+            'drugA': name,
+            'drugB': otherName,
+            'severity': 'high', // Contraindications are always high risk
+            'type': 'contraindication',
+            'description': 'Interaction found in $name label regarding $otherName.'
+          });
+        }
+      }
+    }
+    return found;
+  }
+
   Future<List<Map<String, dynamic>>> getMedicationsForPatient(String patientUuid) async {
     final db = await database;
 
@@ -250,6 +327,28 @@ class DatabaseManager {
       // Optional: Sort by name so the list doesn't jump around
       orderBy: 'name ASC',
     );
+  }
+
+  Future<String?> getSetIdByName(String medName) async {
+    final db = await database;
+
+    // We use LIKE with wildcards to handle minor naming variations
+    // (e.g., "Metformin" matching "Metformin Hydrochloride")
+    final List<Map<String, dynamic>> results = await db.query(
+      'datasheet',
+      columns: ['set_id'],
+      where: 'generic_name LIKE ? OR brand_name LIKE ?',
+      whereArgs: ['%$medName%', '%$medName%'],
+      limit: 1, // We only need one valid tether
+    );
+
+    if (results.isNotEmpty) {
+      debugPrint('Local tether found for $medName: ${results.first['set_id']}');
+      return results.first['set_id'] as String;
+    }
+
+    debugPrint('No local datasheet for $medName. Fetch required.');
+    return null;
   }
 
 }

@@ -5,15 +5,15 @@
       {"id":"18", "set_id":"", "name": "Perindopril", "dose": "4mg", "freq": "QD"},
       {"id":"17", "set_id":"", "name": "Rosuvastatin", "dose": "20mg", "freq": "QD"},
       {"id":"16", "set_id":"", "name": "Hydrochlorothiazide", "dose": "25mg", "freq": "QD"},
-      {"id":"15", "set_id":"", "name": "Amlodipine", "dose": "10mg", "freq": "QD"},
-      {"id":"14", "set_id":"", "name": "Escitalopram", "dose": "20mg", "freq": "QD"}
+      {"id":"15", "set_id":"", "name": "Amlodipine Besylate", "dose": "10mg", "freq": "QD"},
+      {"id":"14", "set_id":"", "name": "Escitalopram Oxalate", "dose": "20mg", "freq": "QD"}
     ]
   },
   {
     "patient_uuid": "p002-decert-ready",
     "prescription":[
       {"id":"13", "set_id":"", "name": "Ibuprofen", "dose": "50mg", "freq": "QD"},
-      {"id":"12", "set_id":"", "name": "Lithium", "dose": "25mg", "freq": "QHS"}
+      {"id":"12", "set_id":"", "name": "Lithium Carbonate", "dose": "25mg", "freq": "QHS"}
     ]
   },
   {

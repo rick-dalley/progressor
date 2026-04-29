@@ -26,8 +26,9 @@ class PatientCard extends StatelessWidget {
     final String status = patient['status'] ?? '';
 
     if (flags.contains('Form 4 Active')) return Colors.green.shade600;
-    if (path == 'GP-Handoff' || status == 'Discharge Prep')
+    if (path == 'GP-Handoff' || status == 'Discharge Prep') {
       return Colors.red.shade600;
+    }
     return Colors.yellow.shade700;
   }
 

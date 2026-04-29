@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 class IntakeScreen extends StatefulWidget {
+
+  const IntakeScreen({super.key});
+
   @override
-  _IntakeScreenState createState() => _IntakeScreenState();
+  IntakeScreenState createState() => IntakeScreenState();
 }
 
-class _IntakeScreenState extends State<IntakeScreen> {
+class IntakeScreenState extends State<IntakeScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phnController = TextEditingController();
@@ -62,8 +65,8 @@ class _IntakeScreenState extends State<IntakeScreen> {
                 // For now, just pop back. Later, we'll return the new patient object.
                 Navigator.pop(context);
               },
-              child: const Text("CREATE PATIENT RECORD"),
               style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              child: const Text("CREATE PATIENT RECORD"),
             ),
           ],
         ),

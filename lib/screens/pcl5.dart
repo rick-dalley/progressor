@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
@@ -26,21 +23,10 @@ class PCL5AssessmentScreenState extends State<PCL5AssessmentScreen> {
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
   bool _showValidationErrors = false;
 
-// At the top of your state class
-  List<dynamic>? _scoreGuide;
-
-  Future<void> _loadScoreGuide() async {
-    final String response = await rootBundle.loadString('assets/questions/pcl5_score_guide.json');
-    final data = await json.decode(response);
-    setState(() {
-      _scoreGuide = data;
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    _loadScoreGuide();
   }
 
   @override
@@ -159,11 +145,6 @@ class PCL5AssessmentScreenState extends State<PCL5AssessmentScreen> {
 
     // 1. Check if all 9 clinical questions are answered
     bool isFormComplete = questions.every((q) => answers.containsKey(q['id']));
-
-    // 2. Check if the impact question (q10-q13) is answered
-    // We check if any key starting with 'q10', 'q11', etc., exists
-    // or if you used the 'impact_id' key approach we discussed.
-    bool impactAnswered = answers.keys.any((key) => ['q10', 'q11', 'q12', 'q13'].contains(key));
 
     // Only get interpretation if the form is actually complete
     final interpretation = isFormComplete ? getInterpretation() : null;

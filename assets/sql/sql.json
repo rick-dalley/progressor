@@ -6,7 +6,7 @@
     },
     {
       "table": "datasheet",
-      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, raw_json_blob TEXT,  last_synced_at TEXT);"
+      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, classes TEXT, raw_json_blob TEXT,  last_synced_at TEXT);"
     },
     {
       "table": "assessment",

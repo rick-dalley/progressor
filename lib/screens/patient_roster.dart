@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:triage/screens/asrs.dart';
 import 'package:triage/screens/cssrs.dart';
 import 'package:triage/screens/dast10.dart';
@@ -112,7 +110,7 @@ class _PatientRosterState extends State<PatientRoster> {
                       onTap: () => _launchAssessment(
                         context,
                         templateName: "c-ssrs.json",
-                        screenBuilder: (data, controller) => C_SSRSAssessmentScreen(template: data, scrollController: controller),
+                        screenBuilder: (data, controller) => CSSRSAssessmentScreen(template: data, scrollController: controller),
                       )
                   ),
                   ListTile(
