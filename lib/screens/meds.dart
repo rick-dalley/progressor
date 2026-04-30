@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
@@ -20,13 +22,15 @@ class _MedicationScreenState extends State<MedicationScreen> {
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _meds = [];
+  List<InteractionConflict> _currentConflicts = []; // The source of truth for the UI
+  bool _auditRun = false;
 
+  // These are derived flags
+  bool _hasContraIndications = false;
+  bool _hasPrecautions = false; // Set this based on your separate logic
+  bool _acceptedIndications = false;
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
-  final _acceptedIndications = false;
-  bool _auditRun = false;
-  bool _hasContraIndications = false;
-  bool _hasPrecautions = false;
 
   @override
   void initState() {
@@ -57,162 +61,40 @@ class _MedicationScreenState extends State<MedicationScreen> {
     }
   }
 
-  // Helper to show the Bottom Sheet
-  void _showClinicalModal(String title, Widget content) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        height: MediaQuery.of(context).size.height * 0.4,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            Expanded(child: content),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConflictList(List items) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items.map((item) {
-        // Cast the item to a Map for safe access
-        final data = item as Map<String, dynamic>;
-        final bool isCritical = data['severity'] == 'Red';
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                isCritical ? Icons.block : Icons.warning_amber_rounded,
-                color: isCritical ? Colors.red : Colors.orange,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data['pair'] ?? "Unknown Interaction",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      data['desc'] ?? "No description provided.",
-                      style: TextStyle(color: Colors.grey[800], fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Future<void> _updateLocalInteractionFlags(Map<String, dynamic> conflict) async {
-    final db = DatabaseManager();
-
-    // 1. Extract the names involved in the conflict from the API result
-    // Note: Adjust the keys ('drugA', 'drugB') based on your actual API response structure
-    final String drugAName = conflict['drugA']?.toString() ?? "";
-    final String drugBName = conflict['drugB']?.toString() ?? "";
-    final String severity = conflict['severity']?.toString().toLowerCase() ?? "";
-
-    // 2. Map the severity to an integer for the database
-    // 0 = None, 1 = Amber/Moderate, 2 = Red/High
-    int riskLevel = 0;
-    if (severity == 'red' || severity == 'high') {
-      riskLevel = 2;
-    } else if (severity == 'amber' || severity == 'moderate') {
-      riskLevel = 1;
-    }
-
-    // // 3. Find the local UUIDs for these drugs for this specific patient
-    // // We use the patientUuid to ensure we don't accidentally flag a different patient's meds
-    // final List<String> affectedIds = await db.getMedIdsByNames(patientUuid, [drugAName, drugBName]);
-    //
-    // // 4. Update the 'has_interaction' column in the database
-    // for (var id in affectedIds) {
-    //   await db.updateMedicationInteractionStatus(id, riskLevel);
-    // }
-
-    debugPrint("Database updated: $drugAName and $drugBName flagged with severity $riskLevel");
-  }
-
   void _runSafetyAudit() async {
-    // 1. Gather all names for the audit
-    final List<String> drugNames = _meds
-        .map((m) => m['name'] as String)
-        .where((name) => name.isNotEmpty)
-        .toList();
+    setState(() {
+      _isLoading = true;
+      _currentConflicts.clear();
+    });
 
-    if (drugNames.length < 2) {
-      setState(() => _auditRun = true);
-      return;
-    }
+    for (var primaryMed in _meds) {
+      final String pId = primaryMed['set_id'];
+      primaryMed['has_interaction'] = 0;
 
-    // 2a. External API Check (for known Drug-Drug Interactions)
-    final apiResult = await MedicationService.checkInteractions(drugNames);
-    final List apiConflicts = (apiResult != null && apiResult['interactions'] != null)
-    ? apiResult['interactions'] as List
-        : [];
+      for (var otherMed in _meds) {
+        final String oId = otherMed['set_id'];
+        if (pId == oId) continue;
 
-    // 2b. Internal Label Scan (for absolute Contraindications)
-    // This catches things the API might miss by scanning the raw FDA text
-    final List localConflicts = await DatabaseManager().scanLocalDatasheetsForContraindications(drugNames);
+        // SQLite parses the classes and finds the hit
+        final (isMatch, matchedClass) = await DatabaseManager().checkInteractionsInDb(pId, oId);
 
-    // Merge the two lists
-    final List conflicts = [...apiConflicts, ...localConflicts];
+        if (isMatch) {
+          _currentConflicts.add(InteractionConflict(
+            primaryMedName: primaryMed['name'],
+            conflictingMedName: otherMed['name'],
+            matchedClass: matchedClass,
+          ));
 
-    // 3. Determine Severities (Check both Red and Amber)
-    bool hasRed = conflicts.any((item) =>
-    item['severity']?.toString().toLowerCase() == 'red' ||
-    item['severity']?.toString().toLowerCase() == 'high' ||
-    item['type'] == 'contraindication' // New flag
-    );
-
-    bool hasAmber = conflicts.any((item) =>
-    item['severity']?.toString().toLowerCase() == 'amber' ||
-        item['severity']?.toString().toLowerCase() == 'moderate'
-    );
-
-    // 4. Update the Database so the "Traffic Light" icons persist
-    for (var conflict in conflicts) {
-      // Assuming the conflict object tells us which two drugs clashed
-      // We update the local 'medication' table to set has_interaction = 1
-      await _updateLocalInteractionFlags(conflict);
+          setState(() => primaryMed['has_interaction'] = 1);
+        }
+      }
     }
 
     setState(() {
       _isLoading = false;
       _auditRun = true;
-      _hasContraIndications = hasRed;
-      _hasPrecautions = hasAmber;
+      _hasContraIndications = _currentConflicts.isNotEmpty;
     });
-
-    // 5. Only interrupt the nurse with a modal if there are actual conflicts
-    if (conflicts.isNotEmpty) {
-      _showClinicalModal(
-        "Safety Audit Results",
-        _buildConflictList(conflicts),
-      );
-    }
   }
 
   Color fromHex(String hexString) {
@@ -223,63 +105,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
   }
 
   void _confirmAndSave() async {
-    setState(() => _isLoading = true);
 
-    List<String> classIds = [];
-
-
-    setState(() => _isLoading = false);
-
-    // Run the interaction check
-    final risk = MedicationService.checkInteractions(classIds);
-
-    // If a risk is found, force an interruption modal
-    _showSafetyAlert(risk as Map<String, dynamic>);
-  }
-
-  void _showSafetyAlert(Map<String, dynamic> risk) {
-    final alertColor = fromHex(risk['color']);
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Force interaction
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: alertColor),
-            const SizedBox(width: 10),
-            const Text("SAFETY ALERT"),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "SEVERITY: ${risk['severity']}",
-              style: TextStyle(fontWeight: FontWeight.bold, color: alertColor),
-            ),
-            const SizedBox(height: 10),
-            Text(risk['warning']),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // Go back to edit meds
-            child: const Text("GO BACK & EDIT"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context, _meds); // Proceed with save
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade900,
-            ),
-            child: const Text("ACKNOWLEDGE & SAVE ANYWAY"),
-          ),
-        ],
-      ),
-    );
   }
 
   // Logic-driven Banner Widget
@@ -387,7 +213,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       final drugDataSheet = await MedicationService.getDrugDataSheet(medName, "", medId);
       if (drugDataSheet != null) {
 
-        _refreshMedInUI(medId, drugDataSheet.setId);
+        _refreshMedInUI(medId, drugDataSheet['set_id']);
         _runSafetyAudit();
       }
     } catch (e) {
@@ -469,6 +295,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
                 // We swap the old ListTile for our new smart card
                 return MedicationCard(
+                  key: ValueKey(med['id']),
                   medData: med,
                   onDelete: () async {
                     final String medIdToDelete = med['id'];

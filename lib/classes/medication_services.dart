@@ -3,11 +3,24 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import 'database_manager.dart';
+
+class InteractionConflict {
+  final String primaryMedName;
+  final String conflictingMedName;
+  final String matchedClass;
+
+  InteractionConflict({
+    required this.primaryMedName,
+    required this.conflictingMedName,
+    required this.matchedClass,
+  });
+}
+
 class Medication {
   final String setId;
   final String genericName;
   final String brandName;
-  final List<String> classes; // New field for semantic categories
+  final bool hasLocalDataSheet;
   final Map<String, String> datasheetSections;
   final bool hasInteractionAlert;
 
@@ -15,7 +28,7 @@ class Medication {
     required this.setId,
     required this.genericName,
     required this.brandName,
-    required this.classes,
+    required this.hasLocalDataSheet,
     required this.datasheetSections,
     this.hasInteractionAlert = false,
   });
@@ -33,11 +46,12 @@ class Medication {
         ? classString.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
         : [];
 
+
     return Medication(
       setId: json['set_id'] ?? '',
       genericName: (openFda['generic_name'] as List?)?.first ?? 'Unknown Medication',
       brandName: (openFda['brand_name'] as List?)?.first ?? '',
-      classes: classList, // Populated from our RxNav/DB pipeline
+      hasLocalDataSheet: json['has_local_dataset']==1,
       hasInteractionAlert: alert,
       datasheetSections: {
         'Boxed Warning': getSection('boxed_warning'),
@@ -50,6 +64,16 @@ class Medication {
       }..removeWhere((key, value) => value.isEmpty),
     );
   }
+
+  String get interactionsText {
+    return (datasheetSections['Interactions'] ?? "").toLowerCase();
+  }
+
+  // Helper for your bilateral scan logic
+  bool containsClass(String className) {
+    return interactionsText.contains(className.toLowerCase());
+  }
+
 }
 
 class MedicationService {
@@ -64,76 +88,95 @@ class MedicationService {
     }
   }
 
-  static Future<Medication?> getDrugDataSheet(String medicationId, String name, String setId) async {
+  static Future<Map<String, dynamic>?> getDrugDataSheet(String medicationId, String name, String setId) async {
     final db = DatabaseManager();
 
-    // 1. Check local DB first
-    if (setId.isNotEmpty) {
-      final localData = await db.getStoredDatasheet(setId);
-      if (localData != null) {
-        String? savedClasses = localData['classes'];
-        final Map<String, dynamic> rawJson = jsonDecode(localData['raw_json_blob']);
+    // --- 1. THE SYNC CHECK ---
+    // Check if we already have the datasheet row in the local DB.
+    Map<String, dynamic>? localData = setId.isNotEmpty
+        ? await db.getStoredDatasheet(setId)
+        : null;
 
-        if (savedClasses == null || savedClasses.isEmpty) {
-          debugPrint('Repairing local record: Fetching missing classes for $name');
+    if (localData == null) {
+      debugPrint('Local record missing for $name. Syncing from FDA...');
 
-          // Use RXCUI if available, otherwise fallback to name
-          final String? rxcui = _extractRxcui(rawJson);
-          if (rxcui != null && rxcui.isNotEmpty) {
-            savedClasses = await fetchClassesByRxcui(rxcui);
-          }
+      // Inline FDA Search Logic
+      String query = RegExp(r'^\d+$').hasMatch(name)
+          ? 'openfda.rxcui:"$name"'
+          : '(openfda.generic_name:"$name"+openfda.brand_name:"$name")';
 
-          if (savedClasses == null || savedClasses.isEmpty) {
-            savedClasses = await fetchClassesFromRxNav(name);
-          }
+      final url = Uri.parse('https://api.fda.gov/drug/label.json?search=$query&limit=1');
 
-          await db.updateDatasheetClasses(setId, savedClasses);
-        }
+      try {
+        final response = await http.get(url).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final Map<String, dynamic> result = data['results'][0];
 
-        return Medication.fromFdaJson(rawJson, classString: savedClasses);
-      }
-    }
+          // Resolve IDs
+          final String newSetId = result['set_id'] ?? result['id'] ?? "";
 
-    // 2. Build the URL
-    final String query = setId.isNotEmpty
-        ? 'set_id:"$setId"'
-        : 'openfda.generic_name:"$name"+AND+openfda.product_type:"HUMAN+PRESCRIPTION+DRUG"';
-
-    final url = Uri.parse('https://api.fda.gov/drug/label.json?search=$query&limit=1');
-
-    try {
-      final response = await http.get(url, headers: {"Accept": "application/json"});
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['results'] != null && data['results'].isNotEmpty) {
-          final result = data['results'][0];
-          String newSetId = result['set_id'];
-
-          await db.saveDatasheet(result);
-          await db.updateMedicationSetId(medicationId, newSetId);
-
-          // Use RXCUI if available, otherwise fallback to name
+          // Resolve Classes (Pharmacologic Classes)
           final String? rxcui = _extractRxcui(result);
           String classTags = "";
-
           if (rxcui != null && rxcui.isNotEmpty) {
             classTags = await fetchClassesByRxcui(rxcui);
           }
-
           if (classTags.isEmpty) {
             classTags = await fetchClassesFromRxNav(name);
           }
 
-          await db.updateDatasheetClasses(newSetId, classTags);
-          return Medication.fromFdaJson(result, classString: classTags);
+          // --- 2. THE PERSISTENCE ---
+          // Save the datasheet blob and the classes string to the datasheet table
+          await db.saveDatasheet(result, classTags);
+
+          // Update the medication table to link the setId and flip has_local_datasheet to 1
+          await db.updateMedicationSetId(medicationId, newSetId);
+
+          // Update localData by pulling the newly saved row
+          localData = await db.getStoredDatasheet(newSetId);
+        } else {
+          debugPrint("FDA API returned ${response.statusCode}");
+          return null;
+        }
+      } catch (e) {
+        debugPrint("Network failure during sync: $e");
+        return null;
+      }
+    }
+
+    // --- 3. THE RETRIEVAL (Source of Truth) ---
+    // We return the raw database map.
+    // The widget will handle the jsonDecode of the blob and the split() of the classes string.
+    return localData;
+  }
+
+  static Future<List<String>> getPotentialMatches(String partialName) async {
+    if (partialName.isEmpty) return [];
+
+    final url = Uri.parse(
+        "https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=$partialName&maxEntries=5"
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List? candidates = data['approximateGroup']?['candidate'];
+
+        if (candidates != null) {
+          return candidates
+              .map((c) => c['name']?.toString()) // Use null-safe access
+              .where((name) => name != null && name.isNotEmpty) // Filter out nulls/empties
+              .cast<String>() // Cast to a non-nullable String list
+              .toSet() // Remove duplicates
+              .toList();
         }
       }
     } catch (e) {
-      debugPrint('Connection Error: $e');
+      debugPrint("RxNav Suggestion Error: $e");
     }
-    return null;
+    return [];
   }
 
   static Future<String> fetchClassesFromRxNav(String medicationName) async {
@@ -173,7 +216,5 @@ class MedicationService {
     return "";
   }
 
-  static Future<Map<String, dynamic>?> checkInteractions(List<String> names) async {
-    return null;
-  }
+
 }
