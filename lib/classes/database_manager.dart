@@ -146,7 +146,6 @@ class DatabaseManager {
   Future<Map<String, dynamic>?> getStoredDatasheet(String setId) async {
     final db = await database;
 
-    // We query by set_id since it is our Primary Key
     final List<Map<String, dynamic>> results = await db.query(
       'datasheet',
       where: 'set_id = ?',
@@ -154,23 +153,30 @@ class DatabaseManager {
       limit: 1,
     );
 
-    if (results.isNotEmpty) {
-      final String? blob = results.first['raw_json_blob'];
+    if (results.isEmpty) return null;
 
-      if (blob != null && blob.isNotEmpty) {
-        try {
-          // Decode the stringified JSON back into a Map
-          return json.decode(blob) as Map<String, dynamic>;
-        } catch (e) {
-          debugPrint('Error decoding stored blob for $setId: $e');
-          return null;
-        }
+    // 1. Start with the database row (includes 'classes', 'set_id', etc.)
+    final Map<String, dynamic> fullRow = Map<String, dynamic>.from(results.first);
+
+    final String? blob = fullRow['raw_json_blob'];
+
+    if (blob != null && blob.isNotEmpty) {
+      try {
+        // 2. Decode the FDA JSON
+        final Map<String, dynamic> decodedJson = json.decode(blob);
+
+        // 3. MERGE: This puts all keys from the JSON into the fullRow map.
+        // If there are duplicate keys, the JSON blob values win.
+        fullRow.addAll(decodedJson);
+
+      } catch (e) {
+        debugPrint('Error decoding stored blob for $setId: $e');
       }
     }
 
-    return null; // No local record found
+    // Now returns a map containing BOTH DB columns and FDA JSON keys
+    return fullRow;
   }
-
   // Internal helper to avoid calling 'await database' during initialization
   Future<void> _rawInsertMedication(
     Database db,

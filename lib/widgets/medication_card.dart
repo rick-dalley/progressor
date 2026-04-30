@@ -72,8 +72,21 @@ class _MedicationCardState extends State<MedicationCard> {
           widget.medData['name'] ?? "Unknown Medication",
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          "Dose: ${widget.medData['dose'] ?? 'N/A'} — Freq: ${widget.medData['freq'] ?? 'N/A'}",
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row 1: Your existing Dose/Freq info
+            Text(
+              "Dose: ${widget.medData['dose'] ?? 'N/A'} — Freq: ${widget.medData['freq'] ?? 'N/A'}",
+            ),
+
+            // Row 2: The "Entanglement" / Interaction Row
+            // We check for a list of interactions (we'll build the logic for this tomorrow)
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: IconButton(onPressed: (){}, icon: Icon(Icons.hub, color: Colors.redAccent)),
+            ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
