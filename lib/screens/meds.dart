@@ -296,6 +296,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 // We swap the old ListTile for our new smart card
                 return MedicationCard(
                   key: ValueKey(med['id']),
+                  interactions: _currentConflicts,
                   medData: med,
                   onDelete: () async {
                     final String medIdToDelete = med['id'];

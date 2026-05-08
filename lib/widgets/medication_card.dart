@@ -6,12 +6,14 @@ import '../classes/medication_services.dart';
 
 class MedicationCard extends StatefulWidget {
   final Map<String, dynamic> medData;
+  final List<InteractionConflict> interactions;
   final VoidCallback onDelete;
 
   const MedicationCard({
     super.key,
     required this.medData,
-    required this.onDelete
+    required this.interactions,
+    required this.onDelete,
   });
 
   @override
@@ -61,6 +63,11 @@ class _MedicationCardState extends State<MedicationCard> {
   Widget build(BuildContext context) {
     final bool hasDatasheet = widget.medData['has_local_datasheet'] == 1;
     final String medicationId = widget.medData['id']?.toString() ?? 'unknown';
+    final String medicationName = widget.medData['name'] ?? "Unknown Medication";
+    final List<InteractionConflict> medicationInteractions = widget.interactions
+        .where((conflict) => conflict.hasInteraction(medicationName))
+        .toList();
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ExpansionTile(
@@ -68,8 +75,9 @@ class _MedicationCardState extends State<MedicationCard> {
         leading: Icon(
           hasDatasheet ? Icons.assignment_turned_in : Icons.assignment_late,
           color: hasDatasheet ? Colors.green : Colors.blueGrey,
-        ),        title: Text(
-          widget.medData['name'] ?? "Unknown Medication",
+        ),
+        title: Text(
+          medicationName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -84,7 +92,7 @@ class _MedicationCardState extends State<MedicationCard> {
             // We check for a list of interactions (we'll build the logic for this tomorrow)
             Padding(
               padding: const EdgeInsets.only(top: 4.0),
-              child: IconButton(onPressed: (){}, icon: Icon(Icons.hub, color: Colors.redAccent)),
+              child: InteractionsChip(medicationName: medicationName, interactions: medicationInteractions),
             ),
           ],
         ),
@@ -94,7 +102,7 @@ class _MedicationCardState extends State<MedicationCard> {
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: () {
-                  widget.onDelete();
+                widget.onDelete();
               },
             ),
             const Icon(Icons.expand_more), // Re-adding the expansion arrow
@@ -107,45 +115,16 @@ class _MedicationCardState extends State<MedicationCard> {
         },
         children: [
           if (_isFetching)
-            const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(),
+            )
           else if (_datasheet != null && _datasheet!.isNotEmpty) ...[
-            _buildClassChips(),
+            ClassChips(dataSheet: _datasheet),
             ..._buildFdaSections(),
           ] else
-            const ListTile(title: Text("No datasheet details found."))
+            const ListTile(title: Text("No datasheet details found.")),
         ],
-      ),
-    );
-  }
-
-  Widget _buildClassChips() {
-    if (_datasheet == null) return const SizedBox.shrink();
-
-    final String classesRaw = _datasheet!['classes']?.toString() ?? "";
-    if (classesRaw.isEmpty) return const SizedBox.shrink();
-
-    final List<String> classList = classesRaw
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-
-    if (classList.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 4.0,
-        children: classList.map((tagName) => Chip(
-          label: Text(
-            tagName.toUpperCase(),
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Colors.blue.shade50,
-          visualDensity: VisualDensity.compact,
-          side: BorderSide(color: Colors.blue.shade100),
-        )).toList(),
       ),
     );
   }
@@ -174,7 +153,10 @@ class _MedicationCardState extends State<MedicationCard> {
 
       return ExpansionTile(
         // Keep it explicit and simple to avoid the 'bool vs double' theme leak
-        title: Text(entry.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text(
+          entry.value,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -184,5 +166,153 @@ class _MedicationCardState extends State<MedicationCard> {
       );
     }).toList();
   }
+}
 
+
+class ClassChips extends StatelessWidget {
+  final Map<String, dynamic>? dataSheet;
+  const ClassChips({super.key, required this.dataSheet});
+
+  @override
+  Widget build(BuildContext context) {
+    final String classesRaw = dataSheet!['classes']?.toString() ?? "";
+    if (classesRaw.isEmpty) return const SizedBox.shrink();
+
+    final List<String> classList = classesRaw
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    if (classList.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Wrap(
+        spacing: 8.0,
+        runSpacing: 4.0,
+        children: classList
+            .map(
+              (tagName) => Chip(
+                label: Text(
+                  tagName.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                backgroundColor: Colors.blue.shade50,
+                visualDensity: VisualDensity.compact,
+                side: BorderSide(color: Colors.blue.shade100),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class InteractionsChip extends StatefulWidget {
+  final List<InteractionConflict> interactions;
+  final String medicationName;
+  const InteractionsChip({
+    super.key,
+    required this.interactions,
+    required this.medicationName,
+  });
+
+  @override
+  State<InteractionsChip> createState() => InteractionsChipState();
+}
+
+class InteractionsChipState extends State<InteractionsChip> {
+  // This is where you'll eventually track toggle states
+  // bool _isIgnored = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Keep the "Blank Row" placeholder for consistency when no problems exist
+    if (widget.interactions.isEmpty) {
+      return const SizedBox(height: 32);
+    }
+
+    final int count = widget.interactions.length;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Badge(
+        // The notification badge on the top right
+        label: Text('$count'),
+        // Only show the count badge if there's more than one interaction
+        isLabelVisible: count > 1,
+        backgroundColor: Colors.red.shade900,
+        largeSize: 18,
+        child: ActionChip(
+          avatar: const Icon(
+              Icons.hub,
+              size: 16,
+              color: Colors.white
+          ),
+          label: Text(
+            count == 1
+                ? "Interacts with: ${widget.interactions.first.conflicting}"
+                : "Multiple Interactions",
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold
+            ),
+          ),
+          backgroundColor: Colors.redAccent,
+          shape: StadiumBorder(
+              side: BorderSide(color: Colors.red.shade700)
+          ),
+          onPressed: () => _showInteractionDetails(context),
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+    );
+  }
+
+  void _showInteractionDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red.shade700),
+              const SizedBox(width: 10),
+              const Text("Interactions Found"),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: widget.interactions.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final item = widget.interactions[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    item.conflicting,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(item.description ?? "Consult a healthcare professional."),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

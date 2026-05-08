@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'database_manager.dart';
 
+// InteractionConflict
 class InteractionConflict {
   final String primaryMedName;
   final String conflictingMedName;
@@ -14,6 +15,38 @@ class InteractionConflict {
     required this.conflictingMedName,
     required this.matchedClass,
   });
+
+  // Returns a clean string for the Chip UI
+  String get conflictDetail => "$conflictingMedName ($matchedClass)";
+
+  // Basic string getters
+  String get primary => primaryMedName;
+  String get conflicting => conflictingMedName;
+  String get type => matchedClass;
+
+  // A helper getter for a formatted summary string
+  String get description => "$primaryMedName interacts with $conflictingMedName via $matchedClass";
+  // Boilerplate for equality checks (important for List comparison)
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is InteractionConflict &&
+              runtimeType == other.runtimeType &&
+              primaryMedName == other.primaryMedName &&
+              conflictingMedName == other.conflictingMedName &&
+              matchedClass == other.matchedClass;
+
+  bool hasInteraction(String medicationName ) => ((primaryMedName == medicationName)  || (conflictingMedName == medicationName)) && primaryMedName != conflictingMedName;
+
+  @override
+  int get hashCode =>
+      primaryMedName.hashCode ^
+      conflictingMedName.hashCode ^
+      matchedClass.hashCode;
+
+  // Handy for debugging in the console
+  @override
+  String toString() => 'Conflict: $primaryMedName <-> $conflictingMedName on $matchedClass';
 }
 
 class Medication {
