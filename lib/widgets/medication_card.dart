@@ -1,7 +1,5 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:triage/classes/database_manager.dart';
 import '../classes/medication_services.dart';
 
 class MedicationCard extends StatefulWidget {
@@ -300,7 +298,7 @@ class InteractionsChipState extends State<InteractionsChip> {
                     item.conflicting,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(item.description ?? "Consult a healthcare professional."),
+                  subtitle: Text(item.description),
                 );
               },
             ),

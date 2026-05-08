@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart' show IconData, Icons, StatefulWidget, State, TextEditingController, BuildContext, Widget, Text, EdgeInsets, SizedBox, Row, Center, Icon, TextStyle, OutlineInputBorder, AppBar, Colors, BorderRadius, BoxDecoration, AnimatedContainer, ListView, Expanded, ElevatedButton, Padding, Column, Scaffold, MainAxisAlignment, FontWeight, InkWell, TextAlign, IconButton, Positioned, debugPrint, Stack, TextInputType, InputDecoration, TextField, Navigator, CrossAxisAlignment, Divider;
+import 'package:triage/widgets/vitals_scanner.dart';
 
 class VitalEntry {
   final String label;
@@ -34,7 +35,8 @@ class VitalsScreenState extends State<VitalsScreen> {
   };
 
   bool _isCameraOpen = false;
-
+  String assetPath = 'assets/screen_captures/Omron.png';
+  // String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +44,39 @@ class VitalsScreenState extends State<VitalsScreen> {
       body: Column(
         children: [
           // 1. CAMERA / OCR PLACEHOLDER SECTION
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 400),
-            height: _isCameraOpen ? 300 : 80,
-            width: double.infinity,
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: _isCameraOpen
-                ? _buildCameraPreview()
-                : _buildCameraExpandButton(),
+          VitalsScannerWidget(
+            assetPath: assetPath,
+            onScanCompleted: (results) {
+              if (mounted && results.isNotEmpty) {
+                setState(() {
+                  for (var entry in results) {
+                    switch (entry.key) {
+                      case 'SYS':
+                        _controllers['sys']?.text = entry.value;
+                        break;
+                      case 'DIA':
+                        _controllers['dia']?.text = entry.value;
+                        break;
+                      case 'PULSE':
+                      // Maps OCR "PULSE" to your controller "hr" (Heart Rate)
+                        _controllers['hr']?.text = entry.value;
+                        break;
+                      case 'SPO2':
+                      // Maps OCR "SPO2" to your controller "o2"
+                        _controllers['o2']?.text = entry.value;
+                        break;
+                      case 'TEMP':
+                        _controllers['temp']?.text = entry.value;
+                        break;
+                      case 'PATIENT_ID':
+                      // If you add a controller for Patient ID, update it here
+                        debugPrint("Captured Patient ID: ${entry.value}");
+                        break;
+                    }
+                  }
+                });
+              }
+            },
           ),
 
           // 2. MANUAL ENTRY LIST
