@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+
+class InterviewModal extends StatefulWidget {
+  final Map<String, dynamic> patient;
+  const InterviewModal({super.key, required this.patient});
+
+  @override
+  State<InterviewModal> createState() => _InterviewModalState();
+}
+
+class _InterviewModalState extends State<InterviewModal> {
+  bool _isRecording = false;
+  final TextEditingController _transcriptController = TextEditingController();
+  final TextEditingController _observationController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 20),
+
+          // 1. LIVE TRANSCRIPT WINDOW
+          Expanded(
+            flex: 3,
+            child: _buildTextWindow(
+              label: "Live Transcript",
+              controller: _transcriptController,
+              hint: "Speech will appear here...",
+              isLive: true,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // 2. CLINICAL OBSERVATIONS
+          Expanded(
+            flex: 2,
+            child: _buildTextWindow(
+              label: "Clinical Observations",
+              controller: _observationController,
+              hint: "e.g., Patient avoiding eye contact, pacing...",
+              isLive: false,
+            ),
+          ),
+
+          const Divider(height: 40),
+
+          // 3. MEDIA CONTROLS
+          _buildMediaControls(),
+
+          const SizedBox(height: 20),
+
+          // 4. SAVE & PROCESS
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text("FINALIZE & SUMMARIZE"),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+              backgroundColor: const Color(0xFF1A365D),
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMediaControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(onPressed: () {}, icon: const Icon(Icons.replay_10), iconSize: 32),
+        FloatingActionButton.large(
+          onPressed: () => setState(() => _isRecording = !_isRecording),
+          backgroundColor: _isRecording ? Colors.red : Colors.blueGrey,
+          child: Icon(_isRecording ? Icons.pause : Icons.mic, size: 40),
+        ),
+        IconButton(onPressed: () {}, icon: const Icon(Icons.forward_10), iconSize: 32),
+        IconButton(
+            onPressed: () => setState(() => _isRecording = false),
+            icon: const Icon(Icons.stop_circle, color: Colors.red),
+            iconSize: 40
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextWindow({required String label, required TextEditingController controller, required String hint, bool isLive = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        const SizedBox(height: 8),
+        Expanded(
+          child: TextField(
+            controller: controller,
+            maxLines: null,
+            expands: true,
+            decoration: InputDecoration(
+              hintText: hint,
+              fillColor: isLive ? Colors.blueGrey.withOpacity(0.05) : Colors.white,
+              filled: true,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        const Icon(Icons.person_pin, size: 40, color: Color(0xFF1A365D)),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("${widget.patient['first_name']} ${widget.patient['last_name']}",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("Interview in Progress...", style: TextStyle(color: Colors.red, fontSize: 12)),
+          ],
+        ),
+        const Spacer(),
+        const Badge(label: Text("LIVE"), child: Icon(Icons.sensors)),
+      ],
+    );
+  }
+}

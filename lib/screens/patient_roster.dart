@@ -10,6 +10,7 @@ import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
 import '../classes/database_manager.dart';
 import '../generated/l10n.dart';
+import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_card.dart';
 import '../screens/phq9.dart';
 import 'intake.dart';
@@ -37,9 +38,7 @@ class _PatientRosterState extends State<PatientRoster> {
     final data = await DatabaseManager().getAllPatients();
 
     setState(() {
-      _patients = data;
-      // Since it's already a List<Map<String, dynamic>>,
-      // you don't need to manually decode anymore.
+      _patients = data.map((p) => Map<String, dynamic>.from(p)).toList();
     });
   }
 
@@ -53,6 +52,7 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
+
   void _showAssessmentsMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -71,75 +71,130 @@ class _PatientRosterState extends State<PatientRoster> {
           mainAxisSize: MainAxisSize.min, // Container hugs the content
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.all(16.0),
-              child: Text("QUICK RECORD", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              child: Text(
+                "QUICK RECORD",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
 
-            Flexible( // Use Flexible so the ListView takes only the remaining space
+            Flexible(
+              // Use Flexible so the ListView takes only the remaining space
               child: ListView(
                 shrinkWrap: true,
                 children: [
                   ListTile(
-                      leading: const Icon(Icons.note_add, color: Colors.amber),
-                      title: const Text("Observations"),
-                      onTap: () { Navigator.pop(context); _launchObservationsModal(context);} // Link to Sticky Note Entry
+                    leading: const Icon(Icons.note_add, color: Colors.amber),
+                    title: const Text("Observations"),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _launchObservationsModal(context);
+                    }, // Link to Sticky Note Entry
                   ),
                   ListTile(
-                      leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-                      title: const Text("PHQ-9"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "phq-9.json",
-                        screenBuilder: (data, controller) => PHQ9AssessmentScreen(template: data, scrollController: controller),
-                      )
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
+                    title: const Text("PHQ-9"),
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "phq-9.json",
+                      screenBuilder: (data, controller) => PHQ9AssessmentScreen(
+                        template: data,
+                        scrollController: controller,
+                      ),
+                    ),
                   ),
                   ListTile(
-                      leading: const Icon(Icons.assignment, color: Colors.blueAccent),
-                      title: const Text("GAD-7"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "gad-7.json",
-                        screenBuilder: (data, controller) => GAD7AssessmentScreen(template: data, scrollController: controller),
-                      )
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
+                    title: const Text("GAD-7"),
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "gad-7.json",
+                      screenBuilder: (data, controller) => GAD7AssessmentScreen(
+                        template: data,
+                        scrollController: controller,
+                      ),
+                    ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
                     title: const Text("C-SSRS"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "c-ssrs.json",
-                        screenBuilder: (data, controller) => CSSRSAssessmentScreen(template: data, scrollController: controller),
-                      )
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "c-ssrs.json",
+                      screenBuilder: (data, controller) =>
+                          CSSRSAssessmentScreen(
+                            template: data,
+                            scrollController: controller,
+                          ),
+                    ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
                     title: const Text("DAST-10"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "dast-10.json",
-                        screenBuilder: (data, controller) => DAST10AssessmentScreen(template: data, scrollController: controller),
-                      )
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "dast-10.json",
+                      screenBuilder: (data, controller) =>
+                          DAST10AssessmentScreen(
+                            template: data,
+                            scrollController: controller,
+                          ),
+                    ),
                   ),
                   //ASRS-V1.1
                   ListTile(
-                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
                     title: const Text("ASRS-V1.1"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "asrs.json",
-                        screenBuilder: (data, controller) => ASRSAssessmentScreen(template: data, scrollController: controller),
-                      )
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "asrs.json",
+                      screenBuilder: (data, controller) => ASRSAssessmentScreen(
+                        template: data,
+                        scrollController: controller,
+                      ),
+                    ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.assignment, color: Colors.blueAccent),
+                    leading: const Icon(
+                      Icons.assignment,
+                      color: Colors.blueAccent,
+                    ),
                     title: const Text("PCL-5"),
-                      onTap: () => _launchAssessment(
-                        context,
-                        templateName: "pcl-5.json",
-                        screenBuilder: (data, controller) => PCL5AssessmentScreen(template: data, scrollController: controller),
-                      )
+                    onTap: () => _launchAssessment(
+                      context,
+                      templateName: "pcl-5.json",
+                      screenBuilder: (data, controller) => PCL5AssessmentScreen(
+                        template: data,
+                        scrollController: controller,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -150,13 +205,17 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
+
   void _launchVitalsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent, // Let the container handle the color
+      isScrollControlled: true,
+      // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent,
+      // Let the container handle the color
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens at 90% of screen height
+        initialChildSize: 0.9,
+        // Opens at 90% of screen height
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
@@ -170,11 +229,16 @@ class _PatientRosterState extends State<PatientRoster> {
               children: [
                 // A small handle to indicate the modal is draggable
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-
-                Expanded(
-                  child: VitalsScreen(),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
+
+                Expanded(child: VitalsScreen()),
               ],
             ),
           );
@@ -182,13 +246,17 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
+
   void _launchObservationsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent, // Let the container handle the color
+      isScrollControlled: true,
+      // Allows the modal to grow beyond 50% screen height
+      backgroundColor: Colors.transparent,
+      // Let the container handle the color
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens at 90% of screen height
+        initialChildSize: 0.9,
+        // Opens at 90% of screen height
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
@@ -202,11 +270,16 @@ class _PatientRosterState extends State<PatientRoster> {
               children: [
                 // A small handle to indicate the modal is draggable
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
-
-                Expanded(
-                  child: ObservationScreen(),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
+
+                Expanded(child: ObservationScreen()),
               ],
             ),
           );
@@ -214,13 +287,18 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-  void _launchTimelineModal(BuildContext context, Map<String, dynamic> patient) {
+
+  void _launchTimelineModal(
+    BuildContext context,
+    Map<String, dynamic> patient,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Essential for large/tall content
       backgroundColor: Colors.transparent, // Allows for rounded top corners
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9, // Opens almost full screen
+        initialChildSize: 0.9,
+        // Opens almost full screen
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
@@ -235,12 +313,12 @@ class _PatientRosterState extends State<PatientRoster> {
                 // The "Drag Handle" - Essential for UX
                 const SizedBox(height: 12),
                 Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10)
-                    )
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
 
                 // The Header
@@ -248,14 +326,15 @@ class _PatientRosterState extends State<PatientRoster> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     "TIMELINE: ${patient['first_name']} ${patient['last_name'].toString().toUpperCase()}",
-                    style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
                   ),
                 ),
 
                 // The actual Timeline Content
-                Expanded(
-                  child: PatientTimelineScreen(patient: patient),
-                ),
+                Expanded(child: PatientTimelineScreen(patient: patient)),
               ],
             ),
           );
@@ -264,11 +343,45 @@ class _PatientRosterState extends State<PatientRoster> {
     );
   }
 
+  void _launchInterviewModal(BuildContext context, int index) async {
+    // 1. Trigger the modal
+    final bool? didSave = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      // Allows the 85% height
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      builder: (context) => InterviewModal(patient: _patients[index]),
+    );
+
+    // 2. If the user hit "Finalize & Summarize", update the roster
+    if (didSave == true) {
+      setState(() {
+        // Create our writable copy
+        Map<String, dynamic> updatedPatient = Map<String, dynamic>.from(
+          _patients[index],
+        );
+
+        // Increment the assessment count
+        int currentCount = updatedPatient['assessments'] ?? 0;
+        updatedPatient['assessments'] = currentCount + 1;
+
+        // Update the master list
+        _patients[index] = updatedPatient;
+      });
+    }
+  }
+
   Future<void> _launchAssessment(
-      BuildContext context, {
-        required String templateName,
-        required Widget Function(Map<String, dynamic> template, ScrollController controller) screenBuilder,
-      }) async {
+    BuildContext context, {
+    required String templateName,
+    required Widget Function(
+      Map<String, dynamic> template,
+      ScrollController controller,
+    )
+    screenBuilder,
+  }) async {
     // 1. Fetch the requested template
     Map<String, dynamic> template = await Templates.getTemplate(templateName);
     // 2. Standardized Modal Plumbing
@@ -292,9 +405,12 @@ class _PatientRosterState extends State<PatientRoster> {
               children: [
                 const SizedBox(height: 12),
                 Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 Expanded(
                   // 3. Inject the specific screen here
@@ -316,56 +432,83 @@ class _PatientRosterState extends State<PatientRoster> {
       // Keeping the body as the main focus
       body: _patients.isEmpty
           ? const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF1A365D), // Navy indicator for a "smart" feel
-        ),
-      )
+              child: CircularProgressIndicator(
+                color: Color(0xFF1A365D), // Navy indicator for a "smart" feel
+              ),
+            )
           : ListView.builder(
-        padding: const EdgeInsets.only(top: 8, bottom: 80), // Added top padding for breathing room
-        itemCount: _patients.length,
-        itemBuilder: (context, index) {
-          return PatientCard(
-            patient: _patients[index],
-            onVitalsTap: () => _launchVitalsModal(context),
-            onAssessmentsTap: () => _showAssessmentsMenu(context),
-              onMedsTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  useSafeArea: true,
-                  showDragHandle: true,
-                  // 1. Add rounded corners to the top
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  // 2. Ensure the AppBar doesn't "bleed" over the rounded corners
-                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                  builder: (context) => MedicationScreen(patient: _patients[index]),
+              padding: const EdgeInsets.only(top: 8, bottom: 80),
+              // Added top padding for breathing room
+              itemCount: _patients.length,
+              itemBuilder: (context, index) {
+                final Map<String, dynamic> patient = Map<String, dynamic>.from(
+                  _patients[index],
+                );
+                return PatientCard(
+                  patient: patient,
+                  onVitalsTap: () => _launchVitalsModal(context),
+                  onInterviewTap: () => _launchInterviewModal(context, index),
+                  onAssessmentsTap: () => _showAssessmentsMenu(context),
+                  onMedsTap: () async {
+                    final Map<String, dynamic>? result =
+                        await showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          showDragHandle: true,
+                          builder: (context) =>
+                              MedicationScreen(patient: _patients[index]),
+                        );
+
+                    if (result != null) {
+                      setState(() {
+                        // Create the writable copy to avoid read-only errors
+                        Map<String, dynamic> updatedPatient = {
+                          ..._patients[index],
+                        };
+
+                        // Map the returned values to our flat patient structure
+                        updatedPatient['medications'] = result['medications'];
+                        updatedPatient['medication_safety_audit'] =
+                            result['medication_safety_audit'];
+
+                        _patients[index] = updatedPatient;
+                      });
+                    }
+                  },
+                  onPoliceTap: () async {
+                    // 1. Navigate and WAIT for the signal from the Save button
+                    final int? reportCount = await Navigator.push<int>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PoliceReportScreen(),
+                      ),
+                    );
+
+                    // 2. If the user hit "Save" (which returns true)
+                    if (reportCount! > 0) {
+                      setState(() {
+                        patient['police_reports'] = reportCount;
+                        _patients[index] = patient;
+                      });
+                    }
+                  },
+                  // Your existing assessment menu
+                  onTimeLineTap: () =>
+                      _launchTimelineModal(context, _patients[index]),
                 );
               },
-            onPoliceTap: () {
-            // We don't need Navigator.pop(context) here because
-            // there is no menu to close—we're tapping the card directly.
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-            );
-          },// Your existing assessment menu
-            onTimeLineTap: () => _launchTimelineModal(context, _patients[index])
-          );
-        },
-      ),
+            ),
 
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _launchIntakeScreen(context), // New dedicated screen
+        onPressed: () => _launchIntakeScreen(context),
+        // New dedicated screen
         label: const Text(
           "INTAKE",
-          style: TextStyle(
-            letterSpacing: 1.0,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600),
         ),
-        icon: const Icon(Icons.qr_code_scanner), // Signals scanning capability
+        icon: const Icon(Icons.qr_code_scanner),
+        // Signals scanning capability
         backgroundColor: const Color(0xFF1A365D),
         foregroundColor: Colors.white,
       ),

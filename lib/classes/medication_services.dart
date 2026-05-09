@@ -4,6 +4,10 @@ import 'package:http/http.dart' as http;
 
 import 'database_manager.dart';
 
+enum MedicationSafetyAudit {
+  NoAuditPerformed, NoInteractionsDetected, HasInteractions
+}
+
 // InteractionConflict
 class InteractionConflict {
   final String primaryMedName;

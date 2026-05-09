@@ -103,8 +103,26 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return Color(int.parse(buffer.toString(), radix: 16));
   }
 
-  void _confirmAndSave() async {
+  void _confirmAndSave() {
+    // 1. Calculate the audit result index
+    int auditResultIndex;
 
+    if (!_auditRun) {
+      // User didn't trigger the safety check
+      auditResultIndex = MedicationSafetyAudit.NoAuditPerformed.index;
+    } else if (_currentConflicts.isNotEmpty) {
+      // Audit ran and found issues
+      auditResultIndex = MedicationSafetyAudit.HasInteractions.index;
+    } else {
+      // Audit ran and cleared
+      auditResultIndex = MedicationSafetyAudit.NoInteractionsDetected.index;
+    }
+
+    // 2. Return the data map back to the Roster
+    Navigator.pop(context, {
+      'medications': _meds.length,
+      'medication_safety_audit': auditResultIndex,
+    });
   }
 
   // Logic-driven Banner Widget
@@ -347,7 +365,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text("CONFIRM BASELINE"),
+                  : const Text("SAVE"),
             ),
           ),
         ],
@@ -385,4 +403,5 @@ class SafetyAudit {
 
     return null;
   }
+
 }

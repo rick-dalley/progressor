@@ -35,8 +35,8 @@ class VitalsScreenState extends State<VitalsScreen> {
   };
 
   bool _isCameraOpen = false;
-  String assetPath = 'assets/screen_captures/Omron.png';
-  // String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
+  // String assetPath = 'assets/screen_captures/Omron.png';
+  String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
