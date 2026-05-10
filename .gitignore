@@ -18,6 +18,23 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# User Data & Assets
+# ------------------
+# Ignore all common image/video formats
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.heic
+*.heif
+*.pdf
+*.mp4
+*.mov
+
+# Ignore local assets folder if used for temp storage
+/assets/screen_captures/
+
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
