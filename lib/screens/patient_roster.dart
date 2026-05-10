@@ -26,7 +26,8 @@ class PatientRoster extends StatefulWidget {
 
 class _PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
-
+  final idFront = 'assets/screen_captures/license_front.png';
+  final idBack = 'assets/screen_captures/license_back.png';
   @override
   void initState() {
     super.initState();
@@ -46,7 +47,7 @@ class _PatientRosterState extends State<PatientRoster> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IntakeScreen(),
+        builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack,),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
       ),
