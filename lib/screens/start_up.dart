@@ -35,19 +35,19 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
   }
 
   Future<void> _initializeSystem() async {
-    // Start the animation immediately
-    _controller.forward();
+    _controller.forward(); // Start the "Triage" slide animation
 
-    // 2. Run your heavy background tasks
-    // These run in parallel while the user sees the animation
+    // Replaces the call in main(). Now we actually 'await' the result.
+    final dbManager = DatabaseManager();
+
     await Future.wait([
-      DatabaseManager().init(), // Initializes tables and seeds data
-      // Future.delayed(const Duration(seconds: 2)), // Minimum splash time for "feel"
-      // _yourMLEngine.load(),
+      dbManager.init(overwrite: true), // Load SQL, seed JSON, setup tables
+      // Load ML Engine here if needed
+      Future.delayed(const Duration(seconds: 2)), // Minimum time to show your branding
     ]);
 
-    // 3. Hand off to the main app once loading is complete
     if (mounted) {
+      // Navigate to the actual home screen and remove the splash from history
       Navigator.of(context).pushReplacementNamed('/roster');
     }
   }
@@ -61,7 +61,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.monitorBlack, // Consistent with your clinical aesthetic
+      backgroundColor: AppTheme.clinicWhite, // Consistent with your clinical aesthetic
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -69,7 +69,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
             const Text(
               "LUMINESCA",
               style: TextStyle(
-                color: Colors.white,
+                color: AppTheme.deepLogicViolet,
                 fontSize: 32,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 4,
@@ -81,7 +81,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
                 child: Text(
                   "TRIAGE",
                   style: TextStyle(
-                    color: AppTheme.deepLogicViolet, // Your brand action color
+                    color: AppTheme.clinicalCyan, // Your brand action color
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 8,

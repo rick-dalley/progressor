@@ -1,0 +1,22 @@
+[
+  {
+    "process_key": "Triage",
+    "label": "Intake",
+    "steps_json": "[\"Handoff\", \"Search\", \"History\", \"Certify\"]"
+  },
+  {
+    "process_key": "Stabilize",
+    "label": "Stabilization",
+    "steps_json": "[\"Admit\", \"Vitals\", \"Review\", \"Status\"]"
+  },
+  {
+    "process_key": "Exit",
+    "label": "Safe Exit",
+    "steps_json": "[\"Inform\", \"Items\", \"Legal\", \"Escort\"]"
+  },
+  {
+    "process_key": "Cleared",
+    "label": "Med Clearance",
+    "steps_json": "[\"Vitals\", \"Labs\", \"Consult\", \"Clear\"]"
+  }
+]

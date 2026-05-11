@@ -1,40 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'classes/database_manager.dart';
+import 'package:triage/screens/start_up.dart';
 import 'screens/patient_roster.dart';
-import 'generated/l10n.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app_theme.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
 
-  final dbManager = DatabaseManager();
-  dbManager.init(overwrite:true);
+void main() {
+  // Ensure the binding is ready for the splash screen to render
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const LuminescaApp());
 }
 
 class LuminescaApp extends StatelessWidget {
   const LuminescaApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      localizationsDelegates: const [
-        S.delegate, // The generated delegate from your arb file
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      title: 'Luminesca - Triage',
+      // ... your localization and theme config ...
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const LuminescaHome(),
+      // Change 'home' to StartupScreen
+      home: const StartupScreen(),
+      // Define a route for the roster so pushReplacementNamed works
+      routes: {
+        '/roster': (context) => const LuminescaHome(),
+      },
     );
   }
 }
+
 
 class LuminescaHome extends StatelessWidget {
   const LuminescaHome({super.key});

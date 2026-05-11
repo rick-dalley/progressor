@@ -1,191 +1,40 @@
 {
-  "process_engine_version": "1.0.0",
-  "processes": [
-    {
-      "id": "proc_intake",
-      "name": "Intake & Custodial Transfer",
-      "purpose": "Legal handoff and identity establishment",
-      "next_process_id": "proc_med_assessment",
-      "prev_process_id": null,
-      "first_step_id": "step_intake_01",
+  "PROCESS_MAPS": {
+    "Triage": {
+      "label": "Intake",
       "steps": [
-        {
-          "id": "step_intake_01",
-          "label": "Police Authority (Section 28)",
-          "is_obligatory": true,
-          "prev_step_id": null,
-          "next_step_id": "step_intake_02"
-        },
-        {
-          "id": "step_intake_02",
-          "label": "Custodial Handoff Signature",
-          "is_obligatory": true,
-          "prev_step_id": "step_intake_01",
-          "next_step_id": "step_intake_03"
-        },
-        {
-          "id": "step_intake_03",
-          "label": "Identity & QR Banding",
-          "is_obligatory": true,
-          "prev_step_id": "step_intake_02",
-          "next_step_id": "step_intake_04"
-        },
-        {
-          "id": "step_intake_04",
-          "label": "Hospital Record Creation",
-          "is_obligatory": true,
-          "prev_step_id": "step_intake_03",
-          "next_step_id": null
-        }
+        {"label": "Handoff", "key": "Handoff"},
+        {"label": "Search", "key": "Search"},
+        {"label": "History", "key": "History"},
+        {"label": "Certify", "key": "Certify"}
       ]
     },
-    {
-      "id": "proc_med_assessment",
-      "name": "Medical Assessment",
-      "purpose": "Physiological clearance and stability",
-      "next_process_id": "proc_de_escalation",
-      "prev_process_id": "proc_intake",
-      "first_step_id": "step_med_01",
+    "Stabilize": {
+      "label": "Stabilization",
       "steps": [
-        {
-          "id": "step_med_01",
-          "label": "Primary Vitals",
-          "is_obligatory": true,
-          "prev_step_id": null,
-          "next_step_id": "step_med_02"
-        },
-        {
-          "id": "step_med_02",
-          "label": "Bloodwork & Toxicology",
-          "is_obligatory": false,
-          "prev_step_id": "step_med_01",
-          "next_step_id": "step_med_03"
-        },
-        {
-          "id": "step_med_03",
-          "label": "Diagnostic Imaging",
-          "is_obligatory": false,
-          "prev_step_id": "step_med_02",
-          "next_step_id": "step_med_04"
-        },
-        {
-          "id": "step_med_04",
-          "label": "Medical Clearance Flag",
-          "is_obligatory": true,
-          "prev_step_id": "step_med_03",
-          "next_step_id": null
-        }
+        {"label": "Admit", "key": "Admit"},
+        {"label": "Vitals", "key": "Vitals"},
+        {"label": "Review", "key": "Review"},
+        {"label": "Status", "key": "Status"}
       ]
     },
-    {
-      "id": "proc_de_escalation",
-      "name": "De-Escalation & Observation",
-      "purpose": "Baseline stabilization",
-      "next_process_id": "proc_zone5_intake",
-      "prev_process_id": "proc_med_assessment",
-      "first_step_id": "step_deesc_01",
+    "Exit": {
+      "label": "Safe Exit",
       "steps": [
-        {
-          "id": "step_deesc_01",
-          "label": "Security Level Assessment",
-          "is_obligatory": true,
-          "prev_step_id": null,
-          "next_step_id": "step_deesc_02"
-        },
-        {
-          "id": "step_deesc_02",
-          "label": "Behavioral Observation",
-          "is_obligatory": false,
-          "prev_step_id": "step_deesc_01",
-          "next_step_id": "step_deesc_03"
-        },
-        {
-          "id": "step_deesc_03",
-          "label": "Initial Interview Checklist",
-          "is_obligatory": true,
-          "prev_step_id": "step_deesc_02",
-          "next_step_id": null
-        }
+        {"label": "Inform", "key": "Inform"},
+        {"label": "Items", "key": "Items"},
+        {"label": "Legal", "key": "Legal"},
+        {"label": "Escort", "key": "Escort"}
       ]
     },
-    {
-      "id": "proc_zone5_intake",
-      "name": "Zone 5 Intake",
-      "purpose": "Admission to secure psychiatric unit",
-      "next_process_id": "proc_zone5_assessment",
-      "prev_process_id": "proc_de_escalation",
-      "first_step_id": "step_z5in_01",
+    "Cleared": {
+      "label": "Med Clearance",
       "steps": [
-        {
-          "id": "step_z5in_01",
-          "label": "Clothing & Hygiene",
-          "is_obligatory": false,
-          "prev_step_id": null,
-          "next_step_id": "step_z5in_02"
-        },
-        {
-          "id": "step_z5in_02",
-          "label": "Belongings Inventory",
-          "is_obligatory": true,
-          "prev_step_id": "step_z5in_01",
-          "next_step_id": "step_z5in_03"
-        },
-        {
-          "id": "step_z5in_03",
-          "label": "Secondary Vitals",
-          "is_obligatory": true,
-          "prev_step_id": "step_z5in_02",
-          "next_step_id": null
-        }
-      ]
-    },
-    {
-      "id": "proc_zone5_assessment",
-      "name": "Zone 5 Interviews",
-      "purpose": "Multi-disciplinary clinical review",
-      "next_process_id": "proc_final_disposition",
-      "prev_process_id": "proc_zone5_intake",
-      "first_step_id": "step_z5eval_01",
-      "steps": [
-        {
-          "id": "step_z5eval_01",
-          "label": "Pharmacology Review",
-          "is_obligatory": false,
-          "prev_step_id": null,
-          "next_step_id": "step_z5eval_02"
-        },
-        {
-          "id": "step_z5eval_02",
-          "label": "Clinical Interviews",
-          "is_obligatory": true,
-          "prev_step_id": "step_z5eval_01",
-          "next_step_id": "step_z5eval_03"
-        },
-        {
-          "id": "step_z5eval_03",
-          "label": "Staff Consensus",
-          "is_obligatory": true,
-          "prev_step_id": "step_z5eval_02",
-          "next_step_id": null
-        }
-      ]
-    },
-    {
-      "id": "proc_final_disposition",
-      "name": "Decision Point",
-      "purpose": "Certify or Release",
-      "next_process_id": null,
-      "prev_process_id": "proc_zone5_assessment",
-      "first_step_id": "step_dispo_01",
-      "steps": [
-        {
-          "id": "step_dispo_01",
-          "label": "Final Legal Determination",
-          "is_obligatory": true,
-          "prev_step_id": null,
-          "next_step_id": null
-        }
+        {"label": "Vitals", "key": "Vitals"},
+        {"label": "Labs", "key": "Labs"},
+        {"label": "Consult", "key": "Consult"},
+        {"label": "Clear", "key": "Clear"}
       ]
     }
-  ]
+  }
 }

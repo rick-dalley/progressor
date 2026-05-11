@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Colors
@@ -20,7 +21,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: clinicWhite,
-
+      textTheme: GoogleFonts.inclusiveSansTextTheme(),
       colorScheme: ColorScheme.light(
         primary: deepLogicViolet,
         secondary: clinicalCyan,

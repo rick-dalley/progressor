@@ -9,10 +9,7 @@
     "admitted": "2026-05-09T10:30:00Z",
     "status": "Triage",
     "path": "Certify",
-    "flags": [
-      "Form 4 Active",
-      "Police Handoff"
-    ],
+    "flags": ["Form 4 Active", "Police Handoff"],
     "current_pulse": "54",
     "current_bp": "136/90",
     "current_temp": "36.85",
@@ -31,12 +28,9 @@
     "dob": "1995-07-22",
     "current_acuity": 4,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "Inpatient",
-    "path": "Decertify",
-    "flags": [
-      "Stabilized",
-      "Voluntary Status Pending"
-    ],
+    "status": "Stabilize",
+    "path": "Review",
+    "flags": ["Stabilized", "Voluntary Status Pending"],
     "current_pulse": "81",
     "current_bp": "156/87",
     "current_temp": "36.85",
@@ -55,12 +49,9 @@
     "dob": "1954-11-30",
     "current_acuity": 2,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "ER Hold",
-    "path": "Medical-Psych-Split",
-    "flags": [
-      "Delirium Risk",
-      "History of COPD"
-    ],
+    "status": "Cleared",
+    "path": "Vitals",
+    "flags": ["Delirium Risk", "History of COPD"],
     "current_pulse": "69",
     "current_bp": "118/63",
     "current_temp": "36.85",
@@ -79,12 +70,9 @@
     "dob": "1988-01-05",
     "current_acuity": 3,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "Assessment",
-    "path": "Concurrent-Disorder",
-    "flags": [
-      "Withdrawal Risk (CIWA)",
-      "Opioid Use"
-    ],
+    "status": "Triage",
+    "path": "Search",
+    "flags": ["Withdrawal Risk (CIWA)", "Opioid Use"],
     "current_pulse": "75",
     "current_bp": "118/79",
     "current_temp": "36.85",
@@ -103,12 +91,9 @@
     "dob": "1966-09-14",
     "current_acuity": 3,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "Triage",
-    "path": "Admit-Social-Complexity",
-    "flags": [
-      "Housing Insecure",
-      "No Next of Kin"
-    ],
+    "status": "Stabilize",
+    "path": "Admission",
+    "flags": ["Housing Insecure", "No Next of Kin"],
     "current_pulse": "71",
     "current_bp": "123/82",
     "current_temp": "36.85",
@@ -127,12 +112,9 @@
     "dob": "2003-05-20",
     "current_acuity": 4,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "Interview",
-    "path": "Long-form-History",
-    "flags": [
-      "First Episode Psychosis?",
-      "Student Assigned"
-    ],
+    "status": "Triage",
+    "path": "History",
+    "flags": ["First Episode Psychosis?", "Student Assigned"],
     "current_pulse": "76",
     "current_bp": "132/84",
     "current_temp": "36.85",
@@ -151,12 +133,9 @@
     "dob": "1981-12-02",
     "current_acuity": 5,
     "admitted": "2026-05-09T10:30:00Z",
-    "status": "Discharge Prep",
-    "path": "GP-Handoff",
-    "flags": [
-      "GP Report Pending",
-      "Form 114 Needed"
-    ],
+    "status": "Exit",
+    "path": "Legal",
+    "flags": ["GP Report Pending", "Form 114 Needed"],
     "current_pulse": "59",
     "current_bp": "119/78",
     "current_temp": "36.85",

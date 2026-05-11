@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -9,19 +11,38 @@ class DatabaseManager {
   static final DatabaseManager _instance = DatabaseManager._internal();
   Database? _db;
 
-  // Cache the SQL configuration in memory
+// The Gatekeeper: This prevents multiple calls to init()
+  Completer<Database>? _dbCompleter;
+
+// Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
 
   DatabaseManager._internal();
 
   factory DatabaseManager() => _instance;
 
-  // Accessor that ensures the DB is ready before use
+// Accessor that ensures only ONE initialization happens
   Future<Database> get database async {
+    // 1. If DB is already open, return it immediately
     if (_db != null) return _db!;
-    _db = await init();
-    return _db!;
+
+    // 2. If we are ALREADY initializing, wait for that specific process
+    if (_dbCompleter != null) return _dbCompleter!.future;
+
+    // 3. We are the first ones here. Start the process and lock the gate.
+    _dbCompleter = Completer<Database>();
+
+    try {
+      final db = await init();
+      _db = db;
+      _dbCompleter!.complete(db); // Release the "waiting room"
+      return db;
+    } catch (e) {
+      _dbCompleter = null; // Reset if it failed so we can try again
+      rethrow;
+    }
   }
+
 
   Future<Database> init({bool overwrite = false}) async {
     final String response = await rootBundle.loadString('assets/sql/sql.json');
@@ -34,21 +55,32 @@ class DatabaseManager {
       await deleteDatabase(path);
     }
 
-    return await openDatabase(
+    // CRITICAL: You must await this call.
+    final db = await openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
-        // 1. Setup Tables via external config
         await _createTablesFromConfig(db);
-        // 2. Initial Seed from your JSON files
         await seedPatientData(db);
         await seedMedicationData(db);
         await seedVitalsData(db);
+        await seedProcessMaps(db);
+
+        // Load the cache using the local 'db' instance provided by onCreate
+        await loadProcessMaps(db);
       },
     );
+
+    // If we didn't just create the DB (standard launch),
+    // the cache will be empty. Load it now.
+    if (_cachedProcessMaps.isEmpty) {
+      await loadProcessMaps(db);
+    }
+
+    return db;
   }
 
-  // 3. The New Patient Retrieval Function
+  // The New Patient Retrieval Function
   Future<List<Map<String, dynamic>>> getAllPatients() async {
     final db = await database;
 
@@ -82,6 +114,30 @@ class DatabaseManager {
 
     // 4. Ensure Foreign Keys are enabled for the session
     await db.execute('PRAGMA foreign_keys = ON;');
+  }
+
+  Future<void> seedProcessMaps(Database db) async {
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/process/process.json',
+      );
+      final List<dynamic> data = json.decode(response);
+
+      for (var entry in data) {
+        await db.insert(
+          'process_maps',
+          {
+            "process_key": entry['process_key'],
+            "label": entry['label'],
+            "steps_json": entry['steps_json'],
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      debugPrint('Process maps seeding complete.');
+    } catch (e) {
+      debugPrint('Error seeding process maps: $e');
+    }
   }
 
   Future<void> seedVitalsData(Database db) async {
@@ -130,6 +186,29 @@ class DatabaseManager {
       orderBy: 'recorded_at DESC',
     );
   }
+
+  Future<List<Map<String, dynamic>>> getPatientEvents(String uuid) async {
+    final db = await database;
+    return await db.query(
+      'patient_events',
+      where: 'patient_uuid = ?',
+      whereArgs: [uuid],
+      orderBy: 'timestamp DESC',
+    );
+  }
+
+  // Your cache and loadProcessMaps function stay as they are.
+  Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
+  Map<String, Map<String, dynamic>> get processMaps => _cachedProcessMaps;
+
+  Future<void> loadProcessMaps(Database db) async {
+    final List<Map<String, dynamic>> maps = await db.query('process_maps');
+    _cachedProcessMaps = {
+      for (var m in maps) m['process_key'] as String: m
+    };
+    debugPrint('Process Maps Cached.');
+  }
+
 
   // 'Database db' parameter
   Future<void> seedMedicationData(Database db) async {

@@ -35,6 +35,14 @@
     {
       "table": "condition",
       "query": "CREATE TABLE IF NOT EXISTS condition (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, category TEXT, condition_name TEXT NOT NULL, description TEXT, onset_date TEXT, status TEXT DEFAULT 'Active', FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+    },
+    {
+      "table": "process",
+      "query": "CREATE TABLE IF NOT EXISTS process_maps (id INTEGER PRIMARY KEY AUTOINCREMENT, process_key TEXT UNIQUE, label TEXT, steps_json TEXT);"
+    },
+    {
+      "table": "patient_events",
+      "query": "CREATE TABLE patient_events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, process_key TEXT, step_label TEXT, status TEXT, staff_name TEXT, staff_role TEXT, notes TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patients (patient_uuid));"
     }
   ],
   "INSERT": [

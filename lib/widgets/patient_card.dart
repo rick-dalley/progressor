@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:triage/widgets/process_path.dart';
+import 'package:triage/widgets/process_tree.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
+import 'package:triage/widgets/vitals_history.dart';
 import 'package:triage/widgets/vitals_trend_gaph.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
@@ -47,6 +50,7 @@ class PatientCard extends StatelessWidget {
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String phn = (patient['phn'] ?? '000-000-000').toString();
     final String status = (patient['status'] ?? 'Triage').toString();
+    final String processPath =  (patient['path'] ?? 'Handoff').toString();
     final List<dynamic> flags = patient['flags'] ?? [];
     final Color statusColor = _getDispositionColor();
     final isTriage = patient['status'] == 'Triage';
@@ -186,7 +190,13 @@ class PatientCard extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 16),
-            _buildProcessTimeline(isTriage),
+            InkWell(
+              onTap: () => _showProcessModal(context, patient['patient_uuid'], status),
+              child: ProcessPathway(
+                processKey: status,
+                currentStatus: processPath,
+              ),
+            ),
           ],
         ),
       ),
@@ -238,6 +248,57 @@ class PatientCard extends StatelessWidget {
     );
   }
 
+  void _showProcessModal(BuildContext context, String uuid, String key) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent, // Allows for rounded corners
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: BoxDecoration(
+            color: AppTheme.clinicWhite,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: FutureBuilder(
+            // Fetch events for this specific patient
+            future: DatabaseManager().getPatientEvents(uuid),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return Column(
+                children: [
+                  _buildModalHandle(),
+                  Expanded(
+                    child: ProcessTreeOverlay(
+                      patientUuid: uuid,
+                      processMap: DatabaseManager().processMaps[key] ?? {},
+                      patientEvents: snapshot.data as List<Map<String, dynamic>>,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalHandle() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      height: 4,
+      width: 40,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800,
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+
   Widget _buildInfoChip(IconData icon, String label) {
     return Row(
       children: [
@@ -251,60 +312,6 @@ class PatientCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProcessTimeline(bool isTriage) {
-    final List<String> stages = isTriage
-        ? ["Handoff", "Search", "Certify", "Admit"]
-        : ["Stabilize", "Review", "Handoff", "Home"];
-    int currentStep = isTriage ? 1 : 2;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "PROCESS PATHWAY",
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: List.generate(stages.length, (index) {
-            bool isCompleted = index < currentStep;
-            bool isCurrent = index == currentStep;
-            return Expanded(
-              child: Row(
-                children: [
-                  Icon(
-                    isCompleted
-                        ? Icons.check_circle
-                        : (isCurrent
-                              ? Icons.play_circle
-                              : Icons.circle_outlined),
-                    size: 16,
-                    color: isCompleted
-                        ? Colors.green
-                        : (isCurrent ? Colors.yellow : Colors.grey),
-                  ),
-                  if (index < stages.length - 1)
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: isCompleted
-                            ? Colors.green
-                            : Colors.grey.shade800,
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
   void showVitalsHistory(BuildContext context, String patientUuid) {
     showModalBottomSheet(
       context: context,
@@ -313,52 +320,9 @@ class PatientCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) {
-        return FutureBuilder<List<Map<String, dynamic>>>(
-          future: DatabaseManager().getVitalsForPatient(patientUuid),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-            final history = snapshot.data!;
-
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.7, // 70% height
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("CLINICAL TRENDS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-                  const SizedBox(height: 10),
-                  VitalsTrendGraph(history: history), // The new Graph Widget
-                  const Divider(height: 30),
-                  const Text("VITALS HISTORY",
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-                  const Divider(),
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: history.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final record = history[index];
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text("${record['systolic']}/${record['diastolic']} BP | ${record['pulse']} Pulse"),
-                          subtitle: Text("Recorded: ${record['recorded_at']}"),
-                          trailing: Text("${record['temperature']}°C",
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      builder: (context) => VitalsHistoryView(patientUuid: patientUuid),
     );
   }
-
 }
 
 class AdmittanceUtils {
