@@ -8,6 +8,7 @@ import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
 import 'package:triage/classes/templates.dart';
+import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../generated/l10n.dart';
 import '../widgets/interview_transcriber.dart';
@@ -487,7 +488,8 @@ class _PatientRosterState extends State<PatientRoster> {
                     );
 
                     // 2. If the user hit "Save" (which returns true)
-                    if (reportCount! > 0) {
+                    // Use a standard null check instead of the ! operator
+                    if (reportCount != null && reportCount > 0) {
                       setState(() {
                         patient['police_reports'] = reportCount;
                         _patients[index] = patient;
@@ -510,8 +512,8 @@ class _PatientRosterState extends State<PatientRoster> {
         ),
         icon: const Icon(Icons.qr_code_scanner),
         // Signals scanning capability
-        backgroundColor: const Color(0xFF1A365D),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.deepLogicViolet,
+        foregroundColor: AppTheme.clinicWhite,
       ),
     );
   }

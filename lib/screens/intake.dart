@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
+import '../app_theme.dart';
 import '../widgets/text_scanner.dart';
 
 class IntakeScreen extends StatefulWidget {
@@ -194,27 +195,34 @@ class IntakeScreenState extends State<IntakeScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20.0),
               children: [
+                SizedBox(height: 16.0,),
                 TextField(
                   controller: _firstNameController,
                   decoration: const InputDecoration(labelText: "First Name"),
                 ),
+                SizedBox(height: 16.0,),
                 TextField(
                   controller: _lastNameController,
                   decoration: const InputDecoration(labelText: "Last Name"),
                 ),
+                SizedBox(height: 16.0,),
                 TextField(
                   controller: _dobController,
                   decoration: const InputDecoration(labelText: "Date of Birth (YYYY-MMM-DD)"),
                 ),
+                SizedBox(height: 16.0,),
                 TextField(
                   controller: _phnController,
                   decoration: const InputDecoration(labelText: "PHN"),
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                  style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                      backgroundColor: AppTheme.deepLogicViolet,
+                      foregroundColor: AppTheme.clinicWhite ),
                   child: const Text("CREATE PATIENT RECORD"),
                 ),
               ],

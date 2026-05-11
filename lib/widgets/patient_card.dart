@@ -1,5 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:triage/widgets/vitals_display_bar.dart';
+import 'package:triage/widgets/vitals_trend_gaph.dart';
+import '../app_theme.dart';
+import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
 import 'countdown_timer.dart';
 
@@ -52,6 +56,7 @@ class PatientCard extends StatelessWidget {
     bool hasReports = policeReports > 0;
     final int medicationCount = patient['medications'] ?? 0;
     final int auditIndex = patient['medication_safety_audit'] ?? 0;
+    final String patientUuid = patient['patient_uuid'] ?? "";
     final medicationAudit = MedicationSafetyAudit.values[auditIndex];
     Color? medColor;
     IconData medIcon = Icons.medication;
@@ -115,10 +120,15 @@ class PatientCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Tappable Vitals
-            InkWell(
-              onTap: onVitalsTap ?? () {},
-              borderRadius: BorderRadius.circular(8),
-              child: _buildVitalsBar(),
+            VitalsBar(
+              onAddPressed: onVitalsTap ?? () {},
+                onHistoryPressed: () => showVitalsHistory(context, patientUuid),
+              vitals: VitalsData(
+                pulse: patient['current_pulse'],
+                bp: patient['current_bp'],
+                temp: patient['current_temp'],
+                spo2: patient['current_spo2'],
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -241,38 +251,6 @@ class PatientCard extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalsBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.black12,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _vitalItem(Icons.favorite, "88", "bpm"),
-          _vitalItem(Icons.speed, "120/80", "bp"),
-          _vitalItem(Icons.thermostat, "36.8", "°C"),
-          _vitalItem(Icons.air, "98", "%"),
-        ],
-      ),
-    );
-  }
-
-  Widget _vitalItem(IconData icon, String value, String unit) {
-    return Column(
-      children: [
-        Icon(icon, size: 14, color: Colors.blueGrey.shade300),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-        ),
-        Text(unit, style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-      ],
-    );
-  }
-
   Widget _buildProcessTimeline(bool isTriage) {
     final List<String> stages = isTriage
         ? ["Handoff", "Search", "Certify", "Admit"]
@@ -326,6 +304,61 @@ class PatientCard extends StatelessWidget {
       ],
     );
   }
+
+  void showVitalsHistory(BuildContext context, String patientUuid) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.clinicWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: DatabaseManager().getVitalsForPatient(patientUuid),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+
+            final history = snapshot.data!;
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7, // 70% height
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("CLINICAL TRENDS", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                  const SizedBox(height: 10),
+                  VitalsTrendGraph(history: history), // The new Graph Widget
+                  const Divider(height: 30),
+                  const Text("VITALS HISTORY",
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                  const Divider(),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: history.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final record = history[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text("${record['systolic']}/${record['diastolic']} BP | ${record['pulse']} Pulse"),
+                          subtitle: Text("Recorded: ${record['recorded_at']}"),
+                          trailing: Text("${record['temperature']}°C",
+                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 }
 
 class AdmittanceUtils {

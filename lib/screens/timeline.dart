@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:triage/app_theme.dart';
 
+// PatientTimelineScreen
 class PatientTimelineScreen extends StatelessWidget {
   final Map<String, dynamic> patient;
 
@@ -18,8 +20,8 @@ class PatientTimelineScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Timeline: ${patient['first_name']} ${patient['last_name']}"),
-        backgroundColor: const Color(0xFF1A365D),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.clinicWhite,
+        foregroundColor: AppTheme.deepCharcoal,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),

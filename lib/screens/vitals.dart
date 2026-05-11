@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart' show IconData, Icons, StatefulWidget, State, TextEditingController, BuildContext, Widget, Text, EdgeInsets, SizedBox, Row, Center, Icon, TextStyle, OutlineInputBorder, AppBar, Colors, BorderRadius, BoxDecoration, AnimatedContainer, ListView, Expanded, ElevatedButton, Padding, Column, Scaffold, MainAxisAlignment, FontWeight, InkWell, TextAlign, IconButton, Positioned, debugPrint, Stack, TextInputType, InputDecoration, TextField, Navigator, CrossAxisAlignment, Divider;
 import 'package:triage/widgets/vitals_scanner.dart';
+import 'package:triage/app_theme.dart';
 
 class VitalEntry {
   final String label;
@@ -79,17 +80,12 @@ class VitalsScreenState extends State<VitalsScreen> {
             },
           ),
 
-          // 2. MANUAL ENTRY LIST
-          // 1. MANUAL ENTRY LIST (This replaces your previous ListView.separated block)
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 // First, we call the unique BP widget
                 _buildBloodPressureInput(),
-
-                const Divider(height: 32),
-
                 // Then, we "spread" the generic vitals (HR, O2, Temp) into the list
                 // The ... (spread operator) takes the list created by .map and
                 // places each item directly into the children of the ListView.
@@ -100,13 +96,14 @@ class VitalsScreenState extends State<VitalsScreen> {
               ],
             ),
           ),
+          const Divider(height: 32),
 
           // 3. SUBMIT ACTION
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               onPressed: _submitVitals,
-              child: const Text("Save Vitals"),
+              child: const Text("SAVE"),
             ),
           ),
         ],

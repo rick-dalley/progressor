@@ -1,0 +1,162 @@
+[
+  {
+    "id": "v-011",
+    "patient_uuid": "p001-involuntary-cert",
+    "pulse": 60,
+    "systolic": 131,
+    "diastolic": 85,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:35:00Z"
+  },
+  {
+    "id": "v-012",
+    "patient_uuid": "p001-involuntary-cert",
+    "pulse": 58,
+    "systolic": 136,
+    "diastolic": 90,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-08T10:35:00Z"
+  },
+  {
+    "id": "v-013",
+    "patient_uuid": "p001-involuntary-cert",
+    "pulse": 54,
+    "systolic": 142,
+    "diastolic": 92,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-07T10:35:00Z"
+  },
+  {
+    "id": "v-002",
+    "patient_uuid": "p002-decert-ready",
+    "pulse": 81,
+    "systolic": 156,
+    "diastolic": 87,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:40:00Z"
+  },
+  {
+    "id": "v-003",
+    "patient_uuid": "p003-medical-clearance",
+    "pulse": 69,
+    "systolic": 118,
+    "diastolic": 63,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:45:00Z"
+  },
+  {
+    "id": "v-004",
+    "patient_uuid": "p004-substance-concurrent",
+    "pulse": 75,
+    "systolic": 118,
+    "diastolic": 79,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:50:00Z"
+  },
+  {
+    "id": "v-005",
+    "patient_uuid": "p005-social-admit",
+    "pulse": 71,
+    "systolic": 123,
+    "diastolic": 82,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:55:00Z"
+  },
+  {
+    "id": "v-006",
+    "patient_uuid": "p006-student-deep-dive",
+    "pulse": 76,
+    "systolic": 132,
+    "diastolic": 84,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T11:00:00Z"
+  },
+  {
+    "id": "v-007",
+    "patient_uuid": "p007-community-ready",
+    "pulse": 59,
+    "systolic": 119,
+    "diastolic": 78,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T11:05:00Z"
+  },
+  {
+    "id": "v-001",
+    "patient_uuid": "p001-involuntary-cert",
+    "pulse": 54,
+    "systolic": 136,
+    "diastolic": 90,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:35:00Z"
+  },
+  {
+    "id": "v-002",
+    "patient_uuid": "p002-decert-ready",
+    "pulse": 81,
+    "systolic": 156,
+    "diastolic": 87,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:40:00Z"
+  },
+  {
+    "id": "v-023",
+    "patient_uuid": "p003-medical-clearance",
+    "pulse": 69,
+    "systolic": 118,
+    "diastolic": 63,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:45:00Z"
+  },
+  {
+    "id": "v-024",
+    "patient_uuid": "p004-substance-concurrent",
+    "pulse": 75,
+    "systolic": 118,
+    "diastolic": 79,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:50:00Z"
+  },
+  {
+    "id": "v-025",
+    "patient_uuid": "p005-social-admit",
+    "pulse": 71,
+    "systolic": 123,
+    "diastolic": 82,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T10:55:00Z"
+  },
+  {
+    "id": "v-026",
+    "patient_uuid": "p006-student-deep-dive",
+    "pulse": 76,
+    "systolic": 132,
+    "diastolic": 84,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T11:00:00Z"
+  },
+  {
+    "id": "v-027",
+    "patient_uuid": "p007-community-ready",
+    "pulse": 59,
+    "systolic": 119,
+    "diastolic": 78,
+    "temperature": 36.85,
+    "o2": 98,
+    "recorded_at": "2026-05-09T11:05:00Z"
+  }
+]

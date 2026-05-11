@@ -43,6 +43,7 @@ class DatabaseManager {
         // 2. Initial Seed from your JSON files
         await seedPatientData(db);
         await seedMedicationData(db);
+        await seedVitalsData(db);
       },
     );
   }
@@ -83,7 +84,54 @@ class DatabaseManager {
     await db.execute('PRAGMA foreign_keys = ON;');
   }
 
-  // UPDATED: Added 'Database db' parameter
+  Future<void> seedVitalsData(Database db) async {
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/patients/readings.json',
+      );
+      final List<dynamic> data = json.decode(response);
+
+      for (var entry in data) {
+        await _rawInsertVitals(db, {
+          "id": entry['id'],
+          "patient_uuid": entry['patient_uuid'],
+          "pulse": entry['pulse'],
+          "systolic": entry['systolic'],
+          "diastolic": entry['diastolic'],
+          "temperature": entry['temperature'],
+          "o2": entry['o2'],
+          "recorded_at": entry['recorded_at'], // Preserves the demo timeline
+        });
+      }
+      debugPrint('Vitals seeding complete.');
+    } catch (e) {
+      debugPrint('Error seeding vitals data: $e');
+    }
+  }
+
+// Helper to avoid deadlocks during the open/create cycle
+  Future<void> _rawInsertVitals(Database db, Map<String, dynamic> data) async {
+    await db.insert(
+      'vitals',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  // Retrieve all vital readings for a specific patient, newest first
+  Future<List<Map<String, dynamic>>> getVitalsForPatient(String patientUuid) async {
+    final db = await database;
+
+    return await db.query(
+      'vitals',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      // Sort by timestamp descending so the latest data is at the top of the list
+      orderBy: 'recorded_at DESC',
+    );
+  }
+
+  // 'Database db' parameter
   Future<void> seedMedicationData(Database db) async {
     try {
       final String response = await rootBundle.loadString(
@@ -136,6 +184,10 @@ class DatabaseManager {
         'status': entry['status'] ?? 'Active',
         'path': entry['path'],
         'narrative_hint': entry['narrative_hint'],
+        'current_bp': entry['current_bp'],
+        'current_spo2': entry['current_spo2'],
+        'current_temp': entry['current_temp'],
+        'current_pulse': entry['current_pulse'],
       });
     }
 

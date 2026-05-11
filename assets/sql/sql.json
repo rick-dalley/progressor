@@ -2,7 +2,7 @@
   "CREATE": [
     {
       "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn TEXT UNIQUE, dob TEXT, current_acuity INTEGER DEFAULT 3, status TEXT, path TEXT, narrative_hint TEXT);"
+      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn TEXT UNIQUE, dob TEXT, current_acuity INTEGER DEFAULT 3, current_bp TEXT, current_pulse TEXT, current_temp TEXT, current_spo2 TEXT, status TEXT, path TEXT, narrative_hint TEXT);"
     },
     {
       "table": "datasheet",
@@ -30,7 +30,7 @@
     },
     {
       "table": "vitals",
-      "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, bpm INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 INTEGER, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+      "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 INTEGER, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
     },
     {
       "table": "condition",

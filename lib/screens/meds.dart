@@ -1,11 +1,12 @@
-
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
 import '../widgets/medication_card.dart';
+import '../widgets/text_scanner.dart';
 
 class MedicationScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
@@ -21,7 +22,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _meds = [];
-  List<InteractionConflict> _currentConflicts = []; // The source of truth for the UI
+  List<InteractionConflict> _currentConflicts =
+      []; // The source of truth for the UI
   bool _auditRun = false;
 
   // These are derived flags
@@ -54,7 +56,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
         }
       });
 
-      debugPrint("Loaded ${_meds.length} meds from DB for ${widget.patient['patient_uuid']}");
+      debugPrint(
+        "Loaded ${_meds.length} meds from DB for ${widget.patient['patient_uuid']}",
+      );
     } catch (e) {
       debugPrint("Error loading medications from DB: $e");
     }
@@ -75,14 +79,17 @@ class _MedicationScreenState extends State<MedicationScreen> {
         if (pId == oId) continue;
 
         // SQLite parses the classes and finds the hit
-        final (isMatch, matchedClass) = await DatabaseManager().checkInteractionsInDb(pId, oId);
+        final (isMatch, matchedClass) = await DatabaseManager()
+            .checkInteractionsInDb(pId, oId);
 
         if (isMatch) {
-          _currentConflicts.add(InteractionConflict(
-            primaryMedName: primaryMed['name'],
-            conflictingMedName: otherMed['name'],
-            matchedClass: matchedClass,
-          ));
+          _currentConflicts.add(
+            InteractionConflict(
+              primaryMedName: primaryMed['name'],
+              conflictingMedName: otherMed['name'],
+              matchedClass: matchedClass,
+            ),
+          );
 
           setState(() => primaryMed['has_interaction'] = 1);
         }
@@ -172,6 +179,21 @@ class _MedicationScreenState extends State<MedicationScreen> {
               ),
             ),
           ),
+          if (_meds.length > 1)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: OutlinedButton.icon(
+                  onPressed: _runSafetyAudit,
+                  icon: const Icon(Icons.security, color: Colors.white),
+                  label: const Text("CHECK"),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(45),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -227,9 +249,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
       }
 
       // FDA Check
-      final drugDataSheet = await MedicationService.getDrugDataSheet(medName, "", medId);
+      final drugDataSheet = await MedicationService.getDrugDataSheet(
+        medName,
+        "",
+        medId,
+      );
       if (drugDataSheet != null) {
-
         _refreshMedInUI(medId, drugDataSheet['set_id']);
         _runSafetyAudit();
       }
@@ -250,59 +275,164 @@ class _MedicationScreenState extends State<MedicationScreen> {
     });
   }
 
+  void _startBarcodeScanner() async {
+    // Use a simple full-screen modal or a dedicated camera route
+    final String? scannedResult = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _BarcodeScannerModal(),
+    );
+
+    if (scannedResult != null) {
+      // We found something!
+      setState(() {
+        // For now, let's assume the result is the DIN
+        // In the future, this is where you'd trigger your API lookup
+        _nameController.text = "Loading Med for $scannedResult...";
+        _doseController.text = ""; // Placeholder until sync/lookup finishes
+      });
+
+      // Auto-trigger your existing lookup logic
+      // This matches the background sync you already have in _addMedication
+      _lookupAndAdd(scannedResult);
+    }
+  }
+
+  // A helper to handle the lookup after scanning
+  void _lookupAndAdd(String barcodeValue) {
+    // Check if it's a known DIN (like your Amlodipine example)
+    if (barcodeValue == "02331292") {
+      setState(() {
+        _nameController.text = "Amlodipine";
+        _doseController.text = "10 MG Oral Tablet";
+      });
+    } else {
+      // If not in your "local" demo cache, use your existing name field
+      // to start the background sync process you've already built
+      _nameController.text = barcodeValue;
+      _addMedication();
+    }
+  }
+
+  void _showAddMedicationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Crucial to keep keyboard from covering fields
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(
+            context,
+          ).viewInsets.bottom, // Moves with keyboard
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          // Modal only takes as much space as needed
+          children: [
+            // OPTION 1: THE SCANNER "HOOK"
+            InkWell(
+              onTap: () {
+                Navigator.pop(context); // Close modal
+                _startBarcodeScanner(); // Trigger your camera logic
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.deepLogicViolet.withAlpha(24),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.deepLogicViolet),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.qr_code_scanner, color: AppTheme.deepLogicViolet),
+                    SizedBox(width: 12),
+                    Text(
+                      "SCAN BOTTLE BARCODE",
+                      style: TextStyle(
+                        color: AppTheme.deepLogicViolet,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            const Text(
+              "OR ENTER MANUALLY",
+              style: TextStyle(fontSize: 10, color: Colors.white38),
+            ),
+            const SizedBox(height: 12),
+
+            // OPTION 2: YOUR ORIGINAL FORM FIELDS
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: "Medication Name"),
+            ),
+            TextField(
+              controller: _doseController,
+              decoration: const InputDecoration(
+                labelText: "Dosage (e.g. 10mg)",
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // RE-USING YOUR _addMedication LOGIC
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  _addMedication(); // Your existing function
+                  Navigator.pop(context); // Close modal
+                },
+                child: const Text("ADD TO LIST"),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final name = "${widget.patient['first_name']} ${widget.patient['last_name']}";
+    final name =
+        "${widget.patient['first_name']} ${widget.patient['last_name']}";
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Medications: $name"),
-        backgroundColor: const Color(0xFF1A365D), // Your Navy brand color
-        foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            // 1. Call the function directly.
+            // Do NOT pop here; let _confirmAndSave handle the navigation.
+            onPressed: _isLoading ? null : _confirmAndSave,
+            child: const Text("SAVE", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+        backgroundColor:  AppTheme.clinicWhite, // Your Navy brand color
+        foregroundColor: AppTheme.deepLogicViolet,
       ),
+      // The Floating Action Button replaces the top form
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddMedicationSheet(),
+        label: const Text("ADD MEDICATION"),
+        icon: const Icon(Icons.add),
+        backgroundColor: AppTheme.deepLogicViolet,
+        foregroundColor: AppTheme.clinicWhite,
+      ),
+      
       body: Column(
         children: [
           _buildStatusBanner(),
-          // INTAKE AREA: High-speed entry
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: "Medication Name",
-                      hintText: "e.g. Lithium",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _doseController,
-                    decoration: const InputDecoration(
-                      labelText: "Dose",
-                      hintText: "mg",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _addMedication,
-                  icon: const Icon(Icons.add),
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A365D),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
           // CURRENT LIST: The Baseline
           Expanded(
             child: ListView.builder(
@@ -326,53 +456,18 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       _meds.removeAt(index);
                     });
 
-                    debugPrint('Permanently deleted medication: $medIdToDelete');
+                    debugPrint(
+                      'Permanently deleted medication: $medIdToDelete',
+                    );
                   },
                 );
               },
-            ),
-          ),
-          if (_meds.length > 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: OutlinedButton.icon(
-                onPressed: _runSafetyAudit,
-                icon: const Icon(Icons.security, color: Colors.orange),
-                label: const Text("RUN SAFETY AUDIT"),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(45),
-                ),
-              ),
-            ),
-          // SAVE BAR
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              // 1. Call the function directly.
-              // Do NOT pop here; let _confirmAndSave handle the navigation.
-              onPressed: _isLoading ? null : _confirmAndSave,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-                backgroundColor: const Color(0xFF1A365D),
-                foregroundColor: Colors.white,
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text("SAVE"),
             ),
           ),
         ],
       ),
     );
   }
-
 }
 
 class SafetyAudit {
@@ -403,5 +498,61 @@ class SafetyAudit {
 
     return null;
   }
+}
 
+class _BarcodeScannerModal extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      color: Colors.black,
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            "ALIGN BARCODE",
+            style: TextStyle(
+              color: Colors.cyanAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Your existing scanner logic, configured for Barcodes
+                TextScanner(
+                  onTextDetected: (text) {
+                    // Search for an 8-digit sequence (DIN) in the OCR
+                    final dinRegex = RegExp(r'\b\d{8}\b');
+                    final match = dinRegex.firstMatch(text.text);
+                    if (match != null) {
+                      Navigator.pop(context, match.group(0));
+                    }
+                  },
+                ),
+                // Visual "Scope" to help the clinician
+                Container(
+                  width: 280,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.cyanAccent, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "CANCEL",
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
 }

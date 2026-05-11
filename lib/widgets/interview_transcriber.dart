@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
+
 class InterviewModal extends StatefulWidget {
   final Map<String, dynamic> patient;
   const InterviewModal({super.key, required this.patient});
@@ -59,11 +61,6 @@ class _InterviewModalState extends State<InterviewModal> {
             onPressed: () => Navigator.pop(context, true),
             icon: const Icon(Icons.auto_awesome),
             label: const Text("FINALIZE & SUMMARIZE"),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              backgroundColor: const Color(0xFF1A365D),
-              foregroundColor: Colors.white,
-            ),
           ),
         ],
       ),
@@ -75,11 +72,28 @@ class _InterviewModalState extends State<InterviewModal> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         IconButton(onPressed: () {}, icon: const Icon(Icons.replay_10), iconSize: 32),
-        FloatingActionButton.large(
-          onPressed: () => setState(() => _isRecording = !_isRecording),
-          backgroundColor: _isRecording ? Colors.red : Colors.blueGrey,
-          child: Icon(_isRecording ? Icons.pause : Icons.mic, size: 40),
+
+        // Replaced FAB with a sleek Circle Container
+        GestureDetector(
+          onTap: () => setState(() => _isRecording = !_isRecording),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _isRecording ? Colors.red : AppTheme.deepLogicViolet,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: _isRecording ? Colors.red : AppTheme.deepLogicViolet,
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              _isRecording ? Icons.pause : Icons.mic,
+              size: 32,
+              color: AppTheme.clinicWhite,
+            ),
+          ),
         ),
+
         IconButton(onPressed: () {}, icon: const Icon(Icons.forward_10), iconSize: 32),
         IconButton(
             onPressed: () => setState(() => _isRecording = false),

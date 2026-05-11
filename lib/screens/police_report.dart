@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:triage/app_theme.dart';
 
 import '../widgets/text_scanner.dart';
 
@@ -247,12 +248,6 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
   Widget _buildSaveButton() {
     return ElevatedButton(
       onPressed: _savePoliceReport,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.cyan,
-        foregroundColor: Colors.black,
-        minimumSize: const Size.fromHeight(55),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
       child: const Text("SAVE", style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }

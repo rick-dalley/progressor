@@ -4,6 +4,7 @@ import 'classes/database_manager.dart';
 import 'screens/patient_roster.dart';
 import 'generated/l10n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +17,6 @@ void main() {
 class LuminescaApp extends StatelessWidget {
   const LuminescaApp({super.key});
 
-  // --- Luminesca Brand Palette ---
-  static const Color navyIntelligent = Color(0xFF1A365D); // Smart / Authority
-  static const Color greenTherapeutic = Color(0xFF4A7856); // Relaxing / Healing
-  static const Color surfaceWhite = Color(0xFFF8F9FA);   // Anti-glare background
 
   @override
   Widget build(BuildContext context) {
@@ -33,30 +30,7 @@ class LuminescaApp extends StatelessWidget {
       supportedLocales: S.delegate.supportedLocales,
       title: 'Luminesca - Triage',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-
-        // Global font configuration for "Inclusive Sans"
-        textTheme: GoogleFonts.inclusiveSansTextTheme(
-          Theme.of(context).textTheme,
-        ),
-
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: navyIntelligent,
-          primary: navyIntelligent,
-          secondary: greenTherapeutic,
-          surface: surfaceWhite,
-        ),
-
-        // Styling for all AppBars in the suite
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          iconTheme: IconThemeData(color: navyIntelligent),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
       home: const LuminescaHome(),
     );
   }
@@ -81,7 +55,7 @@ class LuminescaHome extends StatelessWidget {
                 text: 'LUMINESCA',
                 style: TextStyle(
                   fontWeight: FontWeight.w700, // Bold for the core brand
-                  color: LuminescaApp.navyIntelligent,
+                  color: AppTheme.deepLogicViolet,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -96,7 +70,7 @@ class LuminescaHome extends StatelessWidget {
                 text: 'Triage',
                 style: TextStyle(
                   fontWeight: FontWeight.w400, // Regular/Lighter for the app function
-                  color: LuminescaApp.greenTherapeutic,
+                  color: AppTheme.clinicalCyan,
                 ),
               ),
             ],
