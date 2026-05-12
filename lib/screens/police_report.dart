@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:triage/app_theme.dart';
-
+import '../app_theme.dart';
 import '../widgets/text_scanner.dart';
 
 class PoliceReportScreen extends StatefulWidget {
@@ -142,14 +141,14 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
         children: [
           const Icon(
             Icons.document_scanner,
-            color: Colors.indigoAccent,
+            color: AppTheme.clinicalCyan,
             size: 32,
           ),
           const SizedBox(height: 12),
           const Text(
             "TAP TO SCAN FORM 9 / 10",
             style: TextStyle(
-              color: Colors.indigoAccent,
+              color: AppTheme.clinicalCyan,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.1,
             ),
@@ -158,7 +157,7 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
           Text(
             "Align document in frame for auto-fill",
             style: TextStyle(
-              color: Colors.indigoAccent.withOpacity(0.6),
+              color: AppTheme.clinicalCyan.withAlpha(144),
               fontSize: 11,
             ),
           ),

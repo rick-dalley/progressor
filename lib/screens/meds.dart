@@ -20,16 +20,15 @@ class MedicationScreen extends StatefulWidget {
 class _MedicationScreenState extends State<MedicationScreen> {
   // Mocking the current baseline list
   bool _isLoading = false;
-
+  bool _hasContraIndications = false;
+  final bool _acceptedIndications = false;
   List<Map<String, dynamic>> _meds = [];
-  List<InteractionConflict> _currentConflicts =
+  final List<InteractionConflict> _currentConflicts =
       []; // The source of truth for the UI
   bool _auditRun = false;
 
   // These are derived flags
-  bool _hasContraIndications = false;
-  bool _hasPrecautions = false; // Set this based on your separate logic
-  bool _acceptedIndications = false;
+  final bool _hasPrecautions = false; // Set this based on your separate logic
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
 
@@ -116,13 +115,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     if (!_auditRun) {
       // User didn't trigger the safety check
-      auditResultIndex = MedicationSafetyAudit.NoAuditPerformed.index;
+      auditResultIndex = MedicationSafetyAudit.auditNotPerformed.index;
     } else if (_currentConflicts.isNotEmpty) {
       // Audit ran and found issues
-      auditResultIndex = MedicationSafetyAudit.HasInteractions.index;
+      auditResultIndex = MedicationSafetyAudit.interactionsDetected.index;
     } else {
       // Audit ran and cleared
-      auditResultIndex = MedicationSafetyAudit.NoInteractionsDetected.index;
+      auditResultIndex = MedicationSafetyAudit.interactionsNotDetected.index;
     }
 
     // 2. Return the data map back to the Roster

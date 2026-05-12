@@ -1,7 +1,6 @@
 
-import 'package:flutter/material.dart' show IconData, Icons, StatefulWidget, State, TextEditingController, BuildContext, Widget, Text, EdgeInsets, SizedBox, Row, Center, Icon, TextStyle, OutlineInputBorder, AppBar, Colors, BorderRadius, BoxDecoration, AnimatedContainer, ListView, Expanded, ElevatedButton, Padding, Column, Scaffold, MainAxisAlignment, FontWeight, InkWell, TextAlign, IconButton, Positioned, debugPrint, Stack, TextInputType, InputDecoration, TextField, Navigator, CrossAxisAlignment, Divider;
+import 'package:flutter/material.dart';
 import 'package:triage/widgets/vitals_scanner.dart';
-import 'package:triage/app_theme.dart';
 
 class VitalEntry {
   final String label;
@@ -35,7 +34,6 @@ class VitalsScreenState extends State<VitalsScreen> {
     'temp': TextEditingController(),
   };
 
-  bool _isCameraOpen = false;
   // String assetPath = 'assets/screen_captures/Omron.png';
   String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
   @override
@@ -108,56 +106,6 @@ class VitalsScreenState extends State<VitalsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCameraExpandButton() {
-    return InkWell(
-      onTap: () => setState(() => _isCameraOpen = true),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.camera_alt, color: Colors.white),
-          SizedBox(width: 12),
-          Text("Scan Device (OCR)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraPreview() {
-    return Stack(
-      children: [
-        const Center(
-          child: Text(
-              "Camera Preview Placeholder\n(Future OCR Area)",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white54)
-          ),
-        ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => setState(() => _isCameraOpen = false),
-          ),
-        ),
-        Positioned(
-          bottom: 16,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: ElevatedButton(
-              onPressed: () {
-                // Future OCR trigger
-                debugPrint("Snapshot taken for OCR processing");
-              },
-              child: const Text("Take Photo"),
-            ),
-          ),
-        )
-      ],
     );
   }
 
@@ -246,7 +194,6 @@ class VitalsScreenState extends State<VitalsScreen> {
   void _submitVitals() {
     // Collect data for database/API
     final data = _controllers.map((key, controller) => MapEntry(key, controller.text));
-    print("Saving Vitals: $data");
     Navigator.pop(context, data);
   }
 }

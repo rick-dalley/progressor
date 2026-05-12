@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../app_theme.dart';
 
 class InterviewModal extends StatefulWidget {
@@ -117,7 +116,7 @@ class _InterviewModalState extends State<InterviewModal> {
             expands: true,
             decoration: InputDecoration(
               hintText: hint,
-              fillColor: isLive ? Colors.blueGrey.withOpacity(0.05) : Colors.white,
+              fillColor: isLive ? AppTheme.deepLogicViolet.withAlpha(32) : AppTheme.clinicWhite,
               filled: true,
               border: const OutlineInputBorder(),
             ),

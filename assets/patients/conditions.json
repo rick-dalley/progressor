@@ -1,0 +1,26 @@
+[
+  {
+    "patient_uuid": "p001-involuntary-cert",
+    "condition_name": "Hypertension",
+    "treatment_notes": "Managed by Perindopril. Monitor for BP spikes during agitation.",
+    "is_active": 1
+  },
+  {
+    "patient_uuid": "p003-medical-clearance",
+    "condition_name": "Sleep Apnea",
+    "treatment_notes": "Uses CPAP machine. Risk of respiratory depression with sedatives.",
+    "is_active": 1
+  },
+  {
+    "patient_uuid": "p003-medical-clearance",
+    "condition_name": "COPD",
+    "treatment_notes": "Supplemental O2 often required. Baseline SpO2 is 92%.",
+    "is_active": 1
+  },
+  {
+    "patient_uuid": "p005-social-admit",
+    "condition_name": "IBS",
+    "treatment_notes": "Dietary restrictions in place. Symptom flare-ups during stress.",
+    "is_active": 1
+  }
+]

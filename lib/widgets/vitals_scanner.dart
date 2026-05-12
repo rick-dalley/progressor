@@ -268,22 +268,15 @@ class _ScannerOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String deviceBrand;
-    Color boxColor;
-
+    String deviceBrand = "";
     switch (deviceType) {
       case DeviceType.welchAllyn:
         deviceBrand = "WELCH ALLYN";
-        boxColor = Colors.cyan;
         break;
       case DeviceType.omron:
         deviceBrand = "OMRON";
-        boxColor = Colors.green;
         break;
-      case DeviceType.unknown:
       default:
-        deviceBrand = ""; // Empty string as requested
-        boxColor = Colors.white54; // Neutral color while "thinking"
         break;
     }
     return Container(
@@ -459,8 +452,6 @@ class StaticVitalsParser {
         if (text == "62") results.add(const MapEntry("DIA", "62"));
       }
     }
-
-    for (var b in blocks) { print("DEBUG BLOCK: '${b.text}'"); }
 
     final spo2Val = getValueNear(r'Sp[O0]2');
     if (spo2Val != null) results.add(MapEntry("SPO2", spo2Val));

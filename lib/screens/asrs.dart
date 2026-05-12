@@ -118,8 +118,7 @@ class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
                   });
                 },
               );
-              // 4. THE FIX: Always return a Column so the header actually shows up
-              print("Index: $index, Length - 1:${questions.length-1}");
+              // Always return a Column so the header actually shows up
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

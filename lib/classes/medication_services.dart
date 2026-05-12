@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'database_manager.dart';
 
 enum MedicationSafetyAudit {
-  NoAuditPerformed, NoInteractionsDetected, HasInteractions
+  auditNotPerformed, interactionsNotDetected, interactionsDetected
 }
 
 // InteractionConflict

@@ -16,7 +16,6 @@ class Templates {
       return data as Map<String, dynamic>;
     } catch (e) {
       // Basic error handling for the demo
-      print("Error loading assessment: $e");
       return {};
     }
   }

@@ -4,7 +4,6 @@ import 'package:triage/widgets/process_path.dart';
 import 'package:triage/widgets/process_tree.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
 import 'package:triage/widgets/vitals_history.dart';
-import 'package:triage/widgets/vitals_trend_gaph.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
@@ -53,7 +52,6 @@ class PatientCard extends StatelessWidget {
     final String processPath =  (patient['path'] ?? 'Handoff').toString();
     final List<dynamic> flags = patient['flags'] ?? [];
     final Color statusColor = _getDispositionColor();
-    final isTriage = patient['status'] == 'Triage';
     // final DateTime admittedDate = DateTime.parse(patient['admitted']).toLocal(); // uncomment when camera is working
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
     final int policeReports = patient['police_reports'] ?? 0;
@@ -66,13 +64,13 @@ class PatientCard extends StatelessWidget {
     IconData medIcon = Icons.medication;
     if (medicationCount > 0) {
       switch (medicationAudit) {
-        case MedicationSafetyAudit.NoInteractionsDetected:
+        case MedicationSafetyAudit.interactionsNotDetected:
           medColor = Colors.greenAccent;
           break;
-        case MedicationSafetyAudit.HasInteractions:
+        case MedicationSafetyAudit.interactionsDetected:
           medColor = Colors.redAccent;
           break;
-        case MedicationSafetyAudit.NoAuditPerformed:
+        case MedicationSafetyAudit.auditNotPerformed:
           // Keep default theme colors
           break;
       }
@@ -155,7 +153,7 @@ class PatientCard extends StatelessWidget {
                   context: context,
                   label: "Interview",
                   icon: Icons.mic,
-                  onTap: onInterviewTap?? (){},
+                  onTap: onInterviewTap,
                 ),
                 _buildCompactButton(
                   context: context,

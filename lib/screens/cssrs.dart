@@ -118,8 +118,7 @@ class CSSRSAssessmentScreenState extends State<CSSRSAssessmentScreen> {
                   });
                 },
               );
-              // 4. THE FIX: Always return a Column so the header actually shows up
-              print("Index: $index, Length - 1:${questions.length-1}");
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

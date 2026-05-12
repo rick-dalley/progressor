@@ -43,6 +43,11 @@
     {
       "table": "patient_events",
       "query": "CREATE TABLE patient_events (event_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, process_key TEXT, step_label TEXT, status TEXT, staff_name TEXT, staff_role TEXT, notes TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patients (patient_uuid));"
+    },
+    {
+      "table": "patient_condition",
+      "query": "CREATE TABLE patient_condition ( condition_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_name TEXT,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
+      
     }
   ],
   "INSERT": [

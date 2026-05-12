@@ -6,6 +6,8 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
+import 'data_seeder.dart';
+
 class DatabaseManager {
   // Singleton pattern
   static final DatabaseManager _instance = DatabaseManager._internal();
@@ -13,9 +15,11 @@ class DatabaseManager {
 
 // The Gatekeeper: This prevents multiple calls to init()
   Completer<Database>? _dbCompleter;
-
 // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
+// Your cache and loadProcessMaps function stay as they are.
+  Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
+  Map<String, Map<String, dynamic>> get processMaps => _cachedProcessMaps;
 
   DatabaseManager._internal();
 
@@ -61,11 +65,8 @@ class DatabaseManager {
       version: 1,
       onCreate: (db, version) async {
         await _createTablesFromConfig(db);
-        await seedPatientData(db);
-        await seedMedicationData(db);
-        await seedVitalsData(db);
-        await seedProcessMaps(db);
 
+        await DataSeeder.seed(db);
         // Load the cache using the local 'db' instance provided by onCreate
         await loadProcessMaps(db);
       },
@@ -78,6 +79,14 @@ class DatabaseManager {
     }
 
     return db;
+  }
+
+  Future<void> loadProcessMaps(Database db) async {
+    final List<Map<String, dynamic>> maps = await db.query('process_maps');
+    _cachedProcessMaps = {
+      for (var m in maps) m['process_key'] as String: m
+    };
+    debugPrint('Process Maps Cached.');
   }
 
   // The New Patient Retrieval Function
@@ -116,57 +125,8 @@ class DatabaseManager {
     await db.execute('PRAGMA foreign_keys = ON;');
   }
 
-  Future<void> seedProcessMaps(Database db) async {
-    try {
-      final String response = await rootBundle.loadString(
-        'assets/process/process.json',
-      );
-      final List<dynamic> data = json.decode(response);
-
-      for (var entry in data) {
-        await db.insert(
-          'process_maps',
-          {
-            "process_key": entry['process_key'],
-            "label": entry['label'],
-            "steps_json": entry['steps_json'],
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-      debugPrint('Process maps seeding complete.');
-    } catch (e) {
-      debugPrint('Error seeding process maps: $e');
-    }
-  }
-
-  Future<void> seedVitalsData(Database db) async {
-    try {
-      final String response = await rootBundle.loadString(
-        'assets/patients/readings.json',
-      );
-      final List<dynamic> data = json.decode(response);
-
-      for (var entry in data) {
-        await _rawInsertVitals(db, {
-          "id": entry['id'],
-          "patient_uuid": entry['patient_uuid'],
-          "pulse": entry['pulse'],
-          "systolic": entry['systolic'],
-          "diastolic": entry['diastolic'],
-          "temperature": entry['temperature'],
-          "o2": entry['o2'],
-          "recorded_at": entry['recorded_at'], // Preserves the demo timeline
-        });
-      }
-      debugPrint('Vitals seeding complete.');
-    } catch (e) {
-      debugPrint('Error seeding vitals data: $e');
-    }
-  }
-
 // Helper to avoid deadlocks during the open/create cycle
-  Future<void> _rawInsertVitals(Database db, Map<String, dynamic> data) async {
+  Future<void> rawInsertVitals(Database db, Map<String, dynamic> data) async {
     await db.insert(
       'vitals',
       data,
@@ -195,83 +155,6 @@ class DatabaseManager {
       whereArgs: [uuid],
       orderBy: 'timestamp DESC',
     );
-  }
-
-  // Your cache and loadProcessMaps function stay as they are.
-  Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
-  Map<String, Map<String, dynamic>> get processMaps => _cachedProcessMaps;
-
-  Future<void> loadProcessMaps(Database db) async {
-    final List<Map<String, dynamic>> maps = await db.query('process_maps');
-    _cachedProcessMaps = {
-      for (var m in maps) m['process_key'] as String: m
-    };
-    debugPrint('Process Maps Cached.');
-  }
-
-
-  // 'Database db' parameter
-  Future<void> seedMedicationData(Database db) async {
-    try {
-      final String response = await rootBundle.loadString(
-        'assets/medications/meds.json',
-      );
-      final List<dynamic> data = json.decode(response);
-
-      for (var patientEntry in data) {
-        String patientUuid = patientEntry['patient_uuid'];
-        List<dynamic> prescriptions = patientEntry['prescription'];
-
-        for (var med in prescriptions) {
-          // Use a local helper or the raw insert to avoid 'await database' deadlock
-          await _rawInsertMedication(db, {
-            "id": med['id'],
-            "patient_uuid": patientUuid,
-            "name": med['name'],
-            "dose": med['dose'],
-            "freq": med['freq'],
-            "has_local_datasheet": med['has_local_datasheet'],
-            "set_id": "",
-          });
-        }
-      }
-      debugPrint('Medication seeding complete.');
-    } catch (e) {
-      debugPrint('Error seeding medication data: $e');
-    }
-  }
-
-  Future<void> seedPatientData(Database db) async {
-    // 1. Load the correct source file
-    final String response = await rootBundle.loadString(
-      'assets/patients/patients.json',
-    );
-    final List<dynamic> data = json.decode(response);
-
-    Batch batch = db.batch();
-
-    for (var entry in data) {
-      // Extract the nested name map
-
-      batch.insert('patient', {
-        'patient_uuid': entry['patient_uuid'],
-        'first_name': entry['first_name'] ?? 'Unknown',
-        'last_name': entry['last_name'] ?? 'Subject',
-        'phn': entry['phn'],
-        'dob': entry['dob'],
-        'current_acuity': entry['current_acuity'] ?? 3,
-        'status': entry['status'] ?? 'Active',
-        'path': entry['path'],
-        'narrative_hint': entry['narrative_hint'],
-        'current_bp': entry['current_bp'],
-        'current_spo2': entry['current_spo2'],
-        'current_temp': entry['current_temp'],
-        'current_pulse': entry['current_pulse'],
-      });
-    }
-
-    // commit(noResult: true) is perfect here for performance
-    await batch.commit(noResult: true);
   }
 
   Future<Map<String, dynamic>?> getStoredDatasheet(String setId) async {
@@ -308,8 +191,9 @@ class DatabaseManager {
     // Now returns a map containing BOTH DB columns and FDA JSON keys
     return fullRow;
   }
+
   // Internal helper to avoid calling 'await database' during initialization
-  Future<void> _rawInsertMedication(
+  Future<void> rawInsertMedication(
     Database db,
     Map<String, dynamic> medication,
   ) async {
@@ -524,6 +408,15 @@ class DatabaseManager {
     return null;
   }
 
+  Future<List<Map<String, dynamic>>> getPatientConditions(String uuid) async {
+    final db = await database;
+    return await db.query(
+      'patient_condition',
+      where: 'patient_uuid = ? AND is_active = 1',
+      whereArgs: [uuid],
+    );
+  }
+
   Future<Map<String, dynamic>?> getDatasheetBySetId(String setId) async {
     final db = await database;
 
@@ -559,11 +452,8 @@ class DatabaseManager {
 
     if (result.isNotEmpty) {
       List<String> list = result.map((e) => e['class_name'].toString()).toList();
-      print("DEBUG: Full CTE Results: $list");
       return (true, list.first);
     }
-
-    print("DEBUG FAIL: CTE returned empty despite raw data existing.");
     return (false, "");
   }
 
