@@ -2,39 +2,65 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../app_theme.dart';
+import '../classes/assessment_logic.dart';
+import '../classes/database_manager.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
-class PHQ9AssessmentScreen extends StatefulWidget {
+class StandardizedAssessmentScreen extends StatefulWidget {
+  final String assessmentId;
+  final String patientUuid;
+  final bool isReadOnly;
+  final String? scoreGuidePath;
   final Map<String, dynamic> template;
-
-  // CHANGE 1: Add this optional controller to the class
+  final AssessmentLogic? logic;
   final ScrollController? scrollController;
 
-  const PHQ9AssessmentScreen({
+  const StandardizedAssessmentScreen({
     super.key,
+    required this.assessmentId,
+    required this.patientUuid,
+    required this.isReadOnly,
     required this.template,
+    this.scoreGuidePath,
+    this.logic,
     this.scrollController, // CHANGE 2: Add it to the constructor
   });
+
   @override
-  PHQ9AssessmentScreenState createState() => PHQ9AssessmentScreenState();
+  StandardizedAssessmentScreenState createState() =>
+      StandardizedAssessmentScreenState();
 }
 
-class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
+class StandardizedAssessmentScreenState
+    extends State<StandardizedAssessmentScreen> {
   Map<String, int> answers = {};
   String? selectedImpactId;
+
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
   bool _showValidationErrors = false;
 
-// At the top of your state class
+  // At the top of your state class
   List<dynamic>? _scoreGuide;
 
   Future<void> _loadScoreGuide() async {
-    final String response = await rootBundle.loadString('assets/questions/phq9_score_guide.json');
-    final data = await json.decode(response);
-    setState(() {
-      _scoreGuide = data;
-    });
+    // Only attempt to load if a path was provided
+    if (widget.scoreGuidePath == null) return;
+
+    try {
+      final String response = await rootBundle.loadString(
+        widget.scoreGuidePath!,
+      );
+      final data = await json.decode(response);
+      if (mounted) {
+        setState(() {
+          _scoreGuide = data;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading score guide: $e");
+    }
   }
 
   @override
@@ -55,20 +81,23 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          color: Colors.blueGrey.shade50,
+          color: AppTheme.clinicalWhite,
           child: Column(
             children: [
               Text(
                 widget.template['title'],
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 20,
+                  color: AppTheme.deepLogicViolet,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
               Text(
                 instructionText,
-                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 15,
                   fontStyle: FontStyle.italic,
@@ -78,7 +107,6 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
             ],
           ),
         ),
-        const Divider(height: 1),
 
         // 2. Scrolling Content
         // Wrapping in Expanded tells the ListView: "Take up the rest of the modal's height."
@@ -87,7 +115,6 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
             controller: widget.scrollController, // Link to the DraggableSheet
             itemCount: questions.length, // Questions + 1 for Footer
             itemBuilder: (context, index) {
-
               final q = questions[index];
 
               Widget questionTile = LikertQuestionTile(
@@ -95,7 +122,8 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
                 q: q as Map<String, dynamic>,
                 template: widget.template,
                 currentValue: answers[q['id']],
-                showWarning: _showValidationErrors && !answers.containsKey(q['id']),
+                showWarning:
+                    _showValidationErrors && !answers.containsKey(q['id']),
                 onChanged: (score) {
                   setState(() {
                     answers[q['id']] = score;
@@ -103,15 +131,27 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
                 },
               );
               if (index == questions.length - 1) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    questionTile, // The last question is still rendered here!
-                    _buildImpactSelector(widget.template['questions_impact']),
-                    _buildScoreFooter(),
-                    const SizedBox(height: 40), // iPhone bottom-area padding
-                  ],
-                );
+                final impactData = widget.template['questions_impact'];
+                if (impactData != null) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      questionTile, // The last question is still rendered here!
+                      _buildImpactSelector(widget.template['questions_impact']),
+                      _buildScoreFooter(),
+                      const SizedBox(height: 40), // iPhone bottom-area padding
+                    ],
+                  );
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      questionTile, // The last question is still rendered here!
+                      _buildScoreFooter(),
+                      const SizedBox(height: 40), // iPhone bottom-area padding
+                    ],
+                  );
+                }
               }
 
               // 3. For all other indices, just return the tile
@@ -157,13 +197,18 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
                 child: Row(
                   children: [
                     // Mimics the paper checkbox/radio look
                     Icon(
-                      isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                      color: isSelected ? Colors.blue : Colors.grey,
+                      isSelected
+                          ? Icons.check_box
+                          : Icons.check_box_outline_blank,
+                      color: isSelected ? AppTheme.clinicalCyan : Colors.grey,
                     ),
                     const SizedBox(width: 12),
                     // The text now has the full width to breathe
@@ -173,7 +218,9 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           color: isSelected ? Colors.black : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -187,7 +234,7 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
     );
   }
 
-  Map<String, String>? getInterpretation() {
+  Map<String, String>? getInterpretationOld() {
     final questions = widget.template['questions_score'] as List;
 
     // 1. Check for missing values
@@ -232,24 +279,60 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
 
     return {
       "summary": "$syndrome Severity: $severity (Score: $score).",
-      "action": action
+      "action": action,
     };
   }
 
-  void _submitAssessment(){}
+  Map<String, String>? getInterpretation() {
+    // Use the injected logic if available, otherwise fallback to basic total
+    if (widget.logic != null) {
+      return widget.logic!.interpret(answers, _scoreGuide);
+    }
+
+    // Generic fallback if no logic is injected
+    return {
+      "summary": "Total Score: $totalScore",
+      "action": "Consult clinical manual for interpretation.",
+    };
+  }
+
+  Future<void> _submitAssessment() async {
+    // Convert our internal int answers to the String format required by the DB
+    final Map<String, String> stringAnswers = answers.map(
+      (key, value) => MapEntry(key, value.toString()),
+    );
+
+    try {
+      // 1. Call your persistence logic
+      await DatabaseManager().saveAssessmentResults(
+        assessmentId: widget.assessmentId, // 'phq-9.json'
+        patientId: widget.patientUuid, // Ensure this is passed into the widget
+        answers: stringAnswers,
+        isComplete: true,
+      );
+
+      if (mounted) {
+        // 2. Visual feedback for the user
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Assessment saved successfully")),
+        );
+
+        // 3. Return 'true' so the calling screen knows to refresh the icons/maps
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error saving assessment: $e")));
+      }
+    }
+  }
 
   Widget _buildScoreFooter() {
     final questions = widget.template['questions_score'] as List;
 
-    // 1. Check if all 9 clinical questions are answered
-    bool allQuestionsAnswered = questions.every((q) => answers.containsKey(q['id']));
-
-    // 2. Check if the impact question (q10-q13) is answered
-    // We check if any key starting with 'q10', 'q11', etc., exists
-    // or if you used the 'impact_id' key approach we discussed.
-    bool impactAnswered = answers.keys.any((key) => ['q10', 'q11', 'q12', 'q13'].contains(key));
-
-    final bool isFormComplete = allQuestionsAnswered && impactAnswered;
+    final bool isFormComplete = widget.logic!.isComplete(answers);
 
     // Only get interpretation if the form is actually complete
     final interpretation = isFormComplete ? getInterpretation() : null;
@@ -266,12 +349,15 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            Text(
-              "Recommended Action: ${interpretation['action']}",
-              style: const TextStyle(fontStyle: FontStyle.italic),
-              textAlign: TextAlign.center,
-            ),
+            if (interpretation['action'] != null &&
+                interpretation['action']!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "Recommended Action: ${interpretation['action']}",
+                style: const TextStyle(fontStyle: FontStyle.italic),
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 16),
           ],
 
@@ -286,12 +372,21 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
               if (!isFormComplete) {
                 setState(() => _showValidationErrors = true);
 
-                String message = !allQuestionsAnswered
-                    ? "Please answer all 9 clinical questions."
-                    : "Please select the impact of these symptoms.";
+                // Get the total expected count from your template
+                final int totalExpected = (widget.template['questions_score'] as List).length;
+                final int currentAnswered = answers.length;
+
+                String message;
+                if (currentAnswered < totalExpected) {
+                  // Generic: "Please answer all 10 questions."
+                  message = "Please answer all $totalExpected questions before finalizing.";
+                } else {
+                  // This handles the "Impact" question or any secondary requirements
+                  message = "Please complete the remaining assessment fields.";
+                }
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
+                    SnackBar(content: Text(message))
                 );
               } else {
                 _submitAssessment();
@@ -303,6 +398,40 @@ class PHQ9AssessmentScreenState extends State<PHQ9AssessmentScreen> {
       ),
     );
   }
-
 }
 
+class PCL5Logic implements AssessmentLogic {
+  @override
+  bool isComplete(Map<String, int> answers) {
+    // PCL-5 has 20 questions
+    return answers.length == 20;
+  }
+
+  @override
+  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+    int totalScore = answers.values.fold(0, (sum, val) => sum + val);
+
+    // Common clinical cutoff is 33
+    bool isElevated = totalScore >= 33;
+
+    String summary = "Total Severity Score: $totalScore/80. ";
+    if (isElevated) {
+      summary += "Results suggest clinically significant PTSD symptoms.";
+    } else {
+      summary += "Results are below the typical clinical threshold for PTSD.";
+    }
+
+    return {
+      "summary": summary,
+      "action": isElevated
+          ? "Further clinical evaluation for PTSD is recommended."
+          : "Continue to monitor symptoms."
+    };
+  }
+
+  @override
+  String getValidationMessage(Map<String, int> answers) {
+    int remaining = 20 - answers.length;
+    return "Please complete the remaining $remaining questions for the PCL-5.";
+  }
+}

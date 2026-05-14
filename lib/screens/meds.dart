@@ -417,7 +417,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
             child: const Text("SAVE", style: TextStyle(color: Colors.white)),
           ),
         ],
-        backgroundColor:  AppTheme.clinicWhite, // Your Navy brand color
+        backgroundColor:  AppTheme.clinicalWhite, // Your Navy brand color
         foregroundColor: AppTheme.deepLogicViolet,
       ),
       // The Floating Action Button replaces the top form
@@ -426,7 +426,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
         label: const Text("ADD MEDICATION"),
         icon: const Icon(Icons.add),
         backgroundColor: AppTheme.deepLogicViolet,
-        foregroundColor: AppTheme.clinicWhite,
+        foregroundColor: AppTheme.clinicalWhite,
       ),
       
       body: Column(

@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:triage/screens/asrs.dart';
-import 'package:triage/screens/cssrs.dart';
-import 'package:triage/screens/dast10.dart';
-import 'package:triage/screens/gad7.dart';
-import 'package:triage/screens/pcl5.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
-import 'package:triage/classes/templates.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
-import '../generated/l10n.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_card.dart';
-import '../screens/phq9.dart';
+import 'assessments.dart';
 import 'intake.dart';
 import 'meds.dart';
-import 'observation.dart';
 
 class PatientRoster extends StatefulWidget {
   const PatientRoster({super.key});
@@ -44,6 +36,15 @@ class _PatientRosterState extends State<PatientRoster> {
     });
   }
 
+  void _showAssessmentsMenu(BuildContext context, String patientUuid) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AssessmentsScreen(patientUuid: patientUuid),
+    );
+  }
+
   void _launchIntakeScreen(BuildContext context) {
     Navigator.push(
       context,
@@ -51,159 +52,6 @@ class _PatientRosterState extends State<PatientRoster> {
         builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack,),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
-      ),
-    );
-  }
-
-  void _showAssessmentsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Required to let the modal expand
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        // Limit the height so it doesn't hit the very top of the screen
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        decoration: BoxDecoration(
-          color: Theme.of(context).canvasColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Container hugs the content
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                "QUICK RECORD",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-
-            Flexible(
-              // Use Flexible so the ListView takes only the remaining space
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.note_add, color: Colors.amber),
-                    title: const Text("Observations"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _launchObservationsModal(context);
-                    }, // Link to Sticky Note Entry
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("PHQ-9"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "phq-9.json",
-                      screenBuilder: (data, controller) => PHQ9AssessmentScreen(
-                        template: data,
-                        scrollController: controller,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("GAD-7"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "gad-7.json",
-                      screenBuilder: (data, controller) => GAD7AssessmentScreen(
-                        template: data,
-                        scrollController: controller,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("C-SSRS"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "c-ssrs.json",
-                      screenBuilder: (data, controller) =>
-                          CSSRSAssessmentScreen(
-                            template: data,
-                            scrollController: controller,
-                          ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("DAST-10"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "dast-10.json",
-                      screenBuilder: (data, controller) =>
-                          DAST10AssessmentScreen(
-                            template: data,
-                            scrollController: controller,
-                          ),
-                    ),
-                  ),
-                  //ASRS-V1.1
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("ASRS-V1.1"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "asrs.json",
-                      screenBuilder: (data, controller) => ASRSAssessmentScreen(
-                        template: data,
-                        scrollController: controller,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.assignment,
-                      color: Colors.blueAccent,
-                    ),
-                    title: const Text("PCL-5"),
-                    onTap: () => _launchAssessment(
-                      context,
-                      templateName: "pcl-5.json",
-                      screenBuilder: (data, controller) => PCL5AssessmentScreen(
-                        template: data,
-                        scrollController: controller,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -241,47 +89,6 @@ class _PatientRosterState extends State<PatientRoster> {
                 ),
 
                 Expanded(child: VitalsScreen()),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _launchObservationsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent,
-      // Let the container handle the color
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        // Opens at 90% of screen height
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                // A small handle to indicate the modal is draggable
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-
-                Expanded(child: ObservationScreen()),
               ],
             ),
           );
@@ -375,57 +182,6 @@ class _PatientRosterState extends State<PatientRoster> {
     }
   }
 
-  Future<void> _launchAssessment(
-    BuildContext context, {
-    required String templateName,
-    required Widget Function(
-      Map<String, dynamic> template,
-      ScrollController controller,
-    )
-    screenBuilder,
-  }) async {
-    // 1. Fetch the requested template
-    Map<String, dynamic> template = await Templates.getTemplate(templateName);
-    // 2. Standardized Modal Plumbing
-    if (!context.mounted) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                Expanded(
-                  // 3. Inject the specific screen here
-                  child: screenBuilder(template, scrollController),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
@@ -450,7 +206,7 @@ class _PatientRosterState extends State<PatientRoster> {
                   patient: patient,
                   onVitalsTap: () => _launchVitalsModal(context),
                   onInterviewTap: () => _launchInterviewModal(context, index),
-                  onAssessmentsTap: () => _showAssessmentsMenu(context),
+                  onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
                   onMedsTap: () async {
                     final Map<String, dynamic>? result =
                         await showModalBottomSheet(
@@ -513,8 +269,9 @@ class _PatientRosterState extends State<PatientRoster> {
         icon: const Icon(Icons.qr_code_scanner),
         // Signals scanning capability
         backgroundColor: AppTheme.deepLogicViolet,
-        foregroundColor: AppTheme.clinicWhite,
+        foregroundColor: AppTheme.clinicalWhite,
       ),
     );
   }
+
 }

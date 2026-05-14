@@ -255,7 +255,7 @@ class PatientCard extends StatelessWidget {
         return Container(
           height: MediaQuery.of(context).size.height * 0.75,
           decoration: BoxDecoration(
-            color: AppTheme.clinicWhite,
+            color: AppTheme.clinicalWhite,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: FutureBuilder(
@@ -314,7 +314,7 @@ class PatientCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.clinicWhite,
+      backgroundColor: AppTheme.clinicalWhite,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),

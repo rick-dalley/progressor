@@ -222,7 +222,7 @@ class IntakeScreenState extends State<IntakeScreen> {
                   style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(50),
                       backgroundColor: AppTheme.deepLogicViolet,
-                      foregroundColor: AppTheme.clinicWhite ),
+                      foregroundColor: AppTheme.clinicalWhite ),
                   child: const Text("CREATE PATIENT RECORD"),
                 ),
               ],

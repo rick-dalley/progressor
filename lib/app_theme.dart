@@ -7,7 +7,7 @@ class AppTheme {
   static const Color darkSlate = Color(0xFF1E1E1E);
   static const Color deepLogicViolet = Color(0xFF7C4DFF);
   static const Color clinicalCyan = Color(0xFF00BCD4);
-  static const Color clinicWhite = Color(0xFFF8F9FA);
+  static const Color clinicalWhite = Color(0xFFF8F9FA);
 
   // Hpspital Monitor Vitals Palette
   static const Color vitalsBP = Color(0xFFFFB300);   // Gold/Orange
@@ -15,12 +15,14 @@ class AppTheme {
   static const Color vitalsPulse = Color(0xFF00E676);  // Green
   static const Color vitalsTemp = Color(0xFFFFFFFF);   // White
   static const Color monitorBlack = Color(0xFF000000);
+  static Color canvasColor = Colors.grey.shade200;
+  static Color cardBorder = Colors.grey.shade200;
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: clinicWhite,
+      scaffoldBackgroundColor: clinicalWhite,
       textTheme: GoogleFonts.inclusiveSansTextTheme(),
       colorScheme: ColorScheme.light(
         primary: deepLogicViolet,
@@ -46,7 +48,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: deepLogicViolet,
-          foregroundColor: clinicWhite,
+          foregroundColor: clinicalWhite,
           minimumSize: const Size.fromHeight(55), // Standardized height for easy hit-targets
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           textStyle: const TextStyle(

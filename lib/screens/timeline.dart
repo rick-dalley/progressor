@@ -20,7 +20,7 @@ class PatientTimelineScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Timeline: ${patient['first_name']} ${patient['last_name']}"),
-        backgroundColor: AppTheme.clinicWhite,
+        backgroundColor: AppTheme.clinicalWhite,
         foregroundColor: AppTheme.deepCharcoal,
       ),
       body: ListView.builder(

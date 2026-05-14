@@ -25,7 +25,7 @@ class ProcessTreeOverlay extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      color: AppTheme.clinicWhite,
+      color: AppTheme.clinicalWhite,
       child: ListView.builder(
         itemCount: protocolSteps.length,
         itemBuilder: (context, index) {
@@ -76,7 +76,7 @@ class ProcessTreeOverlay extends StatelessWidget {
                             stepLabel.toUpperCase(),
                             style: GoogleFonts.inclusiveSans(
                               fontWeight: isLastDone ? FontWeight.w900 : FontWeight.bold,
-                              color: isLastDone ? AppTheme.clinicWhite : AppTheme.deepCharcoal,
+                              color: isLastDone ? AppTheme.clinicalWhite : AppTheme.deepCharcoal,
                               fontSize: 13,
                             ),
                           ),

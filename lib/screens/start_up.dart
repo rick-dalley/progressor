@@ -61,7 +61,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.clinicWhite, // Consistent with your clinical aesthetic
+      backgroundColor: AppTheme.clinicalWhite, // Consistent with your clinical aesthetic
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

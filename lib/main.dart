@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:triage/screens/start_up.dart';
+import 'generated/l10n.dart';
 import 'screens/patient_roster.dart';
 import 'app_theme.dart';
 
@@ -20,6 +22,13 @@ class LuminescaApp extends StatelessWidget {
       // ... your localization and theme config ...
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
       // Change 'home' to StartupScreen
       home: const StartupScreen(),
       // Define a route for the roster so pushReplacementNamed works

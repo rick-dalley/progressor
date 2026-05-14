@@ -88,7 +88,7 @@ class _InterviewModalState extends State<InterviewModal> {
             child: Icon(
               _isRecording ? Icons.pause : Icons.mic,
               size: 32,
-              color: AppTheme.clinicWhite,
+              color: AppTheme.clinicalWhite,
             ),
           ),
         ),
@@ -116,7 +116,7 @@ class _InterviewModalState extends State<InterviewModal> {
             expands: true,
             decoration: InputDecoration(
               hintText: hint,
-              fillColor: isLive ? AppTheme.deepLogicViolet.withAlpha(32) : AppTheme.clinicWhite,
+              fillColor: isLive ? AppTheme.deepLogicViolet.withAlpha(32) : AppTheme.clinicalWhite,
               filled: true,
               border: const OutlineInputBorder(),
             ),

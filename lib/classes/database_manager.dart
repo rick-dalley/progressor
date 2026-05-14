@@ -5,13 +5,15 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-
+import 'package:uuid/uuid.dart';
 import 'data_seeder.dart';
 
 class DatabaseManager {
   // Singleton pattern
   static final DatabaseManager _instance = DatabaseManager._internal();
   Database? _db;
+
+  static const uuid = Uuid();
 
 // The Gatekeeper: This prevents multiple calls to init()
   Completer<Database>? _dbCompleter;
@@ -428,6 +430,90 @@ class DatabaseManager {
     );
 
     return results.isNotEmpty ? results.first : null;
+  }
+  Future<Map<String, int>> countCompletedAssessments(String patientId) async {
+    final db = await database;
+
+    // We query the table directly using the assessment_id column as our key
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+    SELECT assessment_id, COUNT(*) as total
+    FROM completed_assessment
+    WHERE patient_id = ? AND complete = 1
+    GROUP BY assessment_id
+  ''', [patientId]);
+
+    // Convert the list of rows into a Map: {'PHQ-9': 1, 'GAD-7': 0, ...}
+    return {
+      for (var row in results)
+        row['assessment_id'] as String: row['total'] as int
+    };
+  }
+
+  Future<void> saveAssessmentResults({
+    required String assessmentId,
+    required String patientId,
+    required Map<String, String> answers, // Map of question_id -> answer_text
+    bool isComplete = true,
+  }) async {
+    final db = await database;
+    final String completedAssessmentId = uuid.v4();
+    final String now = DateTime.now().toIso8601String();
+
+    // Use a transaction to ensure data integrity across both tables
+    await db.transaction((txn) async {
+      // 1. Insert the parent record into completed_assessment
+      await txn.insert('completed_assessment', {
+        'id': completedAssessmentId,
+        'assessment_id': assessmentId,
+        'patient_id': patientId,
+        'date_started': now, // In a real flow, you might track actual start time
+        'complete': isComplete ? 1 : 0,
+        'date_completed': isComplete ? now : null,
+        'last_modified': now,
+      });
+
+      // 2. Insert each individual answer into completed_question
+      for (var entry in answers.entries) {
+        await txn.insert('completed_question', {
+          'completed_assessment_id': completedAssessmentId,
+          'question_id': entry.key,
+          'answer': entry.value,
+        });
+      }
+    });
+  }
+
+  Future<Map<String, String>?> getLatestAssessmentResults({
+    required String assessmentId,
+    required String patientId,
+  }) async {
+    final db = await database;
+
+    // 1. Find the ID of the most recent completed assessment for this patient/scale
+    final List<Map<String, dynamic>> assessmentMaps = await db.query(
+      'completed_assessment',
+      where: 'assessment_id = ? AND patient_id = ? AND complete = 1',
+      whereArgs: [assessmentId, patientId],
+      orderBy: 'date_completed DESC',
+      limit: 1,
+    );
+
+    if (assessmentMaps.isEmpty) return null;
+
+    final String completedId = assessmentMaps.first['id'];
+
+    // 2. Fetch all answers associated with that specific completion ID
+    final List<Map<String, dynamic>> questionMaps = await db.query(
+      'completed_question',
+      where: 'completed_assessment_id = ?',
+      whereArgs: [completedId],
+    );
+
+    // 3. Reconstruct the Map<String, String> (question_id -> answer)
+    return {
+      for (var row in questionMaps)
+        row['question_id'] as String: row['answer'] as String,
+    };
   }
 
   Future<(bool, String)> checkInteractionsInDb(String primarySetId, String otherSetId) async {
