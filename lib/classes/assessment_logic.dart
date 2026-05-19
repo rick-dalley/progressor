@@ -1,7 +1,9 @@
+// AssessmentLogic
+// abstract base class for classes calculating scores
 abstract class AssessmentLogic {
   /// Logic to determine if the specific requirements of the form are met.
-  bool isComplete(Map<String, int> answers);
-
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]);
+  bool isVisible(String questionId, Map<String, int> answers) => true;
   /// Logic to calculate and interpret the results.
   Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide);
 
@@ -12,7 +14,7 @@ abstract class AssessmentLogic {
 class PHQ9Logic implements AssessmentLogic {
 
   @override
-  bool isComplete(Map<String, int> answers) {
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
     // 1. Check clinical questions (q1-q9)
     for (int i = 1; i <= 9; i++) {
       if (!answers.containsKey('q$i')) return false;
@@ -78,9 +80,21 @@ class PHQ9Logic implements AssessmentLogic {
     if (!answers.containsKey('q10')) return "Please select the impact of these symptoms.";
     return "Please complete the assessment.";
   }
+
+  @override
+  bool isVisible(String questionId, Map<String, int> answers) {
+    return true;
+  }
 }
 
 class GAD7Logic implements AssessmentLogic{
+
+
+  @override
+  bool isVisible(String questionId, Map<String, int> answers) {
+    return true;
+  }
+
   @override
   Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
     // 1. Calculate Total Score (Sum of q1 through q7)
@@ -118,17 +132,24 @@ class GAD7Logic implements AssessmentLogic{
   }
 
   @override
-  bool isComplete(Map<String, int> answers) {
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
     return true;
   }
+
 }
 
 class DAST10Logic implements AssessmentLogic {
 
   @override
-  bool isComplete(Map<String, int> answers) {
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
     // DAST-10 is simple: all 10 questions must be answered.
     return answers.length == 10;
+  }
+
+
+  @override
+  bool isVisible(String questionId, Map<String, int> answers) {
+    return true;
   }
 
   @override
@@ -170,13 +191,21 @@ class DAST10Logic implements AssessmentLogic {
   String getValidationMessage(Map<String, int> answers) {
     return "";
   }
+
 }
 
 class ASRS11Logic implements AssessmentLogic {
+
   @override
-  bool isComplete(Map<String, int> answers) {
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
     // ASRS v1.1 has 18 questions total
     return answers.length == 18;
+  }
+
+
+  @override
+  bool isVisible(String questionId, Map<String, int> answers) {
+    return true;
   }
 
   @override
@@ -215,4 +244,120 @@ class ASRS11Logic implements AssessmentLogic {
   String getValidationMessage(Map<String, int> answers) {
     return "Please complete all 18 questions for a full ASRS profile.";
   }
+
+}
+
+class PCL5Logic implements AssessmentLogic {
+  @override
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+    // PCL-5 has 20 questions
+    return answers.length == 20;
+  }
+
+  @override
+  bool isVisible(String questionId, Map<String, int> answers) {
+    return true;
+  }
+
+  @override
+  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+    int totalScore = answers.values.fold(0, (sum, val) => sum + val);
+
+    // Common clinical cutoff is 33
+    bool isElevated = totalScore >= 33;
+
+    String summary = "Total Severity Score: $totalScore/80. ";
+    if (isElevated) {
+      summary += "Results suggest clinically significant PTSD symptoms.";
+    } else {
+      summary += "Results are below the typical clinical threshold for PTSD.";
+    }
+
+    return {
+      "summary": summary,
+      "action": isElevated
+          ? "Further clinical evaluation for PTSD is recommended."
+          : "Continue to monitor symptoms."
+    };
+  }
+
+  @override
+  String getValidationMessage(Map<String, int> answers) {
+    int remaining = 20 - answers.length;
+    return "Please complete the remaining $remaining questions for the PCL-5.";
+  }
+
+}
+
+class CSSRSLogic implements AssessmentLogic {
+
+  @override
+  bool isVisible(String id, Map<String, int> answers) {
+    final int q1 = answers['q1'] ?? 0;
+    final int q2 = answers['q2'] ?? 0;
+
+    // Instruction: "If 2 is 'yes', ask 3-5"
+    if (['q3', 'q4', 'q5'].contains(id)) {
+      return q2 == 1;
+    }
+
+    // Instruction: "If 1 or 2 is 'yes', complete 'Intensity'"
+    // In your JSON, this includes 'intensity_freq'
+    if (id.startsWith('intensity_')) {
+      return (q1 == 1 || q2 == 1);
+    }
+
+    // Specific logic for Potential Lethality (Only if Actual=0)
+    if (id == 'potential_lethality') {
+      return answers.containsKey('actual_lethality') && answers['actual_lethality'] == 0;
+    }
+
+    return true;
+  }
+
+  @override
+  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+    if (questions == null || questions.isEmpty) return false;
+    for (var q in questions) {
+      final String id = q['id'];
+
+      // The logic dictates requirement: if it's visible, it MUST be answered.
+      if (isVisible(id, answers)) {
+        if (!answers.containsKey(id)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @override
+  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+    // Find the highest 'Yes' answer in the screening section
+    int highestSeverity = 0;
+    for (int i = 5; i >= 1; i--) {
+      if (answers['asrs_q$i'] == 1) {
+        highestSeverity = i;
+        break;
+      }
+    }
+
+    String summary = "Highest Ideation Severity: Level $highestSeverity. ";
+    String action = "Routine monitoring.";
+
+    if (highestSeverity >= 4) {
+      action = "IMMEDIATE REFERRAL: High risk ideation with intent/plan.";
+    } else if (highestSeverity > 0) {
+      action = "Consider mental health consultation.";
+    }
+
+    return {"summary": summary, "action": action};
+  }
+
+  @override
+  String getValidationMessage(Map<String, int> answers) {
+    return "";
+  }
+
+
 }

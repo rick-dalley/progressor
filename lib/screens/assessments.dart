@@ -228,10 +228,9 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                             assessmentId: data["assessmentId"],
                             patientUuid: data["patientUuid"],
                             scoreGuidePath: data["scoreGuidePath"],
-                            // Access directly from widget
                             template: data["template"],
                             isReadOnly: data['isReadOnly'],
-                            // The JSON loaded by _launchAssessment
+                            logic: CSSRSLogic(),
                             scrollController: ctrl,
                           ),
                     ),

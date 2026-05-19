@@ -3,7 +3,8 @@
   "instructions": "Ask questions 1 and 2. If both are negative, proceed to 'Suicidal Behavior'. If 2 is 'yes', ask 3-5. If 1 or 2 is 'yes', complete 'Intensity'.",
   "column_headers": [
     "Since Last Visit ",
-    "Yes", "No"
+    "Yes",
+    "No"
   ],
   "questions_score": [
     {
@@ -12,7 +13,7 @@
       "cluster_name": "Suicidal Ideation",
       "text": "1. Wish to be Dead",
       "description": "Have you thought about being dead or what it would be like to be dead? Have you wished you were dead or wished you could go to sleep and never wake up? Do you wish you weren’t alive anymore?",
-       "type": "boolean, text",
+      "type": "boolean, text",
       "max_score": 1
     },
     {
@@ -21,7 +22,7 @@
       "cluster_name": "Suicidal Ideation",
       "text": "2. Non-Specific Active Suicidal Thoughts",
       "description": "Have you thought about doing something to make yourself not alive anymore? Have you had any thoughts about killing yourself?",
-       "type": "boolean, text",
+      "type": "boolean, text",
       "max_score": 1
     },
     {
@@ -30,7 +31,7 @@
       "cluster_name": "Suicidal Ideation",
       "text": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
       "description": "Have you thought about how you would do that or how you would make yourself not alive anymore (kill yourself)? What did you think about?",
-       "type": "boolean, text",
+      "type": "boolean, text",
       "depends_on": [
         "q1",
         "q2"
@@ -44,7 +45,7 @@
       "cluster_name": "Suicidal Ideation",
       "text": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
       "description": "When you thought about making yourself not alive anymore, did you think that this was something you might actually do?",
-       "type": "boolean, text",
+      "type": "boolean, text",
       "depends_on": [
         "q1",
         "q2"
@@ -58,7 +59,7 @@
       "cluster_name": "Suicidal Ideation",
       "text": "5. Active Suicidal Ideation with Specific Plan and Intent",
       "description": "Have you decided how or when you would make yourself not alive anymore? Have you planned out the details?",
-       "type": "boolean, text",
+      "type": "boolean, text",
       "depends_on": [
         "q1",
         "q2"
@@ -208,7 +209,6 @@
         }
       ],
       "max_score": 2
-
     }
   ]
 }

@@ -40,9 +40,39 @@ class StandardizedAssessmentScreenState
 
   int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
   bool _showValidationErrors = false;
-
-  // At the top of your state class
+  bool _isLoading = true;
   List<dynamic>? _scoreGuide;
+
+  Future<void> _loadAnswers() async {
+    final Map<String, String>? rawResults = await DatabaseManager()
+        .getLatestAssessmentResults(
+          assessmentId: widget.assessmentId,
+          patientId: widget.patientUuid,
+        );
+
+    Map<String, int> initialAnswers = {};
+
+    if (rawResults != null) {
+      // Convert your Map<String, String> to Map<String, int> right here
+      initialAnswers = rawResults.map((key, value) {
+        final sanitized = value.trim().toLowerCase();
+
+        if (sanitized == 'true' || sanitized == 'yes') {
+          return MapEntry(key, 1);
+        } else if (sanitized == 'false' || sanitized == 'no') {
+          return MapEntry(key, 0);
+        } else {
+          return MapEntry(key, int.tryParse(sanitized) ?? 0);
+        }
+      });
+    }
+    if (mounted){
+      setState(() {
+        answers = initialAnswers;
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _loadScoreGuide() async {
     // Only attempt to load if a path was provided
@@ -67,6 +97,7 @@ class StandardizedAssessmentScreenState
   void initState() {
     super.initState();
     _loadScoreGuide();
+    _loadAnswers();
   }
 
   @override
@@ -74,92 +105,160 @@ class StandardizedAssessmentScreenState
     final l10n = S.of(context);
     final String instructionText = widget.template['column_headers'][0];
     final List questions = widget.template['questions_score'];
+    final bool isFormComplete = widget.logic!.isComplete(answers, questions);
 
-    return Column(
-      children: [
-        // 1. Frozen Header Area (Stays at the top)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          color: AppTheme.clinicalWhite,
-          child: Column(
-            children: [
-              Text(
-                widget.template['title'],
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.deepLogicViolet,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              Text(
-                instructionText,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
+      );
+    }
 
-        // 2. Scrolling Content
-        // Wrapping in Expanded tells the ListView: "Take up the rest of the modal's height."
-        Expanded(
-          child: ListView.builder(
-            controller: widget.scrollController, // Link to the DraggableSheet
-            itemCount: questions.length, // Questions + 1 for Footer
-            itemBuilder: (context, index) {
-              final q = questions[index];
+    return Scaffold(
+      bottomNavigationBar: SafeArea(
+        child: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: _buildActionButton(isFormComplete),
+        )
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(instructionText),
+            _buildQuestions(questions),
+          ],
+        ),
+      ),
+    );
+  }
 
-              Widget questionTile = LikertQuestionTile(
-                // Cast 'q' and 'template' to the Map types expected by the widget
-                q: q as Map<String, dynamic>,
-                template: widget.template,
-                currentValue: answers[q['id']],
-                showWarning:
-                    _showValidationErrors && !answers.containsKey(q['id']),
-                onChanged: (score) {
-                  setState(() {
-                    answers[q['id']] = score;
-                  });
-                },
-              );
-              if (index == questions.length - 1) {
-                final impactData = widget.template['questions_impact'];
-                if (impactData != null) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      questionTile, // The last question is still rendered here!
-                      _buildImpactSelector(widget.template['questions_impact']),
-                      _buildScoreFooter(),
-                      const SizedBox(height: 40), // iPhone bottom-area padding
-                    ],
-                  );
-                } else {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      questionTile, // The last question is still rendered here!
-                      _buildScoreFooter(),
-                      const SizedBox(height: 40), // iPhone bottom-area padding
-                    ],
-                  );
-                }
-              }
+  Widget _buildActionButton(bool isFormComplete) {
+    if (widget.isReadOnly) {
+      return ElevatedButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text("Close Review"),
+      );
+    } else {
+      return ElevatedButton(
+        onPressed: () {
+          if (!isFormComplete) {
+            setState(() => _showValidationErrors = true);
 
-              // 3. For all other indices, just return the tile
-              return questionTile;
+            // Get the total expected count from your template
+            final int totalExpected =
+                (widget.template['questions_score'] as List).length;
+            final int currentAnswered = answers.length;
+
+            String message;
+            if (currentAnswered < totalExpected) {
+              // Generic: "Please answer all 10 questions."
+              message =
+              "Please answer all $totalExpected questions before finalizing.";
+            } else {
+              // This handles the "Impact" question or any secondary requirements
+              message =
+              "Please complete the remaining assessment fields.";
+            }
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
+          } else {
+            _submitAssessment();
+          }
+        },
+        child: const Text("Finalize & Map to DSM"),
+      );
+    }
+  }
+
+  Widget _buildHeader(String instructionText) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20.0,
+        vertical: 10.0,
+      ),
+      color: AppTheme.clinicalWhite,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        // Shrink-wrap header content cleanly
+        children: [
+          Text(
+            widget.template['title'],
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppTheme.deepLogicViolet,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          Text(
+            instructionText,
+            style: const TextStyle(
+              fontSize: 15,
+              fontStyle: FontStyle.italic,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestions(List questions) {
+    return Expanded(
+      child: ListView.builder(
+        // Crucial: This links the list scroll directly to the sheet thumb pull down
+        controller: widget.scrollController,
+        padding: const EdgeInsets.all(16.0),
+        // Padding moved inside the list viewport
+        itemCount: questions.length,
+        itemBuilder: (context, index) {
+          final q = questions[index];
+          bool visible =
+              widget.logic?.isVisible(q["id"], answers) ?? true;
+
+          Widget questionTile = visible
+              ? LikertQuestionTile(
+            q: q as Map<String, dynamic>,
+            template: widget.template,
+            currentValue: answers[q['id']],
+            showWarning:
+            _showValidationErrors &&
+                !answers.containsKey(q['id']),
+            onChanged: widget.isReadOnly
+                ? null
+                : (score) {
+              setState(() {
+                answers[q['id']] = score;
+              });
             },
-          ),
-        ),
-      ],
+          )
+              : const SizedBox.shrink();
+
+          // If it's the last question in the layout loop, append the footers
+          if (index == questions.length - 1) {
+            final impactData = widget.template['questions_impact'];
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                questionTile,
+                if (impactData != null)
+                  _buildImpactSelector(impactData),
+                _buildScoreFooter(),
+                // Your scoring interpretation message renders here safely
+                const SizedBox(height: 40),
+              ],
+            );
+          }
+
+          return questionTile;
+        },
+      ),
     );
   }
 
@@ -234,55 +333,6 @@ class StandardizedAssessmentScreenState
     );
   }
 
-  Map<String, String>? getInterpretationOld() {
-    final questions = widget.template['questions_score'] as List;
-
-    // 1. Check for missing values
-    if (answers.length < questions.length) return null;
-
-    // 2. PHQ-9 Clinical Logic: Count symptoms >= 2 (More than half the days)
-    int highFreqCount = 0;
-    bool q1OrQ2HighFreq = false;
-
-    for (var q in questions) {
-      int score = answers[q['id']] ?? 0;
-      if (score >= 2) {
-        highFreqCount++;
-        if (q['id'] == 'q1' || q['id'] == 'q2') q1OrQ2HighFreq = true;
-      }
-    }
-
-    // 3. Determine Syndrome Suggestion
-    String syndrome = "No specific depressive syndrome suggested.";
-    if (q1OrQ2HighFreq) {
-      if (highFreqCount >= 5) {
-        syndrome = "Major Depressive Disorder suggested.";
-      } else if (highFreqCount >= 2) {
-        syndrome = "Other Depressive Syndrome suggested.";
-      }
-    }
-
-    // 4. Match Total Score against JSON Assets
-    int score = totalScore;
-    String severity = "Unknown";
-    String action = "No action defined.";
-
-    if (_scoreGuide != null) {
-      for (var entry in _scoreGuide!) {
-        if (score <= entry['max_score']) {
-          severity = entry['severity'];
-          action = entry['action'];
-          break;
-        }
-      }
-    }
-
-    return {
-      "summary": "$syndrome Severity: $severity (Score: $score).",
-      "action": action,
-    };
-  }
-
   Map<String, String>? getInterpretation() {
     // Use the injected logic if available, otherwise fallback to basic total
     if (widget.logic != null) {
@@ -297,6 +347,7 @@ class StandardizedAssessmentScreenState
   }
 
   Future<void> _submitAssessment() async {
+    debugPrint("_submitAssessment");
     // Convert our internal int answers to the String format required by the DB
     final Map<String, String> stringAnswers = answers.map(
       (key, value) => MapEntry(key, value.toString()),
@@ -332,7 +383,7 @@ class StandardizedAssessmentScreenState
   Widget _buildScoreFooter() {
     final questions = widget.template['questions_score'] as List;
 
-    final bool isFormComplete = widget.logic!.isComplete(answers);
+    final bool isFormComplete = widget.logic!.isComplete(answers, questions);
 
     // Only get interpretation if the form is actually complete
     final interpretation = isFormComplete ? getInterpretation() : null;
@@ -365,73 +416,8 @@ class StandardizedAssessmentScreenState
             "Current Score: $totalScore",
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 10),
-
-          ElevatedButton(
-            onPressed: () {
-              if (!isFormComplete) {
-                setState(() => _showValidationErrors = true);
-
-                // Get the total expected count from your template
-                final int totalExpected = (widget.template['questions_score'] as List).length;
-                final int currentAnswered = answers.length;
-
-                String message;
-                if (currentAnswered < totalExpected) {
-                  // Generic: "Please answer all 10 questions."
-                  message = "Please answer all $totalExpected questions before finalizing.";
-                } else {
-                  // This handles the "Impact" question or any secondary requirements
-                  message = "Please complete the remaining assessment fields.";
-                }
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message))
-                );
-              } else {
-                _submitAssessment();
-              }
-            },
-            child: const Text("Finalize & Map to DSM"),
-          ),
         ],
       ),
     );
-  }
-}
-
-class PCL5Logic implements AssessmentLogic {
-  @override
-  bool isComplete(Map<String, int> answers) {
-    // PCL-5 has 20 questions
-    return answers.length == 20;
-  }
-
-  @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
-    int totalScore = answers.values.fold(0, (sum, val) => sum + val);
-
-    // Common clinical cutoff is 33
-    bool isElevated = totalScore >= 33;
-
-    String summary = "Total Severity Score: $totalScore/80. ";
-    if (isElevated) {
-      summary += "Results suggest clinically significant PTSD symptoms.";
-    } else {
-      summary += "Results are below the typical clinical threshold for PTSD.";
-    }
-
-    return {
-      "summary": summary,
-      "action": isElevated
-          ? "Further clinical evaluation for PTSD is recommended."
-          : "Continue to monitor symptoms."
-    };
-  }
-
-  @override
-  String getValidationMessage(Map<String, int> answers) {
-    int remaining = 20 - answers.length;
-    return "Please complete the remaining $remaining questions for the PCL-5.";
   }
 }

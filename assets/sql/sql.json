@@ -26,7 +26,7 @@
     },
     {
       "table": "completed_question",
-      "query": "CREATE TABLE IF NOT EXISTS completed_question ( completed_assessment_id TEXT NOT NULL,  question_id TEXT NOT NULL,  answer TEXT,  PRIMARY KEY (completed_assessment_id, question_id), FOREIGN KEY (completed_assessment_id) REFERENCES completed_assessment(id) ON DELETE CASCADE, FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE RESTRICT);"
+      "query": "CREATE TABLE IF NOT EXISTS completed_question ( completed_assessment_id TEXT NOT NULL, question_id TEXT NOT NULL, answer TEXT, PRIMARY KEY (completed_assessment_id, question_id), FOREIGN KEY (completed_assessment_id) REFERENCES completed_assessment(id) ON DELETE CASCADE, FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE RESTRICT);"
     },
     {
       "table": "vitals",

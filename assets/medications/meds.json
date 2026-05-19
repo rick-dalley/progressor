@@ -27,8 +27,8 @@
   {
     "patient_uuid": "p004-substance-concurrent",
     "prescription":[
-      {"id":"8", "set_id":"", "name": "Sertraline", "dose": "50mg", "freq": "QD", "has_local_datasheet": 0 },
-      {"id":"7", "set_id":"", "name": "Quetiapine", "dose": "25mg", "freq": "QHS", "has_local_datasheet": 0 }
+      {"id":"8", "set_id":"", "name": "Mirtazapine", "dose": "15mg", "freq": "QD", "has_local_datasheet": 0 },
+      {"id":"7", "set_id":"", "name": "Wellbutrin", "dose": "145mg", "freq": "QHS", "has_local_datasheet": 0 }
     ]
   },
   {

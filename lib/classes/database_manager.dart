@@ -431,6 +431,7 @@ class DatabaseManager {
 
     return results.isNotEmpty ? results.first : null;
   }
+
   Future<Map<String, int>> countCompletedAssessments(String patientId) async {
     final db = await database;
 
@@ -458,7 +459,6 @@ class DatabaseManager {
     final db = await database;
     final String completedAssessmentId = uuid.v4();
     final String now = DateTime.now().toIso8601String();
-
     // Use a transaction to ensure data integrity across both tables
     await db.transaction((txn) async {
       // 1. Insert the parent record into completed_assessment
@@ -488,8 +488,7 @@ class DatabaseManager {
     required String patientId,
   }) async {
     final db = await database;
-
-    // 1. Find the ID of the most recent completed assessment for this patient/scale
+    // Find the ID of the most recent completed assessment for this patient/scale
     final List<Map<String, dynamic>> assessmentMaps = await db.query(
       'completed_assessment',
       where: 'assessment_id = ? AND patient_id = ? AND complete = 1',
@@ -509,7 +508,7 @@ class DatabaseManager {
       whereArgs: [completedId],
     );
 
-    // 3. Reconstruct the Map<String, String> (question_id -> answer)
+    // Reconstruct the Map<String, String> (question_id -> answer)
     return {
       for (var row in questionMaps)
         row['question_id'] as String: row['answer'] as String,
