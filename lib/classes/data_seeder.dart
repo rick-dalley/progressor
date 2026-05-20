@@ -16,8 +16,27 @@ class DataSeeder {
     await _seedMedicationData(db);
     await _seedVitalsData(db);
     await _seedPatientCondition(db);
-
+    await _seedObservations(db);
     debugPrint('--- Seeding Complete ---');
+  }
+
+  static Future<void> _seedObservations(Database db) async {
+    final String response = await rootBundle.loadString('assets/observations/observations.json');
+    final List<dynamic> data = json.decode(response);
+
+    Batch batch = db.batch();
+    for (var entry in data) {
+      batch.insert('observations', {
+        // 'id':entry['id'],
+        // 'timestamp': entry['timestamp'],
+        'patient_uuid': entry['patient_uuid'],
+        'content': entry['content'],
+        'author_name': entry['author_name'],
+        'author_role':entry['author_role'],
+      });
+    }
+    await batch.commit(noResult: true);
+    debugPrint('Observations seeded.');
   }
 
   static Future<void> _seedPatientData(Database db) async {

@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart' show StatefulWidget, TextEditingController, State, BuildContext, Widget, Text, Divider, AppBar, Expanded, Column, Scaffold, ListView, EdgeInsets, TextStyle, CrossAxisAlignment, MainAxisAlignment, FontWeight, Colors, Row, FontStyle, Padding, Card, TextField, InputDecoration, SizedBox, Icon, OutlineInputBorder, ElevatedButton, Icons;
+import 'package:flutter/material.dart';
+import 'package:triage/widgets/observation_card.dart';
 
+import '../app_theme.dart';
+import '../classes/database_manager.dart';
+import '../widgets/note_taker.dart';
+
+/// 1. Clean Data Model (Strictly for values, completely decoupled from UI scrolling)
 class ObservationNote {
   final String id;
   final DateTime timestamp;
@@ -16,124 +22,251 @@ class ObservationNote {
   });
 }
 
+/// 2. Primary Screen Component
 class ObservationScreen extends StatefulWidget {
-  const ObservationScreen({super.key});
+  final String patientUuid;
+  final ScrollController scrollController; // Passed from the modal sheet parent framework
+
+  const ObservationScreen({super.key, required this.patientUuid, required this.scrollController});
 
   @override
   State<ObservationScreen> createState() => _ObservationScreenState();
 }
 
 class _ObservationScreenState extends State<ObservationScreen> {
-  final TextEditingController _noteController = TextEditingController();
-  final List<ObservationNote> _history = [
-  ]; // This would typically come from your DB
 
-  void _saveNote() {
-    if (_noteController.text
-        .trim()
-        .isEmpty) {return;}
+  List<ObservationNote> _history = [];
+  List<ObservationNote> _filtered = [];
+  bool _isLoading = true; // Tracks triage system load states cleanly
 
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientObservations(widget.patientUuid); // 👈 Trigger the async load sequence on layout initialization
+  }
+
+  // Move this logic inside your text field's onChanged callback instead of a raw getter
+  void _onSearchChanged(String val) {
+    final lowerQuery = val.toLowerCase().trim();
     setState(() {
-      _history.insert(0, ObservationNote(
-        id: DateTime.now().toString(),
-        timestamp: DateTime.now(),
-        content: _noteController.text,
-        authorName: "Richard Dalley",
-        // Logic to pull current user
-        authorRole: "Director of AI",
-      ));
-      _noteController.clear();
+      if (lowerQuery.isEmpty) {
+        _filtered = List.from(_history);
+      } else {
+        _filtered = _history
+            .where(
+              (note) =>
+                  note.content.toLowerCase().contains(lowerQuery) || note.authorName.toLowerCase().contains(lowerQuery),
+            )
+            .toList();
+      }
     });
+  }
+  void _deleteNoteFromSystem(ObservationNote targetNote) async {
+    // 1. Instantly clean the item out of your memory state lists
+    setState(() {
+      _history.removeWhere((element) => element.id == targetNote.id);
+      _filtered.removeWhere((element) => element.id == targetNote.id);
+    });
+
+    // 2. Fire-and-forget the delete operation to the SQLite disk array
+    try {
+      await DatabaseManager().deleteObservation(
+        int.parse(targetNote.id), // Target the exact numerical primary key
+      );
+    } catch (e) {
+      debugPrint("Failed to purge record from SQLite disk: $e");
+      // Fallback: If disk write completely fails, reload truth from database
+      _loadPatientObservations(widget.patientUuid);
+    }
+  }
+
+  void _openNoteWorkspace(BuildContext context, ObservationNote? existingNote) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => NoteTaker(
+        currentNote: existingNote,
+        onNoteEntered: (ObservationNote completeNote) async {
+
+          if (existingNote == null) {
+            // 🟢 CASE 1: NEW NOTE (ID is empty)
+            try {
+              // Let the DB handle the autoincrement
+              await DatabaseManager().insertObservation({
+                'patient_uuid': widget.patientUuid,
+                'content': completeNote.content,
+                'author_name': completeNote.authorName,
+                'author_role': completeNote.authorRole,
+                'time_stamp': completeNote.timestamp.toUtc().toIso8601String(),
+              });
+
+              // Rebuild the list directly from the database source of truth
+              await _loadPatientObservations(widget.patientUuid);
+            } catch (e) {
+              debugPrint("Failed to insert new note: $e");
+            }
+
+          } else {
+            // 🟢 CASE 2: EXISTING NOTE (ID is '1', '2', etc.)
+            // Optimistically update the UI list instantly
+            setState(() {
+              final idx = _history.indexWhere((element) => element.id == completeNote.id);
+              if (idx != -1) {
+                _history[idx] = completeNote;
+                _filtered = List.from(_history); // Repaint the screen immediately
+              }
+            });
+
+            // Write the update to disk in the background
+            try {
+              await DatabaseManager().updateObservation(
+                int.parse(completeNote.id),
+                {
+                  'content': completeNote.content,
+                },
+              );
+            } catch (e) {
+              debugPrint("Failed to update note on disk: $e");
+            }
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Clinical Observations")),
-      body: Column(
-        children: [
-          // 1. New Note Input Area
-          _buildNoteInput(),
-          const Divider(thickness: 2),
-          // 2. Observation History Feed
-          Expanded(child: _buildHistoryList()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteInput() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Container(
+      color: AppTheme.canvasColor,
       child: Column(
         children: [
-          TextField(
-            controller: _noteController,
-            maxLines: 5,
-            minLines: 3,
-            decoration: const InputDecoration(
-              hintText: "Enter clinical observations, interview notes, or behavioral sightings...",
-              border: OutlineInputBorder(),
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _saveNote,
-              icon: const Icon(Icons.add_comment),
-              label: const Text("Log Observation"),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHistoryList() {
-    return ListView.builder(
-      itemCount: _history.length,
-      itemBuilder: (context, index) {
-        final note = _history[index];
-        // Format: Apr 22, 2026 • 11:45 AM
-        final timeStr = "${note.timestamp.day}/${note.timestamp.month}/${note.timestamp.year} • "
-            "${note.timestamp.hour}:${note.timestamp.minute.toString().padLeft(2, '0')}";
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
+          // Title Bar & Text Search Layout
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      note.authorName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                    ),
-                    Text(
-                      timeStr,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                Text(
-                  note.authorRole,
-                  style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
-                ),
-                const Divider(),
-                Text(
-                  note.content,
-                  style: const TextStyle(fontSize: 15, height: 1.4),
-                ),
+                // 🟢 Force the Column wrapper block to match the width of the screen boundaries
+                Row(children: const [Spacer()]),
+
+                const Text("Clinical Observations", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text("${_filtered.length} Notes", style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal)),
+                const SizedBox(height: 12),
               ],
             ),
           ),
-        );
-      },
+          // Main Historical Log Feed Viewport
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.amber, // Matches your Apple Notes theme accent color
+                    ),
+                  )
+                : _filtered.isEmpty
+                ? Center(
+                    child: Text("Enter an observation or note.", style: TextStyle(color: AppTheme.deepCharcoal)),
+                  )
+                : ListView.builder(
+                    // Core unified scroll hooks to eliminate skipping or snapping bugs
+                    controller: widget.scrollController,
+                    physics: const ClampingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 8, bottom: 24),
+                    itemCount: _filtered.length,
+                    itemBuilder: (context, index) {
+                      final tappedNote = _filtered[index];
+
+                      // 🟢 Wrap the item in a Dismissible block for easy swiping
+                      return Dismissible(
+                        key: Key(tappedNote.id), // Tracks the unique primary key string ('1', '2', etc.)
+                        direction: DismissDirection.endToStart, // Swipe right-to-left
+                        background: Container(
+                          color: Colors.red.shade800,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20.0),
+                          child: const Icon(Icons.delete_sweep, color: Colors.white, size: 26),
+                        ),
+
+                        // Fires immediately when the swipe animation completes
+                        onDismissed: (direction) {
+                          _deleteNoteFromSystem(tappedNote);
+                        },
+
+                        child: GestureDetector(
+                          onTap: () => _openNoteWorkspace(context, tappedNote),
+                          child: ObservationCard(note: tappedNote),
+                        ),
+                      );
+                      },
+                  ),
+          ),
+
+          // Anchored Apple Notes Style Sticky Utility Bottom Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(color: AppTheme.canvasColor),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 🟢 FIXED: Wrapped in Expanded so the TextField takes up the remaining available width safely
+                  Expanded(
+                    child: TextField(
+                      onChanged: _onSearchChanged,
+                      decoration: InputDecoration(
+                        hintText: "Search observations...",
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ),
+
+                  // Add a clean 12px gap so the field doesn't touch the button edge
+                  const SizedBox(width: 12),
+
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: AppTheme.deepCharcoal, size: 26),
+                    tooltip: "New Observation",
+                    onPressed: () => _openNoteWorkspace(context, null),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _loadPatientObservations(String patientUuid) async {
+    try {
+      final List<Map<String, dynamic>> rawRows = await DatabaseManager().getObservationsForPatient(
+       patientUuid,
+      );
+
+      final List<ObservationNote> loadedNotes = rawRows.map((row) {
+        return ObservationNote(
+          id: row['id'].toString(),
+          timestamp: DateTime.parse(row['time_stamp']).toLocal(),
+          content: row['content'] as String,
+          authorName: row['author_name'] as String,
+          authorRole: row['author_role'] as String,
+        );
+      }).toList();
+
+      setState(() {
+        _history = loadedNotes;
+        _filtered = loadedNotes; // 👈 Initially, both lists are identical
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Error loading triage notes: $e");
+      setState(() => _isLoading = false);
+    }
   }
 }

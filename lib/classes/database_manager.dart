@@ -49,7 +49,6 @@ class DatabaseManager {
     }
   }
 
-
   Future<Database> init({bool overwrite = false}) async {
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
@@ -133,6 +132,42 @@ class DatabaseManager {
       'vitals',
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getObservationsForPatient(String patientUuid) async {
+    final db = await database;
+
+    return await db.query(
+      'observations',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      // Sort by timestamp descending so the latest data is at the top of the list
+      orderBy: 'time_stamp DESC',
+    );
+  }
+
+  Future<int> deleteObservation(int id) async {
+    final db = await database;
+    return await db.delete(
+      'observations',      // Your database table name
+      where: 'id = ?',     // Target row filter
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> insertObservation(Map<String, dynamic> row) async {
+    final db = await database;
+    return await db.insert('observations', row);
+  }
+
+  Future<int> updateObservation(int id, Map<String, dynamic> row) async {
+    final db = await database;
+    return await db.update(
+      'observations',
+      row,
+      where: 'id = ?',
+      whereArgs: [id],
     );
   }
 
@@ -308,7 +343,6 @@ class DatabaseManager {
     List<String> drugNames,
   ) async {
     List<Map<String, dynamic>> found = [];
-
     for (var name in drugNames) {
       // 1. Get the local blob for this drug
       // Ensure getDatasheetByName handles the case-insensitive lookup

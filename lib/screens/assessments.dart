@@ -24,9 +24,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
   void initState() {
     super.initState();
     // Initialize the future once
-    _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(
-      widget.patientUuid,
-    );
+    _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(widget.patientUuid);
   }
 
   @override
@@ -35,27 +33,19 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
       future: _assessmentCountsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          ); // Show loader while fetching
+          return const Center(child: CircularProgressIndicator()); // Show loader while fetching
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Text("Error loading history: ${snapshot.error}"),
-          );
+          return Center(child: Text("Error loading history: ${snapshot.error}"));
         }
 
         // Pre-process the maps once the data arrives
         final Map<String, int> counts = snapshot.data ?? {};
-        final Map<String, bool> completed = counts.map(
-          (key, value) => MapEntry(key, value > 0),
-        );
+        final Map<String, bool> completed = counts.map((key, value) => MapEntry(key, value > 0));
 
         return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-          ),
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
           decoration: BoxDecoration(
             color: AppTheme.canvasColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -68,20 +58,13 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
               Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: AppTheme.canvasColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                decoration: BoxDecoration(color: AppTheme.canvasColor, borderRadius: BorderRadius.circular(10)),
               ),
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
                   "ASSESSMENTS",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.deepLogicViolet,
-                    letterSpacing: 1.2,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet, letterSpacing: 1.2),
                 ),
               ),
               Flexible(
@@ -91,10 +74,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                     // --- SECTION: PHYSICAL HEALTH (The "Total Picture") ---
                     _buildSectionHeader("PHYSICAL HEALTH"),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: Card(
                         elevation: 0,
                         clipBehavior: Clip.antiAlias,
@@ -119,15 +99,10 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                               activeColor: AppTheme.vitalsBP,
                             ),
                             title: const Text("Pre-existing Conditions"),
-                            subtitle: const Text(
-                              "Review & Update Physical Health History",
-                            ),
+                            subtitle: const Text("Review & Update Physical Health History"),
                             onTap: () {
                               Navigator.pop(context);
-                              _launchPhysicalHealthChecklist(
-                                context,
-                                widget.patientUuid,
-                              );
+                              _launchPhysicalHealthChecklist(context, widget.patientUuid);
                             },
                           ),
                         ),
@@ -136,10 +111,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                     // --- SECTION: CLINICAL OBSERVATIONS ---
                     _buildSectionHeader("CLINICAL NOTES"),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: Card(
                         elevation: 0,
                         clipBehavior: Clip.antiAlias,
@@ -164,9 +136,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                               activeColor: AppTheme.deepLogicViolet,
                             ),
                             title: const Text("Observations"),
-                            subtitle: const Text(
-                              "Individual observations of patient behaviour",
-                            ),
+                            subtitle: const Text("Individual observations of patient behaviour"),
                           ),
                         ),
                       ),
@@ -183,16 +153,15 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       'assets/questions/phq9_score_guide.json',
                       completed["PHQ-9"] ?? false,
                       // The builder signature must match (String, dynamic, ScrollController)
-                      (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: PHQ9Logic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: PHQ9Logic(),
+                        scrollController: ctrl,
+                      ),
                     ),
 
                     _buildAssessmentTile(
@@ -203,16 +172,15 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "gad-7.json",
                       'assets/questions/gad7_score_guide.json',
                       completed["GAD-7"] ?? false,
-                          (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: GAD7Logic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: GAD7Logic(),
+                        scrollController: ctrl,
+                      ),
                     ),
 
                     _buildAssessmentTile(
@@ -223,16 +191,15 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "c-ssrs.json",
                       null,
                       completed["C-SSRS"] ?? false,
-                          (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: CSSRSLogic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: CSSRSLogic(),
+                        scrollController: ctrl,
+                      ),
                     ),
 
                     _buildAssessmentTile(
@@ -243,16 +210,15 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "dast-10.json",
                       'assets/questions/dast10_score_guide.json',
                       completed["DAST-10"] ?? false,
-                          (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: DAST10Logic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: DAST10Logic(),
+                        scrollController: ctrl,
+                      ),
                     ),
 
                     _buildAssessmentTile(
@@ -263,16 +229,15 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "asrs.json",
                       'assets/questions/asrs_score_guide.json',
                       completed["ASRS-V1.1"] ?? false,
-                          (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: ASRS11Logic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: ASRS11Logic(),
+                        scrollController: ctrl,
+                      ),
                     ),
 
                     _buildAssessmentTile(
@@ -283,18 +248,16 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "pcl-5.json",
                       'assets/questions/pcl5_score_guide.json',
                       completed["PCL-5"] ?? false,
-                          (assessmentId, data, ctrl) =>
-                          StandardizedAssessmentScreen(
-                            assessmentId: data["assessmentId"],
-                            patientUuid: data["patientUuid"],
-                            scoreGuidePath: data["scoreGuidePath"],
-                            template: data["template"],
-                            isReadOnly: data['isReadOnly'],
-                            logic: PCL5Logic(),
-                            scrollController: ctrl,
-                          ),
+                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                        assessmentId: data["assessmentId"],
+                        patientUuid: data["patientUuid"],
+                        scoreGuidePath: data["scoreGuidePath"],
+                        template: data["template"],
+                        isReadOnly: data['isReadOnly'],
+                        logic: PCL5Logic(),
+                        scrollController: ctrl,
+                      ),
                     ),
-
 
                     const SizedBox(height: 30),
                   ],
@@ -313,26 +276,21 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-          color: AppTheme.deepCharcoal,
-          letterSpacing: 1.1,
-        ),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.deepCharcoal, letterSpacing: 1.1),
       ),
     );
   }
 
   Widget _buildAssessmentTile(
-      BuildContext context,
-      String assessmentName,
-      String patientId,
-      String subtitle,
-      String template,
-      String? scoreGuidePath, // ADD THIS
-      bool isCompleted,
-      Widget Function(String, Map<String, dynamic>, ScrollController) builder,
-      ) {
+    BuildContext context,
+    String assessmentName,
+    String patientId,
+    String subtitle,
+    String template,
+    String? scoreGuidePath, // ADD THIS
+    bool isCompleted,
+    Widget Function(String, Map<String, dynamic>, ScrollController) builder,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Card(
@@ -340,10 +298,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isCompleted ? AppTheme.clinicalCyan : AppTheme.cardBorder,
-            width: 1.5,
-          ),
+          side: BorderSide(color: isCompleted ? AppTheme.clinicalCyan : AppTheme.cardBorder, width: 1.5),
         ),
         child: IntrinsicHeight(
           child: Row(
@@ -379,21 +334,9 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center, // VERTICAL CENTERING
                       crossAxisAlignment: CrossAxisAlignment.start, // LEFT ALIGN TEXT
                       children: [
-                        Text(
-                          assessmentName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text(assessmentName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                         const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
+                        Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                       ],
                     ),
                   ),
@@ -413,14 +356,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                     screenBuilder: builder,
                     scoreGuidePath: scoreGuidePath,
                   ),
-                  child: const SizedBox(
-                    width: 60,
-                    child: Icon(
-                      Icons.add,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
+                  child: const SizedBox(width: 60, child: Icon(Icons.add, color: Colors.white, size: 30)),
                 ),
               ),
             ],
@@ -443,32 +379,82 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
     );
   }
 
-  void _launchPhysicalHealthChecklist(
-    BuildContext context,
-    String patientUuid,
-  ) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            PhysicalHealthAssessment(patientUuid: patientUuid),
+  void _launchPhysicalHealthChecklist(BuildContext context, String patientUuid) async {
+    final dynamic result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        snap: false,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: AppTheme.clinicalWhite,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(color: AppTheme.cardBorder, borderRadius: BorderRadius.circular(10)),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.grey, size: 22),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Expanded(
+                  child: PhysicalHealthAssessment(
+                    patientUuid: patientUuid,
+                    scrollController: scrollController, // Matches your inner definition name
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
+
+    debugPrint("Result of physical checklist modal: $result");
+    if (result == true && mounted) {
+      setState(() {
+        _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(patientUuid);
+      });
+    }
   }
 
   void _launchObservationsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // Allows the modal to grow beyond 50% screen height
       backgroundColor: Colors.transparent,
-      // Let the container handle the color
+      // ✅ Prevents accidental drag-down dismissals on the background area
+      enableDrag: false,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.9,
-        // Opens at 90% of screen height
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
+        snap: false, // ✅ Smooth, non-snapping fluid track
         builder: (context, scrollController) {
           return Container(
             decoration: const BoxDecoration(
@@ -477,18 +463,44 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
             ),
             child: Column(
               children: [
-                // A small handle to indicate the modal is draggable
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Centered pull bar handle indicator
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      // ✅ Unified Top-Right Dismiss Button
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
-                Expanded(child: ObservationScreen()),
+                const SizedBox(height: 4),
+                Expanded(
+                  // ✅ Pass the controller into the screen
+                  child: ObservationScreen(
+                    patientUuid: widget.patientUuid,
+                    scrollController: scrollController,
+                  ),
+                ),
               ],
             ),
           );
@@ -500,15 +512,11 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
   Future<void> _launchAssessment(
     BuildContext context, {
     required String assessmentId,
-        required String patientId,
+    required String patientId,
     required String templateName,
-        required String? scoreGuidePath,
-        required bool isReadOnly,
-    required Widget Function(
-      String assessmentId,
-      Map<String, dynamic> template,
-      ScrollController controller,
-    )
+    required String? scoreGuidePath,
+    required bool isReadOnly,
+    required Widget Function(String assessmentId, Map<String, dynamic> template, ScrollController controller)
     screenBuilder,
   }) async {
     // 1. Fetch the requested template
@@ -528,11 +536,13 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: false,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.9,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
+        snap: false,
         builder: (context, scrollController) {
           return Container(
             decoration: const BoxDecoration(
@@ -545,18 +555,24 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                 Container(
                   width: 40,
                   height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardBorder,
-                    borderRadius: BorderRadius.circular(10),
+                  decoration: BoxDecoration(color: AppTheme.cardBorder, borderRadius: BorderRadius.circular(10)),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.grey, // Or use AppTheme.subText
+                      size: 22,
+                    ),
+                    tooltip: "Dismiss assessment",
+                    // Closes the sheet instantly and flags a false result down to your database poker
+                    onPressed: () => Navigator.pop(context, false),
                   ),
                 ),
                 Expanded(
                   // 3. Inject the specific screen here
-                  child: screenBuilder(
-                    assessmentId,
-                    patientContext,
-                    scrollController,
-                  ),
+                  child: screenBuilder(assessmentId, patientContext, scrollController),
                 ),
               ],
             ),

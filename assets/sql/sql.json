@@ -47,7 +47,10 @@
     {
       "table": "patient_condition",
       "query": "CREATE TABLE patient_condition ( condition_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_name TEXT,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
-      
+    },
+    {
+      "table": "observations",
+      "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT,  content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
     }
   ],
   "INSERT": [

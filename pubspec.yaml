@@ -42,6 +42,7 @@ flutter:
     - assets/assessments/
     - assets/medications/
     - assets/process/
+    - assets/observations/
     - assets/questions/
     - assets/screen_captures/
     - assets/sql/
