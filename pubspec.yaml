@@ -41,6 +41,7 @@ flutter:
   assets:
     - assets/patients/
     - assets/assessments/
+    - assets/conditions/
     - assets/medications/
     - assets/process/
     - assets/observations/

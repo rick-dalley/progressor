@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
 import '../app_theme.dart';
+import '../classes/database_manager.dart';
+import '../classes/patient_condition.dart';
+import '../widgets/condition_chip.dart';
 
 class PhysicalHealthAssessment extends StatefulWidget {
   final String patientUuid;
@@ -13,47 +15,102 @@ class PhysicalHealthAssessment extends StatefulWidget {
 }
 
 class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
-  final Map<String, List<String>> _conditionGroups = {
-    "Psychiatric / Neurodivergent": [
-      "Schizoid PD", "Schizoaffective", "Bipolar I", "Bipolar II",
-      "PTSD", "ADHD", "ASD", "Major Depression"
-    ],
-    "Cardiovascular": ["Hypertension", "AFib", "CAD", "CHF"],
-    "Respiratory": ["Sleep Apnea", "COPD", "Asthma", "Emphysema"],
-    "Gastrointestinal": ["IBS", "Crohn's Disease", "GERD", "Liver Disease"],
-    "Renal/Metabolic": ["CKD", "Diabetes Type 1", "Diabetes Type 2", "Thyroid Disorder"],
-  };
-
-  // Tracks which chips are selected
-  final Set<String> _selectedConditions = {};
+  final Set<int> _selectedConditions = {};
   final TextEditingController _otherController = TextEditingController();
+  late Future<Map<String, List<ConditionReference>>> _catalogFuture;
+
+  // 🟢 We will store a flat list of references once loaded to quickly render the top dock
+  List<ConditionReference> _allConditionsFlat = [];
 
   @override
+  void initState() {
+    super.initState();
+    _catalogFuture = DatabaseManager().getConditionsCatalog().then((data) {
+      // Flatten the incoming catalog map data structure for fast summary lookups
+      setState(() {
+        _allConditionsFlat = data.values.expand((list) => list).toList();
+      });
+      return data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Filter out exactly which references are currently checked active
+    final activeConditions = _allConditionsFlat.where((c) => _selectedConditions.contains(c.id)).toList();
+
     return Column(
       children: [
-        // 1. Title bar block that naturally matches the styling of your other sheets
+        // Title bar block
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Physical Health History",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              // We can place a text button or explicit action item here if preferred
+            children: const [
+              Text("Physical Health History", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
 
-        // 2. The main body wrapped in an Expanded to give the list proper depth context
+        // 🟢 NEW: Anchored Active Conditions Top Panel
+        // AnimatedContainer smoothly collapses/expands height depending on active selections
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: activeConditions.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: activeConditions.isEmpty ? Colors.transparent : AppTheme.clinicalCyanCanvas,
+            borderRadius: BorderRadius.circular(12),
+            border: activeConditions.isEmpty ? null : Border.all(color: AppTheme.clinicalCyanCanvas, width: 1),
+          ),
+          child: activeConditions.isEmpty
+              ? const SizedBox.shrink()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.assignment_late_outlined, size: 16, color: AppTheme.clinicalCyan),
+                        SizedBox(width: 6),
+                        Text(
+                          "PATIENT ACTIVE PROFILE SUMMARY",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.clinicalCyan,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: activeConditions.map((condition) {
+                        return ConditionChip(
+                          patientUuid: widget.patientUuid,
+                          condition: condition,
+                          onDeleteCondition: (int id) {
+                            setState(() {
+                              _selectedConditions.remove(id);
+                            });
+                          },
+                          // onTapCondition: (ConditionReference ref) {
+                          //   _showConditionDetailsDialog(context, ref);
+                          // },
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+        ),
+
+        // The main scrollable data input catalog
         Expanded(
           child: ListView(
-            // ✅ Wire up the modal's tracking controller here
             controller: widget.scrollController,
-            // ✅ Force uniform scrolling physics
             physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
@@ -61,13 +118,38 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
                 "Select all pre-existing or pre-diagnosed conditions identified during intake.",
                 style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
-              const SizedBox(height: 20),
-              ..._conditionGroups.entries.map((group) => _buildGroup(group.key, group.value)),
+              const SizedBox(height: 14),
 
+              FutureBuilder<Map<String, List<ConditionReference>>>(
+                future: _catalogFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: Padding(padding: EdgeInsets.symmetric(vertical: 20.0), child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const Text(
+                      "Failed to load clinical conditions catalog from disk.",
+                      style: TextStyle(color: Colors.red),
+                    );
+                  }
+
+                  final catalogMap = snapshot.data!;
+
+                  return Container(
+                    width: double.infinity,
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: catalogMap.entries.map((group) => _buildGroup(group.key, group.value)).toList(),
+                    ),
+                  );
+                },
+              ),
               const Divider(height: 40),
 
-              const Text("OTHER CONDITIONS / NOTES",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text("OTHER CONDITIONS / NOTES", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               const SizedBox(height: 10),
               TextField(
                 controller: _otherController,
@@ -75,7 +157,7 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
                 decoration: InputDecoration(
                   hintText: "Enter any conditions not listed above...",
                   filled: true,
-                  fillColor: Colors.grey.shade900,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -84,11 +166,11 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
           ),
         ),
 
-        // 3. Anchored bottom control panel containing your submission trigger
+        // Anchored bottom control panel
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.clinicalWhite, // Match your local backdrop theme
+            color: AppTheme.clinicalWhite,
             border: Border(top: BorderSide(color: Colors.grey.shade800, width: 0.5)),
           ),
           child: SafeArea(
@@ -99,7 +181,7 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
               child: ElevatedButton(
                 onPressed: _saveAssessment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.clinicalWhite, // Use your app accent theme color
+                  backgroundColor: AppTheme.deepLogicViolet,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: const Text(
@@ -113,11 +195,9 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
       ],
     );
   }
-  Widget _buildGroup(String title, List<String> conditions) {
-    // Use a specific color for Psychiatric conditions to make them stand out
-    final Color groupColor = title.contains("Psychiatric")
-        ? Colors.purpleAccent
-        : Colors.cyan;
+
+  Widget _buildGroup(String title, List<ConditionReference> conditions) {
+    final Color groupColor = title.contains("Psychiatric") ? Colors.purpleAccent : Colors.cyan;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,25 +205,21 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                  letterSpacing: 1.1,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: groupColor
-              )
+            title.toUpperCase(),
+            style: TextStyle(letterSpacing: 1.1, fontWeight: FontWeight.bold, fontSize: 12, color: groupColor),
           ),
         ),
         Wrap(
           spacing: 8,
+          runSpacing: 4,
           children: conditions.map((condition) {
-            final isSelected = _selectedConditions.contains(condition);
+            final isSelected = _selectedConditions.contains(condition.id);
             return FilterChip(
-              label: Text(condition),
+              label: Text(condition.name),
               selected: isSelected,
               onSelected: (val) {
                 setState(() {
-                  val ? _selectedConditions.add(condition) : _selectedConditions.remove(condition);
+                  val ? _selectedConditions.add(condition.id) : _selectedConditions.remove(condition.id);
                 });
               },
               selectedColor: groupColor.withAlpha(64),
@@ -157,8 +233,7 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
   }
 
   void _saveAssessment() async {
-    // Logic to batch insert _selectedConditions into 'patient_condition'
-    // and include the text from _otherController as a narrative entry.
+    // Your _selectedConditions set continues to hold structural SQLite row IDs cleanly
     Navigator.pop(context);
   }
 }

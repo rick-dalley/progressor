@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:triage/classes/patient_condition.dart';
 import 'package:uuid/uuid.dart';
 import 'data_seeder.dart';
 
@@ -133,6 +134,41 @@ class DatabaseManager {
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  // Inside your DatabaseManager class:
+  Future<Map<String, List<ConditionReference>>> getConditionsCatalog() async {
+    final db = await database;
+
+    // Fetch all conditions ordered alphabetically by category and name
+    final List<Map<String, dynamic>> maps = await db.query(
+      'condition',
+      orderBy: 'category ASC, name ASC',
+    );
+
+    // Reconstruct our grouped layout pattern dynamically
+    final Map<String, List<ConditionReference>> catalog = {};
+
+    for (final Map<String, dynamic> row in maps) {
+      final reference = ConditionReference.fromMap(row);
+
+      // Initialize the list for this category slot if it doesn't exist yet
+      if (!catalog.containsKey(reference.category)) {
+        catalog[reference.category] = [];
+      }
+
+      catalog[reference.category]!.add(reference);
+    }
+
+    return catalog;
+  }
+
+  Future<void> insertPatientCondition(PatientCondition record) async {
+
+  }
+
+  Future<void> updatePatientCondition(PatientCondition record) async {
+
   }
 
   Future<List<Map<String, dynamic>>> getObservationsForPatient(String patientUuid) async {

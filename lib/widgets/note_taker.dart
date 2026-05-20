@@ -19,7 +19,7 @@ class NoteTakerState extends State<NoteTaker> {
   late final TextEditingController _localController;
   late stt.SpeechToText _speech;
   bool _isListening = false;
-  String _listeningError = "";
+  final String _listeningError = "";
 
   @override
   void initState() {

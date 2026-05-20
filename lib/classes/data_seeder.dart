@@ -17,7 +17,54 @@ class DataSeeder {
     await _seedVitalsData(db);
     await _seedPatientCondition(db);
     await _seedObservations(db);
+    await _seedConditionsCatalog(db);
+
     debugPrint('--- Seeding Complete ---');
+  }
+
+  static Future<void> _seedConditionsCatalog(Database db) async {
+    // 1. Verify if the master table has already been populated
+    final List<Map<String, dynamic>> existingRecords = await db.rawQuery(
+      "SELECT COUNT(*) as total FROM condition",
+    );
+
+    if (existingRecords.first['total'] as int > 0) {
+      return; // Catalog is already successfully configured!
+    }
+
+    try {
+      // 2. Read raw condition data groups from json asset bundle
+      final String jsonString = await rootBundle.loadString('assets/conditions/conditions.json');
+      final Map<String, dynamic> parsedJson = jsonDecode(jsonString);
+
+      // 3. Open an atomic batch block for high-performance writing
+      final Batch migrationBatch = db.batch();
+
+      parsedJson.forEach((categoryKey, ailmentList) {
+        if (ailmentList is List) {
+          for (var ailmentName in ailmentList) {
+            if (ailmentName is String) {
+
+              // 🟢 Pass only name and category. SQLite generates the integer ID automatically!
+              migrationBatch.insert(
+                'condition',
+                {
+                  'name': ailmentName,
+                  'category': categoryKey,
+                },
+                conflictAlgorithm: ConflictAlgorithm.ignore,
+              );
+            }
+          }
+        }
+      });
+
+      // 4. Commit rows down to the storage engine
+      await migrationBatch.commit(noResult: true);
+      debugPrint("Successfully seeded master condition table with auto-increment keys.");
+    } catch (error) {
+      debugPrint("Critical failure executing master condition data migration: $error");
+    }
   }
 
   static Future<void> _seedObservations(Database db) async {

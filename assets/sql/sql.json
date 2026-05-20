@@ -21,6 +21,10 @@
       "query": "CREATE TABLE IF NOT EXISTS medication (id TEXT PRIMARY KEY, patient_uuid TEXT, name TEXT, set_id TEXT, dose TEXT, freq TEXT, has_local_datasheet int NOT NULL, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid), FOREIGN KEY (set_id) REFERENCES datasheet(set_id) ON DELETE RESTRICT);"
     },
     {
+      "table": "condition",
+      "query": "CREATE TABLE IF NOT EXISTS condition (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, category TEXT);"
+    },
+    {
       "table": "completed_assessment",
       "query": "CREATE TABLE IF NOT EXISTS completed_assessment ( id TEXT PRIMARY KEY,  assessment_id TEXT NOT NULL,  patient_id TEXT NOT NULL,  date_started DATETIME DEFAULT CURRENT_TIMESTAMP,  complete INTEGER DEFAULT 0,  date_completed DATETIME,  last_modified DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE RESTRICT,  FOREIGN KEY (patient_id) REFERENCES patient(patient_uuid) ON DELETE RESTRICT);"
     },
@@ -33,10 +37,6 @@
       "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 INTEGER, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
     },
     {
-      "table": "condition",
-      "query": "CREATE TABLE IF NOT EXISTS condition (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, category TEXT, condition_name TEXT NOT NULL, description TEXT, onset_date TEXT, status TEXT DEFAULT 'Active', FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
-    },
-    {
       "table": "process",
       "query": "CREATE TABLE IF NOT EXISTS process_maps (id INTEGER PRIMARY KEY AUTOINCREMENT, process_key TEXT UNIQUE, label TEXT, steps_json TEXT);"
     },
@@ -46,7 +46,7 @@
     },
     {
       "table": "patient_condition",
-      "query": "CREATE TABLE patient_condition ( condition_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_name TEXT,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
+      "query": "CREATE TABLE patient_condition (patient_condition_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id TEXT,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
     },
     {
       "table": "observations",

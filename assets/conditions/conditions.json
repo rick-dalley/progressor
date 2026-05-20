@@ -1,23 +1,37 @@
-[
-  {
-    "patient_uuid": "p001-involuntary-cert",
-  },
-  {
-    "patient_uuid": "p002-decert-ready",
-  },
-  {
-    "patient_uuid": "p003-medical-clearance",
-  },
-  {
-    "patient_uuid": "p004-substance-concurrent",
-  },
-  {
-    "patient_uuid": "p005-social-admit",
-  },
-  {
-    "patient_uuid": "p006-student-deep-dive",
-  },
-  {
-    "patient_uuid": "p007-community-ready",
-  }
-]
+
+{
+  "Psychiatric / Neurodivergent": [
+    "Schizoid PD",
+    "Schizoaffective",
+    "Bipolar I",
+    "Bipolar II",
+    "PTSD",
+    "ADHD",
+    "ASD",
+    "Major Depression"
+  ],
+  "Cardiovascular": [
+    "Hypertension",
+    "AFib",
+    "CAD",
+    "CHF"
+  ],
+  "Respiratory": [
+    "Sleep Apnea",
+    "COPD",
+    "Asthma",
+    "Emphysema"
+  ],
+  "Gastrointestinal": [
+    "IBS",
+    "Crohn's Disease",
+    "GERD",
+    "Liver Disease"
+  ],
+  "Renal / Metabolic": [
+    "CKD",
+    "Diabetes Type 1",
+    "Diabetes Type 2",
+    "Thyroid Disorder"
+  ]
+}
