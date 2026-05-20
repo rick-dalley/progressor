@@ -111,17 +111,17 @@ class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
                 // Cast 'q' and 'template' to the Map types expected by the widget
                 q: q as Map<String, dynamic>,
                 template: widget.template,
-                currentAnswer: answers[q['id']] ?? AssessmentAnswer(0, ""),
+                currentAnswer: answers[q['id']] ?? AssessmentAnswer(0, "", false),
                 showWarning: _showValidationErrors && !answers.containsKey(q['id']),
                 onChanged: (score) {
                   setState(() {
-                    answers[q['id']] ??= AssessmentAnswer(0, "");
+                    answers[q['id']] ??= AssessmentAnswer(0, "", false);
                     answers[q['id']]?.value = score;
                   });
                 },
                 onDescriptionChanged: (id, description) {
                   setState(() {
-                    answers[q['id']] ??= AssessmentAnswer(0, "");
+                    answers[q['id']] ??= AssessmentAnswer(0, "", true);
                     answers[q['id']]?.text = description;
                   });
                 },

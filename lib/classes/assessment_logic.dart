@@ -4,14 +4,15 @@
 class AssessmentAnswer{
   int value = 0;
   String text = "";
+  bool isBoolText = false;
 
-  AssessmentAnswer(this.value, this.text);
+  AssessmentAnswer(this.value, this.text, this.isBoolText);
 
   AssessmentAnswer.fromRawString(String rawAnswer){
-    if (rawAnswer.contains('|')) {
+    isBoolText = rawAnswer.contains('|');
+    if (isBoolText) {
       final parts = rawAnswer.split('|');
       final String firstPart = parts[0].trim().toLowerCase();
-
       // 1. Safely handle stringified booleans ('true'/'false') or numbers
       if (firstPart == 'true' || firstPart == 'false') {
         value = 0;
@@ -34,7 +35,7 @@ class AssessmentAnswer{
   }
 
   factory AssessmentAnswer.fromInstance(AssessmentAnswer other) {
-    return AssessmentAnswer(other.value, other.text);
+    return AssessmentAnswer(other.value, other.text, other.isBoolText);
   }
 
   factory AssessmentAnswer.fromDynamic(dynamic dynamicAnswer) {
@@ -44,7 +45,7 @@ class AssessmentAnswer{
     return AssessmentAnswer.fromRawString(dynamicAnswer?.toString() ?? "0");
   }
 
-  String toRawString(bool isBoolText){
+  String asString(){
     if(isBoolText){
       return '$value|$text';
     } else {

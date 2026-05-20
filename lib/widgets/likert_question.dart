@@ -81,13 +81,6 @@ class _LikertQuestionTileState extends State<LikertQuestionTile> {
     final bool isBoolean = answerType.contains('boolean');
     final bool needsText = answerType.contains('text');
     final bool listOptions = answerType.contains('choice');
-    final bool hasText = answerType.contains ("text");
-    final bool isBooleanText = isBoolean && hasText;
-    final question = widget.q;
-
-    debugPrint("Current answerType: ${answerType}");
-    debugPrint("Current question: ${question}");
-    debugPrint("Current answer: ${widget.currentAnswer?.value}");
 
     final List<dynamic> headers = widget.template['column_headers'] as List<dynamic>;
 

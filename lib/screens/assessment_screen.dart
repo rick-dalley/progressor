@@ -192,7 +192,8 @@ class StandardizedAssessmentScreenState extends State<StandardizedAssessmentScre
                       : (score) {
                           setState(() {
                             final existingText = answers[qId]?.text ?? "";
-                            answers[qId] = AssessmentAnswer(score, existingText);
+                            final isBoolText = existingText.contains("|");
+                            answers[qId] = AssessmentAnswer(score, existingText, isBoolText);
                           });
                         },
                   onDescriptionChanged: widget.isReadOnly
@@ -201,7 +202,7 @@ class StandardizedAssessmentScreenState extends State<StandardizedAssessmentScre
                           setState(() {
                             final existingValue = answers[qId]?.value ?? 0;
                             //Break the reference cache for text changes too
-                            answers[qId] = AssessmentAnswer(existingValue, description);
+                            answers[qId] = AssessmentAnswer(existingValue, description, true);
                           });
                         },
                 )
@@ -304,7 +305,7 @@ class StandardizedAssessmentScreenState extends State<StandardizedAssessmentScre
 
   Future<void> _submitAssessment() async {
     // Convert our internal int answers to the String format required by the DB
-    final Map<String, String> stringAnswers = answers.map((key, value) => MapEntry(key, value.toString()));
+    final Map<String, String> stringAnswers = answers.map((key, value) => MapEntry(key, value.asString()));
 
     try {
       // 1. Call your persistence logic
