@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import '../classes/assessment_logic.dart';
 
 class LikertQuestionTile extends StatefulWidget {
   final Map<String, dynamic> q;
   final Map<String, dynamic> template;
-  final int? currentValue;
-  final String? currentText;
+  final AssessmentAnswer? currentAnswer;
   final bool showWarning;
   final Function(int)? onChanged; // Made nullable for read-only support
   final Function(String, String)? onDescriptionChanged;
@@ -14,9 +14,8 @@ class LikertQuestionTile extends StatefulWidget {
     super.key,
     required this.q,
     required this.template,
-    required this.currentValue,
+    required this.currentAnswer,
     required this.onChanged,
-    this.currentText,
     this.onDescriptionChanged,
     this.showWarning = false,
   });
@@ -76,12 +75,19 @@ class _LikertQuestionTileState extends State<LikertQuestionTile> {
   @override
   Widget build(BuildContext context) {
     final int maxScore = widget.q['max_score'] ?? 3;
-    final String type = widget.q['type']?.toString() ?? '';
+    final String answerType = widget.q['type']?.toString() ?? '';
     final String description = widget.q['description']?.toString() ?? '';
 
-    final bool isBoolean = type.contains('boolean');
-    final bool needsText = type.contains('text');
-    final bool listOptions = type.contains('choice');
+    final bool isBoolean = answerType.contains('boolean');
+    final bool needsText = answerType.contains('text');
+    final bool listOptions = answerType.contains('choice');
+    final bool hasText = answerType.contains ("text");
+    final bool isBooleanText = isBoolean && hasText;
+    final question = widget.q;
+
+    debugPrint("Current answerType: ${answerType}");
+    debugPrint("Current question: ${question}");
+    debugPrint("Current answer: ${widget.currentAnswer?.value}");
 
     final List<dynamic> headers = widget.template['column_headers'] as List<dynamic>;
 
@@ -158,7 +164,7 @@ class _LikertQuestionTileState extends State<LikertQuestionTile> {
             Column(
               children: List.generate((widget.q['options'] as List).length, (index) {
                 final List<dynamic> options = widget.q['options'] ?? [];
-                final bool isSelected = widget.currentValue == index;
+                final bool isSelected = widget.currentAnswer?.value == index;
                 final Map<String, dynamic> optionMap = options[index] as Map<String, dynamic>;
                 final String optionText = optionMap['label']?.toString() ?? "";
                 return _buildVerticalOption(index, optionText, isSelected);
@@ -171,7 +177,7 @@ class _LikertQuestionTileState extends State<LikertQuestionTile> {
               children: List.generate(maxScore + 1, (score) {
                 final int headerIndex = score + 1;
                 String labelText = headerIndex < headers.length ? headers[headerIndex].toString() : "";
-                final bool isSelected = widget.currentValue == score;
+                final bool isSelected = widget.currentAnswer?.value == score;
 
                 if (isBoolean) {
                   return Expanded(
@@ -245,7 +251,7 @@ class _LikertQuestionTileState extends State<LikertQuestionTile> {
             const SizedBox(height: 4),
             TextFormField(
               enabled: widget.onChanged != null, // Disable if read-only
-              initialValue: widget.currentText,
+              initialValue: widget.currentAnswer?.text,
               maxLines: 3,
               minLines: 1,
               style: const TextStyle(fontSize: 14),

@@ -1,20 +1,75 @@
 // AssessmentLogic
 // abstract base class for classes calculating scores
+
+class AssessmentAnswer{
+  int value = 0;
+  String text = "";
+
+  AssessmentAnswer(this.value, this.text);
+
+  AssessmentAnswer.fromRawString(String rawAnswer){
+    if (rawAnswer.contains('|')) {
+      final parts = rawAnswer.split('|');
+      final String firstPart = parts[0].trim().toLowerCase();
+
+      // 1. Safely handle stringified booleans ('true'/'false') or numbers
+      if (firstPart == 'true' || firstPart == 'false') {
+        value = 0;
+      } else {
+        value = int.tryParse(firstPart) ?? 0;
+      }
+
+      // 2. Join the remaining narrative string slice back together
+      text = parts.sublist(1).join('|');
+    } else {
+      final String cleanAnswer = rawAnswer.trim().toLowerCase();
+
+      if (cleanAnswer == 'true' || cleanAnswer == 'false') {
+        value = 0;
+      } else {
+        value = int.tryParse(cleanAnswer) ?? 0;
+      }
+      text = "";
+    }
+  }
+
+  factory AssessmentAnswer.fromInstance(AssessmentAnswer other) {
+    return AssessmentAnswer(other.value, other.text);
+  }
+
+  factory AssessmentAnswer.fromDynamic(dynamic dynamicAnswer) {
+    if (dynamicAnswer is AssessmentAnswer) {
+      return AssessmentAnswer.fromInstance(dynamicAnswer);
+    }
+    return AssessmentAnswer.fromRawString(dynamicAnswer?.toString() ?? "0");
+  }
+
+  String toRawString(bool isBoolText){
+    if(isBoolText){
+      return '$value|$text';
+    } else {
+      return '$value';
+    }
+  }
+}
+
+typedef AssessmentAnswerMap = Map<String, AssessmentAnswer>;
+
 abstract class AssessmentLogic {
   /// Logic to determine if the specific requirements of the form are met.
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]);
-  bool isVisible(String questionId, Map<String, int> answers) => true;
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]);
+  bool isVisible(String questionId,  AssessmentAnswerMap answers) => true;
   /// Logic to calculate and interpret the results.
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide);
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide);
 
   /// Optional: Get a specific error message if validation fails.
-  String getValidationMessage(Map<String, int> answers) => "Please complete all required fields.";
+  String getValidationMessage( AssessmentAnswerMap answers) => "Please complete all required fields.";
 }
 
 class PHQ9Logic implements AssessmentLogic {
 
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     // 1. Check clinical questions (q1-q9)
     for (int i = 1; i <= 9; i++) {
       if (!answers.containsKey('q$i')) return false;
@@ -28,14 +83,14 @@ class PHQ9Logic implements AssessmentLogic {
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
     // 1. Calculate high frequency (threshold >= 2)
     int highFreqCount = 0;
     bool q1OrQ2HighFreq = false;
 
     // We assume the IDs are q1, q2... as defined in your JSON
-    answers.forEach((id, score) {
-      if (score >= 2) {
+    answers.forEach((id, ans) {
+      if (ans.value >= 2) {
         if (id != 'q10') highFreqCount++; // Exclude the impact question from the count
         if (id == 'q1' || id == 'q2') q1OrQ2HighFreq = true;
       }
@@ -53,7 +108,7 @@ class PHQ9Logic implements AssessmentLogic {
     }
 
     // 3. Score Guide Lookup
-    int totalScore = answers.values.fold(0, (sum, val) => sum + val);
+    int totalScore = answers.values.fold(0, (sum, val) => sum + val.value);
     String severity = "Unknown";
     String action = "No action defined.";
 
@@ -74,7 +129,7 @@ class PHQ9Logic implements AssessmentLogic {
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     // You can actually use this to be helpful!
     if (answers.length < 9) return "Please answer all 9 clinical questions.";
     if (!answers.containsKey('q10')) return "Please select the impact of these symptoms.";
@@ -82,7 +137,7 @@ class PHQ9Logic implements AssessmentLogic {
   }
 
   @override
-  bool isVisible(String questionId, Map<String, int> answers) {
+  bool isVisible(String questionId,  AssessmentAnswerMap answers) {
     return true;
   }
 }
@@ -91,18 +146,18 @@ class GAD7Logic implements AssessmentLogic{
 
 
   @override
-  bool isVisible(String questionId, Map<String, int> answers) {
+  bool isVisible(String questionId, AssessmentAnswerMap answers) {
     return true;
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
     // 1. Calculate Total Score (Sum of q1 through q7)
     // Note: We ignore the impact question (often q8) for the total score.
     int totalScore = 0;
-    answers.forEach((id, value) {
+    answers.forEach((id, ans) {
       if (id.startsWith('q') && id != 'q8') {
-        totalScore += value;
+        totalScore += ans.value;
       }
     });
 
@@ -127,12 +182,12 @@ class GAD7Logic implements AssessmentLogic{
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     return "";
   }
 
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     return true;
   }
 
@@ -141,29 +196,29 @@ class GAD7Logic implements AssessmentLogic{
 class DAST10Logic implements AssessmentLogic {
 
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     // DAST-10 is simple: all 10 questions must be answered.
     return answers.length == 10;
   }
 
 
   @override
-  bool isVisible(String questionId, Map<String, int> answers) {
+  bool isVisible(String questionId, AssessmentAnswerMap answers) {
     return true;
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
     int totalScore = 0;
 
-    answers.forEach((id, value) {
+    answers.forEach((id, answer) {
       // Question 3 is a "reverse" question in the standard DAST-10
       if (id == 'q3') {
         // If they answered 'No' (0), they get a point. If 'Yes' (1), they don't.
-        if (value == 0) totalScore += 1;
+        if (answer.value == 0) totalScore += 1;
       } else {
         // Standard tally: Yes (1) = 1 point
-        if (value == 1) totalScore += 1;
+        if (answer.value == 1) totalScore += 1;
       }
     });
 
@@ -188,7 +243,7 @@ class DAST10Logic implements AssessmentLogic {
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     return "";
   }
 
@@ -197,31 +252,31 @@ class DAST10Logic implements AssessmentLogic {
 class ASRS11Logic implements AssessmentLogic {
 
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     // ASRS v1.1 has 18 questions total
     return answers.length == 18;
   }
 
 
   @override
-  bool isVisible(String questionId, Map<String, int> answers) {
+  bool isVisible(String questionId,  AssessmentAnswerMap answers) {
     return true;
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
     int partAScore = 0;
 
     // Thresholds: For some questions, 'Sometimes' (2) is a hit.
     // For others, only 'Often' (3) and 'Very Often' (4) count.
 
     // Part A thresholds
-    if ((answers['q1'] ?? 0) >= 2) partAScore++;
-    if ((answers['q2'] ?? 0) >= 2) partAScore++;
-    if ((answers['q3'] ?? 0) >= 2) partAScore++;
-    if ((answers['q4'] ?? 0) >= 3) partAScore++;
-    if ((answers['q5'] ?? 0) >= 3) partAScore++;
-    if ((answers['q6'] ?? 0) >= 3) partAScore++;
+    if ((answers['q1']?.value ?? 0) >= 2) partAScore++;
+    if ((answers['q2']?.value ?? 0) >= 2) partAScore++;
+    if ((answers['q3']?.value ?? 0) >= 2) partAScore++;
+    if ((answers['q4']?.value ?? 0) >= 3) partAScore++;
+    if ((answers['q5']?.value ?? 0) >= 3) partAScore++;
+    if ((answers['q6']?.value ?? 0) >= 3) partAScore++;
 
     String summary = "Part A Score: $partAScore/6. ";
     String action = "";
@@ -241,7 +296,7 @@ class ASRS11Logic implements AssessmentLogic {
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     return "Please complete all 18 questions for a full ASRS profile.";
   }
 
@@ -249,19 +304,19 @@ class ASRS11Logic implements AssessmentLogic {
 
 class PCL5Logic implements AssessmentLogic {
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     // PCL-5 has 20 questions
     return answers.length == 20;
   }
 
   @override
-  bool isVisible(String questionId, Map<String, int> answers) {
+  bool isVisible(String questionId, AssessmentAnswerMap answers) {
     return true;
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
-    int totalScore = answers.values.fold(0, (sum, val) => sum + val);
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
+    int totalScore = answers.values.fold(0, (sum, val) => sum + val.value);
 
     // Common clinical cutoff is 33
     bool isElevated = totalScore >= 33;
@@ -282,7 +337,7 @@ class PCL5Logic implements AssessmentLogic {
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     int remaining = 20 - answers.length;
     return "Please complete the remaining $remaining questions for the PCL-5.";
   }
@@ -292,9 +347,9 @@ class PCL5Logic implements AssessmentLogic {
 class CSSRSLogic implements AssessmentLogic {
 
   @override
-  bool isVisible(String id, Map<String, int> answers) {
-    final int q1 = answers['q1'] ?? 0;
-    final int q2 = answers['q2'] ?? 0;
+  bool isVisible(String id,  AssessmentAnswerMap answers) {
+    final int q1 = answers['q1']?.value ?? 0;
+    final int q2 = answers['q2']?.value ?? 0;
 
     // Instruction: "If 2 is 'yes', ask 3-5"
     if (['q3', 'q4', 'q5'].contains(id)) {
@@ -309,14 +364,14 @@ class CSSRSLogic implements AssessmentLogic {
 
     // Specific logic for Potential Lethality (Only if Actual=0)
     if (id == 'potential_lethality') {
-      return answers.containsKey('actual_lethality') && answers['actual_lethality'] == 0;
+      return answers.containsKey('actual_lethality') && answers['actual_lethality']?.value == 0;
     }
 
     return true;
   }
 
   @override
-  bool isComplete(Map<String, int> answers, [List<dynamic>? questions]) {
+  bool isComplete( AssessmentAnswerMap answers, [List<dynamic>? questions]) {
     if (questions == null || questions.isEmpty) return false;
     for (var q in questions) {
       final String id = q['id'];
@@ -332,11 +387,11 @@ class CSSRSLogic implements AssessmentLogic {
   }
 
   @override
-  Map<String, String>? interpret(Map<String, int> answers, List<dynamic>? scoreGuide) {
+  Map<String, String>? interpret( AssessmentAnswerMap answers, List<dynamic>? scoreGuide) {
     // Find the highest 'Yes' answer in the screening section
     int highestSeverity = 0;
     for (int i = 5; i >= 1; i--) {
-      if (answers['asrs_q$i'] == 1) {
+      if (answers['asrs_q$i']?.value == 1) {
         highestSeverity = i;
         break;
       }
@@ -355,7 +410,7 @@ class CSSRSLogic implements AssessmentLogic {
   }
 
   @override
-  String getValidationMessage(Map<String, int> answers) {
+  String getValidationMessage( AssessmentAnswerMap answers) {
     return "";
   }
 

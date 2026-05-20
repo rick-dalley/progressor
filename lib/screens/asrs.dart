@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:triage/classes/assessment_logic.dart';
 import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
@@ -18,9 +19,9 @@ class ASRSAssessmentScreen extends StatefulWidget {
 }
 
 class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
-  Map<String, int> answers = {};
+  AssessmentAnswerMap answers = {};
   String? selectedImpactId;
-  int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
+  int get totalScore => answers.values.fold(0, (sum, val) => sum + val.value);
   bool _showValidationErrors = false;
 
   @override
@@ -110,14 +111,22 @@ class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
                 // Cast 'q' and 'template' to the Map types expected by the widget
                 q: q as Map<String, dynamic>,
                 template: widget.template,
-                currentValue: answers[q['id']],
+                currentAnswer: answers[q['id']] ?? AssessmentAnswer(0, ""),
                 showWarning: _showValidationErrors && !answers.containsKey(q['id']),
                 onChanged: (score) {
                   setState(() {
-                    answers[q['id']] = score;
+                    answers[q['id']] ??= AssessmentAnswer(0, "");
+                    answers[q['id']]?.value = score;
+                  });
+                },
+                onDescriptionChanged: (id, description) {
+                  setState(() {
+                    answers[q['id']] ??= AssessmentAnswer(0, "");
+                    answers[q['id']]?.text = description;
                   });
                 },
               );
+
               // Always return a Column so the header actually shows up
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +156,8 @@ class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
     for (var q in questions) {
       // Only look at Part A for the initial "Positive Screen" check
       if (q['cluster'] == 'A') {
-        int score = answers[q['id']] ?? 0;
+        AssessmentAnswer? answer = answers[q['id']];
+        int score  = answer?.value ?? 0;
         int threshold = q['threshold'] ?? 99; // Fallback if missing
 
         if (score >= threshold) {

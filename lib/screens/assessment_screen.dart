@@ -29,44 +29,35 @@ class StandardizedAssessmentScreen extends StatefulWidget {
   });
 
   @override
-  StandardizedAssessmentScreenState createState() =>
-      StandardizedAssessmentScreenState();
+  StandardizedAssessmentScreenState createState() => StandardizedAssessmentScreenState();
 }
 
-class StandardizedAssessmentScreenState
-    extends State<StandardizedAssessmentScreen> {
-  Map<String, int> answers = {};
+class StandardizedAssessmentScreenState extends State<StandardizedAssessmentScreen> {
+  Map<String, AssessmentAnswer> answers = {};
   String? selectedImpactId;
 
-  int get totalScore => answers.values.fold(0, (sum, val) => sum + val);
+  int get totalScore => answers.values.fold(0, (sum, val) => sum + val.value);
   bool _showValidationErrors = false;
   bool _isLoading = true;
   List<dynamic>? _scoreGuide;
 
   Future<void> _loadAnswers() async {
-    final Map<String, String>? rawResults = await DatabaseManager()
-        .getLatestAssessmentResults(
-          assessmentId: widget.assessmentId,
-          patientId: widget.patientUuid,
-        );
+    final Map<String, String>? rawResults = await DatabaseManager().getLatestAssessmentResults(
+      assessmentId: widget.assessmentId,
+      patientId: widget.patientUuid,
+    );
 
-    Map<String, int> initialAnswers = {};
+    //Initialize as a Map matching your new state definition
+    Map<String, AssessmentAnswer> initialAnswers = {};
 
     if (rawResults != null) {
-      // Convert your Map<String, String> to Map<String, int> right here
       initialAnswers = rawResults.map((key, value) {
-        final sanitized = value.trim().toLowerCase();
-
-        if (sanitized == 'true' || sanitized == 'yes') {
-          return MapEntry(key, 1);
-        } else if (sanitized == 'false' || sanitized == 'no') {
-          return MapEntry(key, 0);
-        } else {
-          return MapEntry(key, int.tryParse(sanitized) ?? 0);
-        }
+        // Pass the raw string row straight to your clean parser constructor
+        return MapEntry(key, AssessmentAnswer.fromRawString(value));
       });
     }
-    if (mounted){
+
+    if (mounted) {
       setState(() {
         answers = initialAnswers;
         _isLoading = false;
@@ -79,9 +70,7 @@ class StandardizedAssessmentScreenState
     if (widget.scoreGuidePath == null) return;
 
     try {
-      final String response = await rootBundle.loadString(
-        widget.scoreGuidePath!,
-      );
+      final String response = await rootBundle.loadString(widget.scoreGuidePath!);
       final data = await json.decode(response);
       if (mounted) {
         setState(() {
@@ -108,36 +97,23 @@ class StandardizedAssessmentScreenState
     final bool isFormComplete = widget.logic!.isComplete(answers, questions);
 
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       bottomNavigationBar: SafeArea(
-        child: Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: _buildActionButton(isFormComplete),
-        )
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(instructionText),
-            _buildQuestions(questions),
-          ],
         ),
       ),
+      body: SafeArea(child: Column(children: [_buildHeader(instructionText), _buildQuestions(questions)])),
     );
   }
 
   Widget _buildActionButton(bool isFormComplete) {
     if (widget.isReadOnly) {
-      return ElevatedButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text("Close Review"),
-      );
+      return ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Close Review"));
     } else {
       return ElevatedButton(
         onPressed: () {
@@ -145,24 +121,19 @@ class StandardizedAssessmentScreenState
             setState(() => _showValidationErrors = true);
 
             // Get the total expected count from your template
-            final int totalExpected =
-                (widget.template['questions_score'] as List).length;
+            final int totalExpected = (widget.template['questions_score'] as List).length;
             final int currentAnswered = answers.length;
 
             String message;
             if (currentAnswered < totalExpected) {
               // Generic: "Please answer all 10 questions."
-              message =
-              "Please answer all $totalExpected questions before finalizing.";
+              message = "Please answer all $totalExpected questions before finalizing.";
             } else {
               // This handles the "Impact" question or any secondary requirements
-              message =
-              "Please complete the remaining assessment fields.";
+              message = "Please complete the remaining assessment fields.";
             }
 
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(message)));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
           } else {
             _submitAssessment();
           }
@@ -175,10 +146,7 @@ class StandardizedAssessmentScreenState
   Widget _buildHeader(String instructionText) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20.0,
-        vertical: 10.0,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       color: AppTheme.clinicalWhite,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -187,22 +155,14 @@ class StandardizedAssessmentScreenState
           Text(
             widget.template['title'],
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppTheme.deepLogicViolet,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(color: AppTheme.deepLogicViolet, fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Divider(height: 1),
           const SizedBox(height: 16),
           Text(
             instructionText,
-            style: const TextStyle(
-              fontSize: 15,
-              fontStyle: FontStyle.italic,
-              color: Colors.black87,
-            ),
+            style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Colors.black87),
           ),
         ],
       ),
@@ -219,25 +179,32 @@ class StandardizedAssessmentScreenState
         itemCount: questions.length,
         itemBuilder: (context, index) {
           final q = questions[index];
-          bool visible =
-              widget.logic?.isVisible(q["id"], answers) ?? true;
-
+          bool visible = widget.logic?.isVisible(q["id"], answers) ?? true;
+          final qId = q['id'];
           Widget questionTile = visible
               ? LikertQuestionTile(
-            q: q as Map<String, dynamic>,
-            template: widget.template,
-            currentValue: answers[q['id']],
-            showWarning:
-            _showValidationErrors &&
-                !answers.containsKey(q['id']),
-            onChanged: widget.isReadOnly
-                ? null
-                : (score) {
-              setState(() {
-                answers[q['id']] = score;
-              });
-            },
-          )
+                  q: q as Map<String, dynamic>,
+                  template: widget.template,
+                  currentAnswer: answers[qId],
+                  showWarning: _showValidationErrors && !answers.containsKey(qId),
+                  onChanged: widget.isReadOnly
+                      ? null
+                      : (score) {
+                          setState(() {
+                            final existingText = answers[qId]?.text ?? "";
+                            answers[qId] = AssessmentAnswer(score, existingText);
+                          });
+                        },
+                  onDescriptionChanged: widget.isReadOnly
+                      ? null
+                      : (id, description) {
+                          setState(() {
+                            final existingValue = answers[qId]?.value ?? 0;
+                            //Break the reference cache for text changes too
+                            answers[qId] = AssessmentAnswer(existingValue, description);
+                          });
+                        },
+                )
               : const SizedBox.shrink();
 
           // If it's the last question in the layout loop, append the footers
@@ -247,8 +214,7 @@ class StandardizedAssessmentScreenState
               mainAxisSize: MainAxisSize.min,
               children: [
                 questionTile,
-                if (impactData != null)
-                  _buildImpactSelector(impactData),
+                if (impactData != null) _buildImpactSelector(impactData),
                 _buildScoreFooter(),
                 // Your scoring interpretation message renders here safely
                 const SizedBox(height: 40),
@@ -292,21 +258,16 @@ class StandardizedAssessmentScreenState
                     answers.remove(opt['id']);
                   }
                   // Store the new one with value 0 to keep totalScore accurate
-                  answers[id] = 0;
+                  answers[id]?.value = 0;
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Row(
                   children: [
                     // Mimics the paper checkbox/radio look
                     Icon(
-                      isSelected
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
+                      isSelected ? Icons.check_box : Icons.check_box_outline_blank,
                       color: isSelected ? AppTheme.clinicalCyan : Colors.grey,
                     ),
                     const SizedBox(width: 12),
@@ -317,9 +278,7 @@ class StandardizedAssessmentScreenState
                         style: TextStyle(
                           fontSize: 16,
                           color: isSelected ? Colors.black : Colors.black87,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -340,18 +299,12 @@ class StandardizedAssessmentScreenState
     }
 
     // Generic fallback if no logic is injected
-    return {
-      "summary": "Total Score: $totalScore",
-      "action": "Consult clinical manual for interpretation.",
-    };
+    return {"summary": "Total Score: $totalScore", "action": "Consult clinical manual for interpretation."};
   }
 
   Future<void> _submitAssessment() async {
-    debugPrint("_submitAssessment");
     // Convert our internal int answers to the String format required by the DB
-    final Map<String, String> stringAnswers = answers.map(
-      (key, value) => MapEntry(key, value.toString()),
-    );
+    final Map<String, String> stringAnswers = answers.map((key, value) => MapEntry(key, value.toString()));
 
     try {
       // 1. Call your persistence logic
@@ -364,18 +317,14 @@ class StandardizedAssessmentScreenState
 
       if (mounted) {
         // 2. Visual feedback for the user
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Assessment saved successfully")),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Assessment saved successfully")));
 
         // 3. Return 'true' so the calling screen knows to refresh the icons/maps
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error saving assessment: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving assessment: $e")));
       }
     }
   }
@@ -400,8 +349,7 @@ class StandardizedAssessmentScreenState
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            if (interpretation['action'] != null &&
-                interpretation['action']!.isNotEmpty) ...[
+            if (interpretation['action'] != null && interpretation['action']!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 "Recommended Action: ${interpretation['action']}",
@@ -412,10 +360,7 @@ class StandardizedAssessmentScreenState
             const SizedBox(height: 16),
           ],
 
-          Text(
-            "Current Score: $totalScore",
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          ),
+          Text("Current Score: $totalScore", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
         ],
       ),
     );
