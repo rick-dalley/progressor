@@ -6,7 +6,8 @@
       {"id":"17", "set_id":"", "name": "Rosuvastatin", "dose": "20mg", "freq": "QD", "has_local_datasheet": 0 },
       {"id":"16", "set_id":"", "name": "Hydrochlorothiazide", "dose": "25mg", "freq": "QD", "has_local_datasheet": 0 },
       {"id":"15", "set_id":"", "name": "Amlodipine Besylate", "dose": "10mg", "freq": "QD", "has_local_datasheet": 0 },
-      {"id":"14", "set_id":"", "name": "Escitalopram Oxalate", "dose": "20mg", "freq": "QD", "has_local_datasheet": 0 }
+      {"id":"14", "set_id":"", "name": "Escitalopram Oxalate", "dose": "20mg", "freq": "QD", "has_local_datasheet": 0 },
+      {"id":"314", "set_id":"", "name": "Mirtazapine", "dose": "15mg", "freq": "QHS", "has_local_datasheet": 0 }
     ]
   },
   {
