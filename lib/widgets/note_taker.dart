@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../app_theme.dart';
 import '../screens/observation.dart';
 
 class NoteTaker extends StatefulWidget {
   final ObservationNote? currentNote;
+  final bool useMicrophone;
   final Function(ObservationNote) onNoteEntered;
-  const NoteTaker({super.key, this.currentNote, required this.onNoteEntered});
+  const NoteTaker({super.key, required this.useMicrophone, this.currentNote, required this.onNoteEntered});
 
   @override
   State<NoteTaker> createState() => NoteTakerState();
@@ -15,12 +17,59 @@ class NoteTaker extends StatefulWidget {
 class NoteTakerState extends State<NoteTaker> {
   // This guarantees text persistence across reactive UI rebuild frames.
   late final TextEditingController _localController;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _listeningError = "";
 
   @override
   void initState() {
     super.initState();
     _localController = TextEditingController(text: widget.currentNote?.content ?? "");
+    _speech = stt.SpeechToText();
+
+    // 🟢 If user tapped the footer mic icon, immediately trigger initialization loop
+    if (widget.useMicrophone) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _toggleVoiceDictation());
+    }
   }
+
+  Future<void> _toggleVoiceDictation() async {
+    if (!_isListening) {
+      // // Initialize system microphones and verify platform operating permissions
+      // bool available = await _speech.initialize(
+      //   onStatus: (status) {
+      //     if (status == 'notListening') setState(() => _isListening = false);
+      //   },
+      //   onError: (val) => setState(() => _listeningError = val.errorMsg),
+      // );
+      //
+      // if (available) {
+      //   setState(() {
+      //     _isListening = true;
+      //     _listeningError = "";
+      //   });
+      //
+      //   // Start capturing streaming audio buffers
+      //   _speech.listen(
+      //     onResult: (result) {
+      //       setState(() {
+      //         // Append or set text dynamically as user speaks words out loud
+      //         _localController.text = result.recognizedWords;
+      //         // Smoothly keep the blinking input cursor anchored at the end of text
+      //         _localController.selection = TextSelection.fromPosition(
+      //           TextPosition(offset: _localController.text.length),
+      //         );
+      //       });
+      //     },
+      //   );
+      // }
+    } else {
+      // Explicit toggle off
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
 
   @override
   void dispose() {
@@ -52,6 +101,15 @@ class NoteTakerState extends State<NoteTaker> {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text("Cancel", style: TextStyle(color: Colors.grey, fontSize: 15)),
+                    ),
+                    // Visual status text helper showing active listening state
+                    Text(
+                      _isListening ? "Listening..." : "Edit Observation",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: _isListening ? Colors.red : Colors.white
+                      ),
                     ),
                     Text(
                       widget.currentNote == null ? "New Observation" : "Edit Observation",

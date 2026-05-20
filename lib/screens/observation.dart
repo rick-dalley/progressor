@@ -80,17 +80,18 @@ class _ObservationScreenState extends State<ObservationScreen> {
     }
   }
 
-  void _openNoteWorkspace(BuildContext context, ObservationNote? existingNote) {
+  void _openNoteWorkspace(BuildContext context, ObservationNote? existingNote, bool useMicrophone) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => NoteTaker(
         currentNote: existingNote,
+        useMicrophone: useMicrophone,
         onNoteEntered: (ObservationNote completeNote) async {
 
           if (existingNote == null) {
-            // 🟢 CASE 1: NEW NOTE (ID is empty)
+            // NEW NOTE (ID is empty)
             try {
               // Let the DB handle the autoincrement
               await DatabaseManager().insertObservation({
@@ -108,7 +109,7 @@ class _ObservationScreenState extends State<ObservationScreen> {
             }
 
           } else {
-            // 🟢 CASE 2: EXISTING NOTE (ID is '1', '2', etc.)
+            // EXISTING NOTE (ID is '1', '2', etc.)
             // Optimistically update the UI list instantly
             setState(() {
               final idx = _history.indexWhere((element) => element.id == completeNote.id);
@@ -194,7 +195,7 @@ class _ObservationScreenState extends State<ObservationScreen> {
                         },
 
                         child: GestureDetector(
-                          onTap: () => _openNoteWorkspace(context, tappedNote),
+                          onTap: () => _openNoteWorkspace(context, tappedNote, false),
                           child: ObservationCard(note: tappedNote),
                         ),
                       );
@@ -226,13 +227,34 @@ class _ObservationScreenState extends State<ObservationScreen> {
                     ),
                   ),
 
-                  // Add a clean 12px gap so the field doesn't touch the button edge
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
+                  // Microphone Button with White Circular Background
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.mic_none_outlined, color: AppTheme.deepCharcoal, size: 26),
+                      tooltip: "Dictate Observation",
+                      // Open workspace and explicitly pass a custom flag to start recording immediately
+                      onPressed: () => _openNoteWorkspace(context, null, true ),
+                    ),
+                  ),
 
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: AppTheme.deepCharcoal, size: 26),
-                    tooltip: "New Observation",
-                    onPressed: () => _openNoteWorkspace(context, null),
+                  const SizedBox(width: 8), // Cleaned up to an even 8px gap between buttons
+
+                  // Edit Button with White Circular Background
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: AppTheme.deepCharcoal, size: 26),
+                      tooltip: "New Observation",
+                      onPressed: () => _openNoteWorkspace(context, null, false),
+                    ),
                   ),
                 ],
               ),
