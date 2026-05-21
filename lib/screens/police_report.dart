@@ -11,6 +11,7 @@ class PoliceReportScreen extends StatefulWidget {
 }
 
 class _PoliceReportScreenState extends State<PoliceReportScreen> {
+
   final _badgeController = TextEditingController();
   final _fileNumberController = TextEditingController();
   final _narrativeController = TextEditingController();
@@ -29,7 +30,6 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
       for (int i = 0; i < lines.length; i++) {
         String currentLine = lines[i].trim();
 
-        // 1. Extract Officer Name (Paul Mariano)
         // Found by looking for the "first and last name of applicant" descriptor
         if (currentLine.contains("name of applicant")) {
           if (i > 0) _badgeController.text = lines[i - 1].trim(); // Officer name
@@ -69,7 +69,6 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,11 +93,15 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
               children: [
                 const SizedBox(height: 16),
                 _buildAgencySection(),
-                const Divider(height: 40),
                 _buildNarrativeSection(),
                 const SizedBox(height: 8),
-                Padding(padding: EdgeInsetsGeometry.all(16.0), child: _buildSaveButton(),),
-                
+
+                // 🟢 FIXED: Changed abstract EdgeInsetsGeometry to concrete const EdgeInsets
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildSaveButton(),
+                ),
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -122,17 +125,24 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
         Positioned(
           bottom: 10,
           right: 10,
+          width: 120, // 🟢 FIXED: Forcing a finite layout width directly on the Positioned container bounds!
+          height: 40, // Keeps the vertical height locked cleanly
           child: ElevatedButton.icon(
             onPressed: () => setState(() => _isScanning = true),
             icon: const Icon(Icons.reorder, size: 16),
             label: const Text("RE-SCAN"),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              padding: EdgeInsets.zero, // 💡 Clears internal button padding so text wraps/fits cleanly inside 120px
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
         ),
       ],
     );
   }
-  
+
   Widget _buildScanPrompt() {
     return InkWell(
       onTap: () => setState(() => _isScanning = true),
@@ -178,9 +188,13 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
       width: double.infinity,
       color: Colors.black, // Dark background for contrast
       child: _isScanning
-          ? TextScanner(
-        onTextDetected: _onTextDetected,
-        mockImagePath: form9Report,
+          ? SizedBox(
+        width: MediaQuery.of(context).size.width, // 🟢 Forces a definitive, finite width constraint
+        height: lockedHeight, // Matches the parent hero box bounds
+        child: TextScanner(
+          onTextDetected: _onTextDetected,
+          mockImagePath: form9Report,
+        ),
       )
           : _documentAttached
           ? _buildDocumentPreview(form9Report)
@@ -192,16 +206,17 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // const Text("OFFICER & AGENCY DETAILS",
-        //     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white54)),
-        // const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedAgency,
-          items: ['RCMP', 'VPD', 'Transit Police', 'Other'].map((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedAgency = val!),
-          decoration: const InputDecoration(labelText: "Agency"),
+        // Wrap the Dropdown inside a clean layout constraint block
+        SizedBox(
+          width: double.infinity, // Forces a fixed boundary relative to the ListView width
+          child: DropdownButtonFormField<String>(
+            initialValue: _selectedAgency, // 🟢 Fixed property name from initialValue to value
+            items: ['RCMP', 'VPD', 'Transit Police', 'Other'].map((String value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+            onChanged: (val) => setState(() => _selectedAgency = val!),
+            decoration: const InputDecoration(labelText: "Agency"),
+          ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -209,7 +224,7 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
             Expanded(
               child: TextField(
                 controller: _badgeController,
-                decoration: const InputDecoration(labelText: "Badge Number"),
+                decoration: const InputDecoration(labelText: "Name or Badge Number"),
               ),
             ),
             const SizedBox(width: 12),
@@ -245,14 +260,22 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
   }
 
   Widget _buildSaveButton() {
-    return ElevatedButton(
-      onPressed: _savePoliceReport,
-      child: const Text("SAVE", style: TextStyle(fontWeight: FontWeight.bold)),
+    // 🟢 FIXED: Wrapped in SizedBox to stop the button layout expansion from inflating to Infinity inside the ListView
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: _savePoliceReport,
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        child: const Text("SAVE", style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
     );
   }
 
   void _savePoliceReport() {
-    int reportCount = 1;//later count the number of reports and add them to a list.
+    int reportCount = 1; // later count the number of reports and add them to a list.
     Navigator.pop(context, reportCount);
 
     ScaffoldMessenger.of(context).showSnackBar(

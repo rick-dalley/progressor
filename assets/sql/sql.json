@@ -46,7 +46,7 @@
     },
     {
       "table": "patient_condition",
-      "query": "CREATE TABLE patient_condition (patient_condition_id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id TEXT,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
+      "query": "CREATE TABLE patient_condition (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id int,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
     },
     {
       "table": "observations",
@@ -161,7 +161,7 @@
     {
       "name": "patient_allergies",
       "table": "condition",
-      "query": "SELECT condition_name FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active';"
+      "query": "SELECT * FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active';"
     },
     {
       "name": "patient_vitals",

@@ -180,28 +180,27 @@ class DataSeeder {
 
   //_seedPatientConditions
   static Future<void> _seedPatientCondition(Database db) async {
-    try {
-      final String response = await rootBundle.loadString(
-        'assets/patients/conditions.json',
-      );
-      final List<dynamic> data = json.decode(response);
-
-      Batch batch = db.batch();
-
-      for (var entry in data) {
-        batch.insert('patient_condition', {
-          'patient_uuid': entry['patient_uuid'],
-          'condition_name': entry['condition_name'],
-          'treatment_notes': entry['treatment_notes'],
-          'is_active': entry['is_active'] ?? 1,
-          // Let the DB handle the recorded_at default
-        });
-      }
-
-      await batch.commit(noResult: true);
-      debugPrint('Patient conditions seeded from JSON.');
-    } catch (e) {
-      debugPrint('Error seeding patient conditions: $e');
-    }
+    // try {
+    //   final String response = await rootBundle.loadString(
+    //     'assets/patients/conditions.json',
+    //   );
+    //   final List<dynamic> data = json.decode(response);
+    //
+    //   Batch batch = db.batch();
+    //
+    //   for (var entry in data) {
+    //     batch.insert('patient_condition', {
+    //       'patient_uuid': entry['patient_uuid'],
+    //       'treatment_notes': entry['treatment_notes'],
+    //       'is_active': entry['is_active'] ?? 1,
+    //       // Let the DB handle the recorded_at default
+    //     });
+    //   }
+    //
+    //   await batch.commit(noResult: true);
+    //   debugPrint('Patient conditions seeded from JSON.');
+    // } catch (e) {
+    //   debugPrint('Error seeding patient conditions: $e');
+    // }
   }
 }

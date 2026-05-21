@@ -1,3 +1,4 @@
+
 class ConditionReference {
   final int id;
   final String name;
@@ -20,49 +21,59 @@ class ConditionReference {
 }
 
 class PatientCondition {
-  final int? patientConditionId; // Nullable if not yet inserted into SQLite
+  final int? id; // Nullable if not yet inserted into SQLite
   final String patientUuid;
   final int conditionId;
+  String name;
   String treatmentNotes;
   int isActive; // 1 = Active, 0 = Historical
-  DateTime onset;
+  DateTime? onset;
   DateTime? recovery;
-  final DateTime? recordedAt;
+  DateTime recordedAt;
 
   PatientCondition({
-    this.patientConditionId,
+    this.id,
     required this.patientUuid,
     required this.conditionId,
+    required this.name,
+    required this.isActive,
     this.treatmentNotes = "",
-    this.isActive = 1,
-    DateTime? onset,
+    this.onset,
     this.recovery,
-    this.recordedAt,
-  }) : onset = onset ?? DateTime.now();
+  }) : recordedAt =  DateTime.now();
+
+  factory PatientCondition.fromCondition(String patientUuid, ConditionReference condition){
+    return PatientCondition(
+        patientUuid: patientUuid,
+        conditionId: condition.id,
+        name: condition.name,
+        isActive:1,
+        onset:DateTime.now());
+  }
 
   // Convert an engine database row straight into your clean object layout
   factory PatientCondition.fromMap(Map<String, dynamic> map) {
     return PatientCondition(
-      patientConditionId: map['patient_condition_id'] as int?,
+      id: map['id'] as int,
       patientUuid: map['patient_uuid'] as String,
       conditionId: map['condition_id'] as int,
+      name: map['name'] as String? ?? "",
       treatmentNotes: map['treatment_notes'] as String? ?? "",
       isActive: map['is_active'] as int? ?? 1,
-      onset: DateTime.parse(map['onset'] as String),
-      recovery: map['recovery'] != null ? DateTime.parse(map['recovery'] as String) : null,
-      recordedAt: map['recorded_at'] != null ? DateTime.parse(map['recorded_at'] as String) : null,
+      onset: map['onset'] != null ? DateTime.parse(map['onset'].toString()) : null,
+      recovery: map['recovery'] != null ? DateTime.parse(map['recovery'].toString()) : null,
     );
   }
 
   // Format properties into a structured map row payload for database operations
   Map<String, dynamic> toMap() {
     return {
-      if (patientConditionId != null) 'patient_condition_id': patientConditionId,
+      'id': id,
       'patient_uuid': patientUuid,
       'condition_id': conditionId,
       'treatment_notes': treatmentNotes,
       'is_active': isActive,
-      'onset': onset.toIso8601String(),
+      'onset': onset?.toIso8601String(),
       'recovery': recovery?.toIso8601String(),
     };
   }

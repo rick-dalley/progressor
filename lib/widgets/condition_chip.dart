@@ -1,40 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:triage/classes/database_manager.dart';
-
 import '../app_theme.dart';
 import '../classes/patient_condition.dart';
+import 'condition_update.dart';
 
 class ConditionChip extends StatefulWidget {
   final String patientUuid;
-  final ConditionReference condition;
-  final PatientCondition? currentPatientCondition;
+  final PatientCondition patientCondition;
   final Function(int) onDeleteCondition;
-
-  // final Function (ConditionReference) onTapCondition;
+  final VoidCallback onUpdateCondition; // 🟢 Add this line here
 
   const ConditionChip({
     super.key,
     required this.patientUuid,
-    required this.condition,
-    this.currentPatientCondition,
+    required this.patientCondition,
     required this.onDeleteCondition,
-    // required this.onTapCondition,
+    required this.onUpdateCondition, // 🟢 Add this line here
   });
 
   @override
   State<ConditionChip> createState() => ConditionChipState();
 }
-
 class ConditionChipState extends State<ConditionChip> {
   @override
   Widget build(BuildContext context) {
     return RawChip(
-      label: Text(widget.condition.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      label: Text(widget.patientCondition.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       labelStyle: const TextStyle(color: Colors.white),
       backgroundColor: AppTheme.deepLogicViolet,
-      deleteIcon: const Icon(Icons.cancel, size: 14, color: Colors.white70),
+      deleteIcon: const Icon(Icons.cancel, size: 14, color: AppTheme.clinicalWhite),
       onDeleted: () {
-        widget.onDeleteCondition(widget.condition.id);
+        int? id = widget.patientCondition.id;
+        if (id != null) {
+          widget.onDeleteCondition(id);
+        }
       },
       onPressed: () {
         _showDetailsDialog(context);
@@ -42,126 +40,20 @@ class ConditionChipState extends State<ConditionChip> {
     );
   }
 
-  void _showDetailsDialog(BuildContext context) {
-    final PatientCondition record =
-        widget.currentPatientCondition ??
-        PatientCondition(patientUuid: widget.patientUuid, conditionId: widget.condition.id);
+  Future<void> _showDetailsDialog(BuildContext context) async {
+    // 1. Notice we don't need 'notesController' here anymore!
+    // Our new ConfigureConditionDialog handles its own controller inside its own initState.
 
-    final TextEditingController notesController = TextEditingController(text: record.treatmentNotes);
-    DateTime tempOnset = record.onset;
-    int tempActive = record.isActive;
-
-    showDialog(
+    final wasUpdated = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              backgroundColor: AppTheme.clinicalWhite,
-              title: Text("Configure ${widget.condition.name}"),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "CURRENT STATUS",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text("Active")),
-                            selected: tempActive == 1,
-                            onSelected: (_) => setDialogState(() => tempActive = 1),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text("Historical")),
-                            selected: tempActive == 0,
-                            onSelected: (_) => setDialogState(() => tempActive = 0),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "ONSET DATE",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 6),
-                    InkWell(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: tempOnset,
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) setDialogState(() => tempOnset = picked);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.clinicalWhite,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "${tempOnset.year}-${tempOnset.month.toString().padLeft(2, '0')}-${tempOnset.day.toString().padLeft(2, '0')}",
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "TREATMENT NOTES",
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: notesController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppTheme.clinicalWhite,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.deepLogicViolet),
-                  onPressed: () async {
-                    record.treatmentNotes = notesController.text;
-                    record.isActive = tempActive;
-                    record.onset = tempOnset;
-                    record.recovery = tempActive == 0 ? DateTime.now() : null;
-
-                    if (record.patientConditionId == null) {
-                      await DatabaseManager().insertPatientCondition(record);
-                    } else {
-                      await DatabaseManager().updatePatientCondition(record);
-                    }
-
-                    if (context.mounted) Navigator.pop(dialogContext);
-                  },
-                  child: const Text("Confirm", style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (context) => ConfigureConditionDialog(patientCondition: widget.patientCondition),
     );
+
+    // 2. If the user hit 'Confirm' and saved changes to the DB:
+    if (wasUpdated == true) {
+      // Tell the parent screen to re-run its query and refresh the layout!
+      widget.onUpdateCondition();
+    }
   }
 }

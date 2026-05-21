@@ -1,0 +1,52 @@
+[
+  {
+    "Code": "QD",
+    "LatinRoot": "Quaque die",
+    "English": "Once a day (Every 24 hours)"
+  },
+  {
+    "Code": "BID",
+    "LatinRoot": "Bis in die",
+    "English": "Twice a day (Typically every 12 hours)"
+  },
+  {
+    "Code": "TID",
+    "LatinRoot": "Ter in die",
+    "English": "Three times a day (Typically every 8 hours)"
+  },
+  {
+    "Code": "QID",
+    "LatinRoot": "Quater in die",
+    "English": "Four times a day (Typically every 6 hours)"
+  },
+  {
+    "Code": "QHS",
+    "LatinRoot": "Quaque hora somni",
+    "English": "Every night at bedtime"
+  },
+  {
+    "Code": "QAM",
+    "LatinRoot": "Quaque ante meridiem",
+    "English": "Every morning"
+  },
+  {
+    "Code": "QPM",
+    "LatinRoot": "Quaque post meridiem",
+    "English": "Every evening"
+  },
+  {
+    "Code": "PRN",
+    "LatinRoot": "Pro re nata",
+    "English": "As needed"
+  },
+  {
+    "Code": "AC",
+    "LatinRoot": "Ante cibum",
+    "English": "Before meals"
+  },
+  {
+    "Code": "PC",
+    "LatinRoot": "Post cibum",
+    "English": "After meals"
+  }
+]

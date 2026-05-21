@@ -163,12 +163,56 @@ class DatabaseManager {
     return catalog;
   }
 
-  Future<void> insertPatientCondition(PatientCondition record) async {
+  Future<void> deletePatientCondition(int id) async {
+    // Guard clause: If the record doesn't have a database ID, there's nothing to drop
+    final db = await database;
 
+    await db.delete(
+      'patient_condition',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> insertPatientCondition(PatientCondition record) async {
+    final db = await database;
+
+    await db.insert(
+      'patient_condition',
+      record.toMap(),
+      // ConflictAlgorithm.replace ensures if the record somehow already exists,
+      // it overwrites it cleanly without throwing an exception
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> updatePatientCondition(PatientCondition record) async {
+    final db = await database;
 
+    await db.update(
+      'patient_condition',
+      record.toMap(),
+      // We target the specific record using its unique ID to avoid accidental overwrites
+      where: 'id = ?',
+      whereArgs: [record.id],
+    );
+  }
+
+  Future<List<PatientCondition>> getConditionsForPatient(String patientUuid) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'patient_condition',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      // Sort by timestamp descending so the latest data is at the top of the list
+      orderBy: 'onset DESC',
+    );
+
+    // Convert the List<Map<String, dynamic>> into a List<PatientCondition>
+    return List.generate(maps.length, (i) {
+      return PatientCondition.fromMap(maps[i]);
+    });
   }
 
   Future<List<Map<String, dynamic>>> getObservationsForPatient(String patientUuid) async {
