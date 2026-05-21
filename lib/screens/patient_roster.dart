@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
+import 'package:triage/widgets/card_flipper.dart';
+import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../widgets/interview_transcriber.dart';
-import '../widgets/patient_card.dart';
+import '../widgets/patient_medical_card.dart';
 import 'assessments.dart';
 import 'intake.dart';
 import 'meds.dart';
@@ -202,13 +204,14 @@ class _PatientRosterState extends State<PatientRoster> {
                 final Map<String, dynamic> patient = Map<String, dynamic>.from(
                   _patients[index],
                 );
-                return PatientCard(
-                  patient: patient,
-                  onVitalsTap: () => _launchVitalsModal(context),
-                  onInterviewTap: () => _launchInterviewModal(context, index),
-                  onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
-                  onMedsTap: () async {
-                    final Map<String, dynamic>? result =
+                return FlippableCardController(
+                    front: PatientMedicalCard(
+                      patient: patient,
+                      onVitalsTap: () => _launchVitalsModal(context),
+                      onInterviewTap: () => _launchInterviewModal(context, index),
+                      onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
+                      onMedsTap: () async {
+                        final Map<String, dynamic>? result =
                         await showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -218,44 +221,47 @@ class _PatientRosterState extends State<PatientRoster> {
                               MedicationScreen(patient: _patients[index]),
                         );
 
-                    if (result != null) {
-                      setState(() {
-                        // Create the writable copy to avoid read-only errors
-                        Map<String, dynamic> updatedPatient = {
-                          ..._patients[index],
-                        };
+                        if (result != null) {
+                          setState(() {
+                            // Create the writable copy to avoid read-only errors
+                            Map<String, dynamic> updatedPatient = {
+                              ..._patients[index],
+                            };
 
-                        // Map the returned values to our flat patient structure
-                        updatedPatient['medications'] = result['medications'];
-                        updatedPatient['medication_safety_audit'] =
+                            // Map the returned values to our flat patient structure
+                            updatedPatient['medications'] = result['medications'];
+                            updatedPatient['medication_safety_audit'] =
                             result['medication_safety_audit'];
 
-                        _patients[index] = updatedPatient;
-                      });
-                    }
-                  },
-                  onPoliceTap: () async {
-                    // 1. Navigate and WAIT for the signal from the Save button
-                    final int? reportCount = await Navigator.push<int>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PoliceReportScreen(),
-                      ),
-                    );
+                            _patients[index] = updatedPatient;
+                          });
+                        }
+                      },
+                      onPoliceTap: () async {
+                        // 1. Navigate and WAIT for the signal from the Save button
+                        final int? reportCount = await Navigator.push<int>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PoliceReportScreen(),
+                          ),
+                        );
 
-                    // 2. If the user hit "Save" (which returns true)
-                    // Use a standard null check instead of the ! operator
-                    if (reportCount != null && reportCount > 0) {
-                      setState(() {
-                        patient['police_reports'] = reportCount;
-                        _patients[index] = patient;
-                      });
-                    }
-                  },
-                  // Your existing assessment menu
-                  onTimeLineTap: () =>
-                      _launchTimelineModal(context, _patients[index]),
-                );
+                        // 2. If the user hit "Save" (which returns true)
+                        // Use a standard null check instead of the ! operator
+                        if (reportCount != null && reportCount > 0) {
+                          setState(() {
+                            patient['police_reports'] = reportCount;
+                            _patients[index] = patient;
+                          });
+                        }
+                      },
+                      // Your existing assessment menu
+                      onTimeLineTap: () =>
+                          _launchTimelineModal(context, _patients[index]),
+                    ),
+                    back: PatientInformationCard(
+                      patient: patient
+                        ));
               },
             ),
 

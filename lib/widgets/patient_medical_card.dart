@@ -9,7 +9,7 @@ import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
 import 'countdown_timer.dart';
 
-class PatientCard extends StatelessWidget {
+class PatientMedicalCard extends StatelessWidget {
   final Map<String, dynamic> patient;
 
   // Made these optional so your Roster doesn't break
@@ -20,7 +20,7 @@ class PatientCard extends StatelessWidget {
   final VoidCallback? onMedsTap;
   final VoidCallback? onTimeLineTap;
 
-  const PatientCard({
+  const PatientMedicalCard({
     super.key,
     required this.patient,
     this.onVitalsTap,

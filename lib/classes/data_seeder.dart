@@ -106,6 +106,19 @@ class DataSeeder {
         'current_spo2': entry['current_spo2'],
         'current_temp': entry['current_temp'],
         'current_pulse': entry['current_pulse'],
+        'street_address': entry['street_address'],
+        'city': entry['city'],
+        'province': entry['province'],
+        'postal_code': entry['postal_code'],
+        'phone': entry['phone'],
+        'family_doctor_name':entry['family_doctor_name'],
+        'family_doctor_phone':entry['family_doctor_phone'],
+        'pharmacy_name': entry['pharmacy_name'],
+        'pharmacy_phone': entry['pharmacy_phone'],
+        'pharmacy_fax': entry['pharmacy_fax'],
+        'contact_name': entry['contact_name'],
+        'relation': entry['relation'],
+        'contact_phone': entry['contact_phone'],
       });
     }
     await batch.commit(noResult: true);

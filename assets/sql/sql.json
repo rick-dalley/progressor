@@ -2,7 +2,7 @@
   "CREATE": [
     {
       "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn TEXT UNIQUE, dob TEXT, current_acuity INTEGER DEFAULT 3, current_bp TEXT, current_pulse TEXT, current_temp TEXT, current_spo2 TEXT, status TEXT, path TEXT, narrative_hint TEXT);"
+      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn TEXT UNIQUE, dob TEXT, current_acuity INTEGER DEFAULT 3, current_bp TEXT, current_pulse TEXT, current_temp TEXT, current_spo2 TEXT, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT);"
     },
     {
       "table": "datasheet",
