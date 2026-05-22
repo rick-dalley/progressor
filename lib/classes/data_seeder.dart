@@ -86,43 +86,112 @@ class DataSeeder {
     debugPrint('Observations seeded.');
   }
 
-  static Future<void> _seedPatientData(Database db) async {
-    final String response = await rootBundle.loadString('assets/patients/patients.json');
-    final List<dynamic> data = json.decode(response);
+ static Future<void> _seedPatientData(Database db) async {
+    // Parse the master JSON array
+    // 1. Read the raw data directly from your local asset storage
+    final String rawJsonString = await rootBundle.loadString('assets/patients/patients.json');
+    final List<dynamic> decodedData = jsonDecode(rawJsonString);
 
-    Batch batch = db.batch();
-    for (var entry in data) {
-      batch.insert('patient', {
-        'patient_uuid': entry['patient_uuid'],
-        'first_name': entry['first_name'] ?? 'Unknown',
-        'last_name': entry['last_name'] ?? 'Subject',
-        'phn': entry['phn'],
-        'dob': entry['dob'],
-        'current_acuity': entry['current_acuity'] ?? 3,
-        'status': entry['status'] ?? 'Active',
-        'path': entry['path'],
-        'narrative_hint': entry['narrative_hint'],
-        'current_bp': entry['current_bp'],
-        'current_spo2': entry['current_spo2'],
-        'current_temp': entry['current_temp'],
-        'current_pulse': entry['current_pulse'],
-        'street_address': entry['street_address'],
-        'city': entry['city'],
-        'province': entry['province'],
-        'postal_code': entry['postal_code'],
-        'phone': entry['phone'],
-        'family_doctor_name':entry['family_doctor_name'],
-        'family_doctor_phone':entry['family_doctor_phone'],
-        'pharmacy_name': entry['pharmacy_name'],
-        'pharmacy_phone': entry['pharmacy_phone'],
-        'pharmacy_fax': entry['pharmacy_fax'],
-        'contact_name': entry['contact_name'],
-        'relation': entry['relation'],
-        'contact_phone': entry['contact_phone'],
-      });
-    }
-    await batch.commit(noResult: true);
-    debugPrint('Patients seeded.');
+    // Use a batch transaction block for optimal safety and insert velocity
+    await db.transaction((txn) async {
+      for (var item in decodedData) {
+        if (item is! Map<String, dynamic>) continue;
+
+        final String patientUuid = item['patient_uuid'];
+
+        // 1. Build the clean Patient record map for insertion
+        // We explicitly pull the top-level keys matching your core schema
+        final Map<String, dynamic> patientRow = {
+          'patient_uuid': patientUuid, // maps patient_uuid to local primary key id
+          'first_name': item['first_name'],
+          'last_name': item['last_name'],
+          'phn': item['phn'],
+          'email': item['email'],
+          'ssn': item['ssn'],
+          'title': item['title'],
+          'city': item['city'],
+          'country': item['country'],
+          'street_address': item['street_address'],
+          'province': item['province'],
+          'postal_code': item['postal_code'],
+          'dob': item['dob'],
+          'admitted': item['admitted'],
+          'current_acuity': item['current_acuity'],
+          'police_reports': item['police_reports'],
+          'assessments': item['assessments'],
+          'status': item['status'],
+          'path': item['path'],
+          'current_pulse': item['current_pulse'],
+          'current_systolic': item['current_systolic'],
+          'current_diastolic': item['current_diastolic'],
+          'current_temp': item['current_temp'],
+          'current_spo2': item['current_spo2'],
+          'phone': item['phone'],
+          'family_doctor_phone': item['family_doctor_phone'],
+          'contact_phone': item['contact_phone'],
+          'pharmacy_phone': item['pharmacy_phone'],
+          'pharmacy_fax': item['pharmacy_fax'],
+          'family_doctor_name': item['family_doctor_name'],
+          'contact_name': item['contact_name'],
+          'relation': item['relation'],
+          'narrative_hint': item['narrative_hint'],
+        };
+
+        // Write parent row down first to satisfy foreign key constraints
+        await txn.insert(
+          'patient',
+          patientRow,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        // 2. Extract and Seed the Nested Medications ('prescription' array)
+        if (item['prescription'] != null && item['prescription'] is List) {
+          final List<dynamic> prescriptions = item['prescription'];
+          for (var med in prescriptions) {
+            // Clean out the ghost formula string error gracefully on insert
+            String frequency = med['freq'] ?? 'PRN';
+            if (frequency.contains('Syntax error')) {
+              frequency = 'PRN'; // Default fallback until the UI toggle is saved
+            }
+
+            await txn.insert(
+              'medication',
+              {
+                'id': '${patientUuid}_med_${med['id']}', // Unique compound string key
+                'patient_uuid': patientUuid,            // Links cleanly back to parent
+                'set_id': med['set_id'],
+                'name': med['name'],
+                'dose': med['dose'],
+                'freq': frequency,
+                'has_local_datasheet': med['has_local_datasheet'] ?? 0,
+              },
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        }
+
+        // 3. Extract and Seed the Nested Vitals History
+        if (item['vitals'] != null && item['vitals'] is List) {
+          final List<dynamic> vitalsList = item['vitals'];
+          for (var vital in vitalsList) {
+            await txn.insert(
+              'vitals',
+              {
+                'id': '${patientUuid}_vital_${vital['id']}', // Unique compound string key
+                'patient_uuid': patientUuid,               // Links cleanly back to parent
+                'pulse': vital['pulse'],
+                'systolic': vital['systolic'],
+                'diastolic': vital['diastolic'],
+                'o2': vital['spo2'],
+                'temperature': vital['temp'],
+                'recorded_at': vital['recorded_at'],       // ISO timestamp string
+              },
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        }
+      }
+    });
   }
 
   static Future<void> _seedMedicationData(Database db) async {

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:triage/widgets/process_path.dart';
 import 'package:triage/widgets/process_tree.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
@@ -45,15 +46,20 @@ class PatientMedicalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateFormat inputFormat = DateFormat('M/d/y');
     final String lastName = (patient['first_name'] ?? 'Patient').toString();
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
-    final String phn = (patient['phn'] ?? '000-000-000').toString();
+    final String phn = (patient['phn']) ?? "1111-111-111";
     final String status = (patient['status'] ?? 'Triage').toString();
     final String processPath =  (patient['path'] ?? 'Handoff').toString();
-    final List<dynamic> flags = patient['flags'] ?? [];
     final Color statusColor = _getDispositionColor();
-    // final DateTime admittedDate = DateTime.parse(patient['admitted']).toLocal(); // uncomment when camera is working
-    final admittedDate = AdmittanceUtils.generateRandomAdmittance();
+    final DateTime dob = patient["dob"] == null
+      ? AdmittanceUtils.generateRandomDoB()
+        : inputFormat.parse(patient['admitted']);
+    // Parse safely into a native DateTime object
+    final DateTime admittedDate = patient['admitted'] == null
+        ? AdmittanceUtils.generateRandomAdmittance()
+        :  inputFormat.parse(patient['admitted']);
     final int policeReports = patient['police_reports'] ?? 0;
     bool hasReports = policeReports > 0;
     final int medicationCount = patient['medications'] ?? 0;
@@ -127,7 +133,7 @@ class PatientMedicalCard extends StatelessWidget {
                 onHistoryPressed: () => showVitalsHistory(context, patientUuid),
               vitals: VitalsData(
                 pulse: patient['current_pulse'],
-                bp: patient['current_bp'],
+                bp: "${patient['current_systolic']}/${patient['current_diastolic']}",
                 temp: patient['current_temp'],
                 spo2: patient['current_spo2'],
               ),
@@ -170,22 +176,6 @@ class PatientMedicalCard extends StatelessWidget {
                   color: hasReports ? Colors.greenAccent : null,
                 ),
               ],
-            ),
-
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6.0,
-              children: flags.map((flag) {
-                return Chip(
-                  label: Text(
-                    flag,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                  backgroundColor: Colors.blueGrey.shade700,
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                );
-              }).toList(),
             ),
             const SizedBox(height: 16),
             InkWell(
@@ -324,6 +314,11 @@ class PatientMedicalCard extends StatelessWidget {
 }
 
 class AdmittanceUtils {
+  static DateTime generateRandomDoB(){
+    final randomYears = Random().nextInt(64*365);
+    return DateTime.now().subtract(Duration(days: randomYears));
+
+  }
   /// Generates a random admittance time between 1 and 48 hours ago
   static DateTime generateRandomAdmittance() {
     final randomHours = Random().nextInt(48) + 1;

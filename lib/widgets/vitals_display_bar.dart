@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 
 class VitalsData {
-  final String pulse;
+  final int pulse;
   final String bp;
-  final String temp;
-  final String spo2;
+  final double temp;
+  final double spo2;
 
   VitalsData({
     required this.pulse,
@@ -55,9 +55,9 @@ class VitalsBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _vitalItem(vitals.bp, "NIBP", "SYS/DIA", AppTheme.vitalsBP),
-                    _vitalItem(vitals.pulse, "PULSE", "\u2661/MIN", AppTheme.vitalsPulse),
-                    _vitalItem(vitals.spo2, "SpO2", "%", AppTheme.vitalsOxygen),
-                    _vitalItem(vitals.temp, "TEMP", "°C", AppTheme.vitalsTemp),
+                    _vitalItem(vitals.pulse.toString(), "PULSE", "\u2661/MIN", AppTheme.vitalsPulse),
+                    _vitalItem(vitals.spo2.toString(), "SpO2", "%", AppTheme.vitalsOxygen),
+                    _vitalItem(vitals.temp.toString(), "TEMP", "°C", AppTheme.vitalsTemp),
                   ],
                 ),
               ),

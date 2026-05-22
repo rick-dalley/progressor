@@ -23,7 +23,7 @@ class PatientInformationCard extends StatelessWidget {
     final String? proxyPhone = patient["contact_phone"];
     final String? familyDoctorName = patient["family_doctor_name"];
     final String? familyDoctorPhone = patient["family_doctor_phone"];
-    final String? pharmacyName = patient["pharmacy_name"];
+    final String? pharmacyFax = patient["pharmacy_fax"];
     final String? pharmacyPhone = patient["pharmacy_phone"];
 
     return Card(
@@ -80,7 +80,7 @@ class PatientInformationCard extends StatelessWidget {
             const SizedBox(height: 10),
 
             // Line 2: PHN (Personal Health Number)
-            _buildLabeledRow("PHN", _formatPHN(phn)),
+            _buildLabeledRow("PHN", _formatPHN(phn.toString())),
             const SizedBox(height: 8),
 
             // Line 3 & 4: Address Blocks
@@ -111,7 +111,7 @@ class PatientInformationCard extends StatelessWidget {
             const SizedBox(height: 8),
 
             // Line 8: Pharmacy details
-            _buildLabeledRow("PHARMACY", "$pharmacyName • $pharmacyPhone"),
+            _buildLabeledRow("PHARMACY", "$pharmacyFax • $pharmacyPhone"),
           ],
         ),
       ),

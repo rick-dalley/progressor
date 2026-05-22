@@ -92,21 +92,11 @@ class DatabaseManager {
   }
 
   // The New Patient Retrieval Function
+  // The Clean Patient Retrieval Function
   Future<List<Map<String, dynamic>>> getAllPatients() async {
     final db = await database;
 
-    // Find the specific query in our cached SELECT list
-    final List<dynamic> selectQueries = sqlConfig?['SELECT'] ?? [];
-    final patientQueryObj = selectQueries.firstWhere(
-      (q) => q['name'] == 'patients_all',
-      orElse: () => null,
-    );
-
-    if (patientQueryObj != null) {
-      return await db.rawQuery(patientQueryObj['query']);
-    }
-
-    // Fallback if the JSON name doesn't match
+    // Directly pull every row from the patient table
     return await db.query('patient');
   }
 

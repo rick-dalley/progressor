@@ -2,7 +2,7 @@
   "CREATE": [
     {
       "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn TEXT UNIQUE, dob TEXT, current_acuity INTEGER DEFAULT 3, current_bp TEXT, current_pulse TEXT, current_temp TEXT, current_spo2 TEXT, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT);"
+      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, phn int UNIQUE, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, current_acuity INTEGER DEFAULT 3, current_systolic int, current_diastolic int, current_pulse int, current_temp real, current_spo2 real, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT);"
     },
     {
       "table": "datasheet",
@@ -34,7 +34,7 @@
     },
     {
       "table": "vitals",
-      "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 INTEGER, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+      "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 REAL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
     },
     {
       "table": "process",
