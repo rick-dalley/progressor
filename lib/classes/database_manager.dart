@@ -9,19 +9,35 @@ import 'package:triage/classes/patient_condition.dart';
 import 'package:uuid/uuid.dart';
 import 'data_seeder.dart';
 
+class Acuity{
+  final int level;
+  final String statusName;
+  final String clinicalPicture;
+  final int interventionWindow;
+  Acuity({required this.level, required this.statusName, required this.clinicalPicture, required this.interventionWindow});
+  // Using an initializer list is best practice for final fields in Dart
+  Acuity.fromJson(dynamic item)
+      : level = item['level'],
+        statusName = item['status'],
+        clinicalPicture = item['clinical_picture'],
+        interventionWindow = item['intervention_window'];
+
+}
+
+
 class DatabaseManager {
   // Singleton pattern
   static final DatabaseManager _instance = DatabaseManager._internal();
   Database? _db;
-
   static const uuid = Uuid();
 
 // The Gatekeeper: This prevents multiple calls to init()
   Completer<Database>? _dbCompleter;
 // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
+  Map<int, Acuity>? acuity;
 // Your cache and loadProcessMaps function stay as they are.
-  Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
+  final Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
   Map<String, Map<String, dynamic>> get processMaps => _cachedProcessMaps;
 
   DatabaseManager._internal();
@@ -51,6 +67,11 @@ class DatabaseManager {
   }
 
   Future<Database> init({bool overwrite = false}) async {
+
+    final String jsonString = await rootBundle.loadString('assets/patients/acuity.json');
+    final List<dynamic> decodedList = json.decode(jsonString);
+    acuity = { for (var item in decodedList) item['level'] as int : Acuity.fromJson(item) };
+
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 
@@ -67,28 +88,13 @@ class DatabaseManager {
       version: 1,
       onCreate: (db, version) async {
         await _createTablesFromConfig(db);
-
         await DataSeeder.seed(db);
-        // Load the cache using the local 'db' instance provided by onCreate
-        await loadProcessMaps(db);
       },
     );
 
-    // If we didn't just create the DB (standard launch),
-    // the cache will be empty. Load it now.
-    if (_cachedProcessMaps.isEmpty) {
-      await loadProcessMaps(db);
-    }
+
 
     return db;
-  }
-
-  Future<void> loadProcessMaps(Database db) async {
-    final List<Map<String, dynamic>> maps = await db.query('process_maps');
-    _cachedProcessMaps = {
-      for (var m in maps) m['process_key'] as String: m
-    };
-    debugPrint('Process Maps Cached.');
   }
 
   // The New Patient Retrieval Function

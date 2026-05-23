@@ -20,6 +20,7 @@ class PatientMedicalCard extends StatelessWidget {
   final VoidCallback onInterviewTap; // <--- Add this
   final VoidCallback? onMedsTap;
   final VoidCallback? onTimeLineTap;
+  final void Function(Acuity) onAcuityTap;
 
   const PatientMedicalCard({
     super.key,
@@ -30,6 +31,7 @@ class PatientMedicalCard extends StatelessWidget {
     required this.onInterviewTap,
     this.onMedsTap,
     this.onTimeLineTap,
+    required this.onAcuityTap,
   });
 
   Color _getDispositionColor() {
@@ -46,20 +48,26 @@ class PatientMedicalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DateFormat inputFormat = DateFormat('M/d/y');
+    final int acuityId = patient['acuity'];
+    String? acuityStatusName = "Non-Urgent";
+    Acuity? acuity = DatabaseManager().acuity?[acuityId];
+    if (acuity != null) {
+      acuityStatusName = acuity.statusName;
+    }
     final String lastName = (patient['first_name'] ?? 'Patient').toString();
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String phn = (patient['phn']) ?? "1111-111-111";
     final String status = (patient['status'] ?? 'Triage').toString();
-    final String processPath =  (patient['path'] ?? 'Handoff').toString();
+    final String processPath = (patient['path'] ?? 'Handoff').toString();
     final Color statusColor = _getDispositionColor();
-    final DateTime dob = patient["dob"] == null
-      ? AdmittanceUtils.generateRandomDoB()
-        : inputFormat.parse(patient['admitted']);
+    DateFormat inputFormat = DateFormat('yyyy MM dd HH:mm');
+    final String dob = patient["dob"];
+    final admittedDate = AdmittanceUtils.generateRandomAdmittance();
+    final String admitted = inputFormat.format(admittedDate);
     // Parse safely into a native DateTime object
-    final DateTime admittedDate = patient['admitted'] == null
-        ? AdmittanceUtils.generateRandomAdmittance()
-        :  inputFormat.parse(patient['admitted']);
+    // final DateTime admittedDate = patient['admitted'] == null
+    //     ? AdmittanceUtils.generateRandomAdmittance()
+    //     : inputFormat.parse(patient['admitted']);
     final int policeReports = patient['police_reports'] ?? 0;
     bool hasReports = policeReports > 0;
     final int medicationCount = patient['medications'] ?? 0;
@@ -87,41 +95,46 @@ class PatientMedicalCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: statusColor, width: 3),
+        // side: BorderSide(color: statusColor, width: 3),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  "$lastName, $firstName",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Container(
+              // 1. Apply the background color fill and styling
+              decoration: BoxDecoration(
+                color: Colors.white, // Swap this for whatever color matches your layout theme
+                borderRadius: BorderRadius.circular(8.0), // Keeps the container edges crisp and clean
+              ),
+              // 2. Add padding so your elements have breathing room inside the colored block
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+
+              child: Row(
+                children: [
+                  Text(
+                    "$lastName, $firstName",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
                   ),
-                ),
-                const Spacer(),
-                // Replace the old monitor_heart button with this:
-                CountdownTimer(
-                  admittedAt: admittedDate,
-                  onTap: onTimeLineTap ?? () {},
-                ),
-              ],
+                  const Spacer(),
+                  // Replace the old monitor_heart button with this:
+                  CountdownTimer(admittedAt: admittedDate, onTap: onTimeLineTap ?? () {}),
+                ],
+              ),
             ),
-            const Divider(height: 8),
             const SizedBox(height: 8),
             Row(
               children: [
-                _buildInfoChip(Icons.badge, "PHN: $phn"),
-                const SizedBox(width: 12),
-                _buildInfoChip(Icons.location_on, status),
-                const SizedBox(width: 12),
-                _buildInfoChip(
-                  Icons.speed,
-                  "Acuity: ${patient['current_acuity']}",
+                _buildInfoChip(Icons.login_sharp, admitted, AppTheme.deepLogicViolet),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => onAcuityTap(acuity!),
+                  child: _buildInfoChip(
+                    Icons.psychology_alt_sharp,
+                    "Acuity: ${acuity?.statusName}",
+                    AppTheme.acuityColors[acuityId]!,
+                  ),
                 ),
               ],
             ),
@@ -130,7 +143,7 @@ class PatientMedicalCard extends StatelessWidget {
             // Tappable Vitals
             VitalsBar(
               onAddPressed: onVitalsTap ?? () {},
-                onHistoryPressed: () => showVitalsHistory(context, patientUuid),
+              onHistoryPressed: () => showVitalsHistory(context, patientUuid),
               vitals: VitalsData(
                 pulse: patient['current_pulse'],
                 bp: "${patient['current_systolic']}/${patient['current_diastolic']}",
@@ -152,27 +165,21 @@ class PatientMedicalCard extends StatelessWidget {
                   context: context,
                   label: "Assess",
                   icon: Icons.psychology,
-                  onTap: onAssessmentsTap ?? (){},
-
+                  onTap: onAssessmentsTap ?? () {},
                 ),
-                _buildCompactButton(
-                  context: context,
-                  label: "Interview",
-                  icon: Icons.mic,
-                  onTap: onInterviewTap,
-                ),
+                _buildCompactButton(context: context, label: "Interview", icon: Icons.mic, onTap: onInterviewTap),
                 _buildCompactButton(
                   context: context,
                   label: "Meds",
                   icon: medIcon,
-                  onTap: onMedsTap?? (){},
+                  onTap: onMedsTap ?? () {},
                   color: medColor,
                 ),
                 _buildCompactButton(
                   context: context,
                   label: "Police",
                   icon: Icons.local_police,
-                  onTap: onPoliceTap?? (){},
+                  onTap: onPoliceTap ?? () {},
                   color: hasReports ? Colors.greenAccent : null,
                 ),
               ],
@@ -180,10 +187,7 @@ class PatientMedicalCard extends StatelessWidget {
             const SizedBox(height: 16),
             InkWell(
               onTap: () => _showProcessModal(context, patient['patient_uuid'], status),
-              child: ProcessPathway(
-                processKey: status,
-                currentStatus: processPath,
-              ),
+              child: ProcessPathway(processKey: status, currentStatus: processPath),
             ),
           ],
         ),
@@ -224,8 +228,7 @@ class PatientMedicalCard extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.normal
-                ,
+                fontWeight: FontWeight.normal,
                 letterSpacing: -0.2, // Tighter letters to prevent overflow
               ),
               maxLines: 1,
@@ -280,22 +283,27 @@ class PatientMedicalCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 12),
       height: 4,
       width: 40,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade800,
-        borderRadius: BorderRadius.circular(2),
-      ),
+      decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(2)),
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey.shade600),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        Icon(
+          icon,
+          size: 30,
+          color: color,
+          shadows: [
+            Shadow(
+              color: Colors.black.withAlpha(64), // Soft dark shadow layer
+              offset: const Offset(2, 2), // Pushes the shadow subtly downward
+              blurRadius: 4.0, // Keeps the shadow soft and realistic
+            ),
+          ],
         ),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.black54)),
       ],
     );
   }
@@ -305,20 +313,18 @@ class PatientMedicalCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppTheme.clinicalWhite,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (context) => VitalsHistoryView(patientUuid: patientUuid),
     );
   }
 }
 
 class AdmittanceUtils {
-  static DateTime generateRandomDoB(){
-    final randomYears = Random().nextInt(64*365);
+  static DateTime generateRandomDoB() {
+    final randomYears = Random().nextInt(64 * 365);
     return DateTime.now().subtract(Duration(days: randomYears));
-
   }
+
   /// Generates a random admittance time between 1 and 48 hours ago
   static DateTime generateRandomAdmittance() {
     final randomHours = Random().nextInt(48) + 1;

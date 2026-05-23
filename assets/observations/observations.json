@@ -2,7 +2,7 @@
   {
     "id": "1",
     "time_stamp": "2026-05-19T18:24:42.123Z",
-    "patient_uuid": "p001-involuntary-cert",
+    "patient_uuid": "1287689f-1b1b-45b8-8c05-eaf65714fe61",
     "content": "Subject exhibits elevated pacing behavior in the common triage tracking bay. Refusing direct seating but remains cooperative with basic vitals collection parameters. Speech pattern is measured, logical, and steady.",
     "author_name": "Sarah Jenkins",
     "author_role": "RN, Triage Lead"
@@ -10,7 +10,7 @@
   {
     "id": "3",
     "time_stamp": "2026-05-19T18:24:42.123Z",
-    "patient_uuid": "p002-decert-ready",
+    "patient_uuid": "ddb7254c-cb40-49cf-b9bd-422182c34a1c",
     "content": "Subject stands by the common table singing songs and dancing, and sings louder in the presence of others.",
     "author_name": "Sarah Jenkins",
     "author_role": "RN, Triage Lead"
@@ -18,7 +18,7 @@
   {
     "id": "2",
     "time_stamp": "2026-05-20T18:24:42.123Z",
-    "patient_uuid": "p002-decert-ready",
+    "patient_uuid": "ddb7254c-cb40-49cf-b9bd-422182c34a1c",
     "content": "Initial intake interview conducted. Patient reports notable sleep cycle disruptions over the last 72 hours, estimating less than 3 hours of restful sleep per night. Denies active somatic distress.",
     "author_name": "Marcus Vance",
     "author_role": "MD, Attending"

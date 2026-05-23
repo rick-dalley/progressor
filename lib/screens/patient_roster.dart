@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
 import 'package:triage/screens/vitals.dart';
+import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
@@ -184,6 +185,20 @@ class _PatientRosterState extends State<PatientRoster> {
     }
   }
 
+  void _launchAcuityModal(BuildContext context, Acuity acuity) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext context) {
+        return AcuityViewer(acuity: acuity);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
@@ -210,6 +225,7 @@ class _PatientRosterState extends State<PatientRoster> {
                       onVitalsTap: () => _launchVitalsModal(context),
                       onInterviewTap: () => _launchInterviewModal(context, index),
                       onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
+                      onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
                       onMedsTap: () async {
                         final Map<String, dynamic>? result =
                         await showModalBottomSheet(

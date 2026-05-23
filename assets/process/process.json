@@ -1,22 +1,211 @@
-[
-  {
-    "process_key": "Triage",
-    "label": "Intake",
-    "steps_json": "[\"Handoff\", \"Search\", \"History\", \"Certify\"]"
-  },
-  {
-    "process_key": "Stabilize",
-    "label": "Stabilization",
-    "steps_json": "[\"Admit\", \"Vitals\", \"Review\", \"Status\"]"
-  },
-  {
-    "process_key": "Exit",
-    "label": "Safe Exit",
-    "steps_json": "[\"Inform\", \"Items\", \"Legal\", \"Escort\"]"
-  },
-  {
-    "process_key": "Cleared",
-    "label": "Med Clearance",
-    "steps_json": "[\"Vitals\", \"Labs\", \"Consult\", \"Clear\"]"
-  }
-]
+{
+  "process_blueprint": "bc_mental_health_triage",
+  "version": "1.0.0",
+  "effective_date": "2026-05-22",
+  "phases": [
+    {
+      "id": 1,
+      "name": "Emergency Intake & Detention",
+      "nextPhaseId": 2,
+      "steps": [
+        {
+          "id": 101,
+          "name": "Identification",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["intake_verification"],
+          "relative_deadline_minutes": 30,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 102,
+          "name": "Intake",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["doctor_certified", "police_apprehension", "guardian", "voluntary"],
+          "relative_deadline_minutes": 15,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 103,
+          "name": "Acuity Assessment",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["mental"],
+          "relative_deadline_minutes": 15,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 103,
+          "name": "Medical Assessment",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical"],
+          "categories": ["physical"],
+          "relative_deadline_minutes": 15,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Clinical Triage & Safety",
+      "nextPhaseId": 3,
+      "steps": [
+        {
+          "id": 201,
+          "name": "Record Vital Signs (OCR / Direct Entry)",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["vitals_telemetry"],
+          "relative_deadline_minutes": 30,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 202,
+          "name": "Log Pre-Diagnosed Conditions & Allergies",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["medical_history"],
+          "relative_deadline_minutes": 60,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 203,
+          "name": "FDA Drug Interaction Verification Check",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["pharmacy_safety"],
+          "relative_deadline_minutes": 120,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Holding & Physician Evaluation",
+      "nextPhaseId": 4,
+      "steps": [
+        {
+          "id": 301,
+          "name": "Conduct Mental Health Questionnaire Assessment",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["clinical_scales"],
+          "relative_deadline_minutes": 240,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 302,
+          "name": "Transcribe Live Clinical Interview",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["audio_telemetry"],
+          "relative_deadline_minutes": 360,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 303,
+          "name": "Execute Master 48-Hour Certification Window",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": ["statutory_deadline"],
+          "relative_deadline_minutes": 2880,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Disposition",
+      "nextPhaseId": null,
+      "steps": [
+        {
+          "id": 401,
+          "name": "Assessment",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": [
+            "ward_transfer", "medical_facility_transfer", "police_custody", "waiver_release", "decertified", "deceased"
+          ],
+          "relative_deadline_minutes": 60,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 402,
+          "name": "Decision",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": [
+            "ward_transfer", "medical_facility_transfer", "police_custody", "waiver_release", "decertified", "deceased"
+          ],
+          "relative_deadline_minutes": 60,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 403,
+          "name": "Process",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": [
+            "ward_transfer", "medical_facility_transfer", "police_custody", "waiver_release", "decertified", "deceased"
+          ],
+          "relative_deadline_minutes": 60,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        },
+        {
+          "id": 404,
+          "name": "Close File",
+          "status": ["started", "pending", "active", "completed"],
+          "criticality": ["none", "warning", "alert"],
+          "type": ["medical", "legal", "both"],
+          "categories": [
+            "ward_transfer", "medical_facility_transfer", "police_custody", "waiver_release", "decertified", "deceased"
+          ],
+          "relative_deadline_minutes": 60,
+          "started": null,
+          "deadline": null,
+          "completed": null
+        }
+      ]
+    }
+  ]
+}

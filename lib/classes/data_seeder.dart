@@ -11,10 +11,7 @@ class DataSeeder {
 
     debugPrint('--- Starting Database Seeding ---');
 
-    await _seedProcessMaps(db);
     await _seedPatientData(db);
-    await _seedMedicationData(db);
-    await _seedVitalsData(db);
     await _seedPatientCondition(db);
     await _seedObservations(db);
     await _seedConditionsCatalog(db);
@@ -74,8 +71,6 @@ class DataSeeder {
     Batch batch = db.batch();
     for (var entry in data) {
       batch.insert('observations', {
-        // 'id':entry['id'],
-        // 'timestamp': entry['timestamp'],
         'patient_uuid': entry['patient_uuid'],
         'content': entry['content'],
         'author_name': entry['author_name'],
@@ -86,6 +81,7 @@ class DataSeeder {
     debugPrint('Observations seeded.');
   }
 
+  //Seed Patient Personal, Prescription and Vitals information
  static Future<void> _seedPatientData(Database db) async {
     // Parse the master JSON array
     // 1. Read the raw data directly from your local asset storage
@@ -105,7 +101,9 @@ class DataSeeder {
           'patient_uuid': patientUuid, // maps patient_uuid to local primary key id
           'first_name': item['first_name'],
           'last_name': item['last_name'],
+          'acuity': item['acuity'],
           'phn': item['phn'],
+          'phase_step_id': item['phase_step_id'],
           'email': item['email'],
           'ssn': item['ssn'],
           'title': item['title'],
@@ -116,7 +114,6 @@ class DataSeeder {
           'postal_code': item['postal_code'],
           'dob': item['dob'],
           'admitted': item['admitted'],
-          'current_acuity': item['current_acuity'],
           'police_reports': item['police_reports'],
           'assessments': item['assessments'],
           'status': item['status'],
@@ -192,72 +189,6 @@ class DataSeeder {
         }
       }
     });
-  }
-
-  static Future<void> _seedMedicationData(Database db) async {
-    final String response = await rootBundle.loadString('assets/medications/meds.json');
-    final List<dynamic> data = json.decode(response);
-
-    Batch batch = db.batch();
-    for (var patientEntry in data) {
-      String patientUuid = patientEntry['patient_uuid'];
-      for (var med in patientEntry['prescription']) {
-        batch.insert('medication', {
-          "id": med['id'],
-          "patient_uuid": patientUuid,
-          "name": med['name'],
-          "dose": med['dose'],
-          "freq": med['freq'],
-          "has_local_datasheet": med['has_local_datasheet'],
-          "set_id": "",
-        });
-      }
-    }
-    await batch.commit(noResult: true);
-    debugPrint('Medications seeded.');
-  }
-
-  static Future<void> _seedProcessMaps(Database db) async {
-    final String response = await rootBundle.loadString('assets/process/process.json');
-    final List<dynamic> data = json.decode(response);
-
-    for (var entry in data) {
-      await db.insert(
-        'process_maps',
-        {
-          "process_key": entry['process_key'],
-          "label": entry['label'],
-          "steps_json": entry['steps_json'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    debugPrint('Process maps seeded.');
-  }
-  static Future<void> _seedVitalsData(Database db) async {
-    final String response = await rootBundle.loadString('assets/patients/readings.json');
-    final List<dynamic> data = json.decode(response);
-
-    Batch batch = db.batch();
-    for (var entry in data) {
-      batch.insert(
-        'vitals', // Ensure this matches your CREATE TABLE name exactly
-        {
-          "id": entry['id'],
-          "patient_uuid": entry['patient_uuid'],
-          "pulse": entry['pulse'],
-          "systolic": entry['systolic'],
-          "diastolic": entry['diastolic'],
-          "temperature": entry['temperature'],
-          "o2": entry['o2'],
-          "recorded_at": entry['recorded_at'],
-        },
-        // ADD THIS LINE:
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
-    await batch.commit(noResult: true);
-    debugPrint('Vitals seeded.');
   }
 
   //_seedPatientConditions

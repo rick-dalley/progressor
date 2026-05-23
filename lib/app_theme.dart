@@ -15,6 +15,52 @@ class AppTheme {
   static const Color vitalsPulse = Color(0xFF00E676);  // Green
   static const Color vitalsTemp = Color(0xFFFFFFFF);   // White
   static const Color monitorBlack = Color(0xFF000000);
+  // Canadian Triage Acuity Colors (CTAS 1 to 5)
+  // static const Color resuscitation = Color(0xFFD32F2F); // Level 1 - Crimson Red (Immediate life threat)
+  // static const Color emergent = Color(0xFFE65100);     // Level 2 - Deep Safety Orange (Critical condition)
+  // static const Color urgent = Color(0xFFFBC02D);       // Level 3 - Rich Amber Yellow (Severe/Urgent)
+  // static const Color lessUrgent = Color(0xFF2E7D32);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
+  // static const Color nonUrgent = Color(0xFF1976D2);    // Level 5 - Royal/Signal Blue (Minor/Routine)
+  // static const Color resuscitationBackground = Color(0x1AD32F2F); // Level 1 - Crimson Red (Immediate life threat)
+  // static const Color emergentBackground = Color(0x1AE65100);     // Level 2 - Deep Safety Orange (Critical condition)
+  // static const Color urgentBackground = Color(0x1AFBC02D);       // Level 3 - Rich Amber Yellow (Severe/Urgent)
+  // static const Color lessUrgentBackground = Color(0x1A2E7D32);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
+  // static const Color nonUrgentBackground = Color(0x1A1976D2);// Level 5 - Royal/Signal Blue (Minor/Routine)
+
+  static const Color resuscitation = Color(0xFFC2185B); // Level 1 - Crimson Berry (Deep cool red/pink base)
+  static const Color emergent = Color(0xFFE65100);     // Level 2 - Burnt Ochre (Deep earthy safety orange)
+  static const Color urgent = Color(0xFFFFEA00);       // Level 3 - Lemon Zest (Bright, high-contrast yellow)
+  static const Color lessUrgent = Color(0xFF1B5E20);   // Level 4 - Forest Green (Deep dark value)
+  static const Color nonUrgent = Color(0xFF0D47A1);
+  static  Color resuscitationBackground = resuscitation.withAlpha(64); // Level 1 - Crimson Red (Immediate life threat)
+  static  Color emergentBackground = emergent.withAlpha(64);     // Level 2 - Deep Safety Orange (Critical condition)
+  static  Color urgentBackground = urgent .withAlpha(64);      // Level 3 - Rich Amber Yellow (Severe/Urgent)
+  static  Color lessUrgentBackground = lessUrgent.withAlpha(64);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
+  static  Color nonUrgentBackground =nonUrgent.withAlpha(64); // Level 5 - Royal/Signal Blue (Minor/Routine)
+
+  static const Map<int, Color> acuityColors = {
+    0: resuscitation,
+    1: emergent,
+    2: urgent,
+    3: lessUrgent,
+    4: nonUrgent,
+  };
+  static  Map<int, Color> acuityBackgroundColors = {
+    0: resuscitationBackground,
+    1: emergentBackground,
+    2: urgentBackground,
+    3: lessUrgentBackground,
+    4: nonUrgentBackground,
+  };
+  static const Map<int, IconData> acuityIcons = {
+    0: Icons.signal_cellular_connected_no_internet_4_bar_sharp,
+    1: Icons.signal_cellular_4_bar,
+    2: Icons.signal_cellular_alt_2_bar,
+    3: Icons.signal_cellular_alt_1_bar,
+    4: Icons.signal_cellular_0_bar,
+
+  };
+  // Background colors
   static Color canvasColor = Colors.grey.shade200;
   static Color cardBorder = Colors.grey.shade200;
 

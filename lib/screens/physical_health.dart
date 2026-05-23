@@ -15,7 +15,6 @@ class PhysicalHealthAssessment extends StatefulWidget {
 }
 
 class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
-  final Set<int> _selectedConditions = {};
   final TextEditingController _otherController = TextEditingController();
   late Future<Map<String, List<ConditionReference>>> _catalogFuture;
   late Future<List<PatientCondition>> _patientConditions;
