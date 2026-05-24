@@ -15,17 +15,6 @@ class AppTheme {
   static const Color vitalsPulse = Color(0xFF00E676);  // Green
   static const Color vitalsTemp = Color(0xFFFFFFFF);   // White
   static const Color monitorBlack = Color(0xFF000000);
-  // Canadian Triage Acuity Colors (CTAS 1 to 5)
-  // static const Color resuscitation = Color(0xFFD32F2F); // Level 1 - Crimson Red (Immediate life threat)
-  // static const Color emergent = Color(0xFFE65100);     // Level 2 - Deep Safety Orange (Critical condition)
-  // static const Color urgent = Color(0xFFFBC02D);       // Level 3 - Rich Amber Yellow (Severe/Urgent)
-  // static const Color lessUrgent = Color(0xFF2E7D32);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
-  // static const Color nonUrgent = Color(0xFF1976D2);    // Level 5 - Royal/Signal Blue (Minor/Routine)
-  // static const Color resuscitationBackground = Color(0x1AD32F2F); // Level 1 - Crimson Red (Immediate life threat)
-  // static const Color emergentBackground = Color(0x1AE65100);     // Level 2 - Deep Safety Orange (Critical condition)
-  // static const Color urgentBackground = Color(0x1AFBC02D);       // Level 3 - Rich Amber Yellow (Severe/Urgent)
-  // static const Color lessUrgentBackground = Color(0x1A2E7D32);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
-  // static const Color nonUrgentBackground = Color(0x1A1976D2);// Level 5 - Royal/Signal Blue (Minor/Routine)
 
   static const Color resuscitation = Color(0xFFC2185B); // Level 1 - Crimson Berry (Deep cool red/pink base)
   static const Color emergent = Color(0xFFE65100);     // Level 2 - Burnt Ochre (Deep earthy safety orange)
@@ -61,40 +50,43 @@ class AppTheme {
 
   };
   // Background colors
-  static Color canvasColor = Colors.grey.shade200;
-  static Color cardBorder = Colors.grey.shade200;
+  static const Color canvasColor = Color(0xFFF5F5F7);
+  static const Color cardBorder = Color(0xFF202020);
+  static const Color surfaceColor = Color(0xFFFFFFFF);
+  static const Color defaultFontColor = deepCharcoal;
+  static const Color defaultInverseFontColor = surfaceColor;
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: clinicalWhite,
+      scaffoldBackgroundColor: canvasColor,
       textTheme: GoogleFonts.inclusiveSansTextTheme(),
       colorScheme: ColorScheme.light(
         primary: deepLogicViolet,
         secondary: clinicalCyan,
-        surface: Colors.white,
+        surface: surfaceColor,
       ),
 
       // AppBar styling for Light Mode (Clean & Professional)
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: surfaceColor,
         elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        titleTextStyle: TextStyle(color: defaultFontColor, fontSize: 20, fontWeight: FontWeight.bold),
         iconTheme: IconThemeData(color: deepLogicViolet),
       ),
 
       // FAB remains consistent but pops against the white
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: deepLogicViolet,
-        foregroundColor: Colors.white,
+        foregroundColor: defaultInverseFontColor,
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: deepLogicViolet,
-          foregroundColor: clinicalWhite,
+          foregroundColor: defaultInverseFontColor,
           minimumSize: const Size.fromHeight(55), // Standardized height for easy hit-targets
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           textStyle: const TextStyle(
@@ -109,7 +101,7 @@ class AppTheme {
       // Text fields that look "Interactive" but clean
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.black12),

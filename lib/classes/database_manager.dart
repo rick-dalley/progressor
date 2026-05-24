@@ -6,24 +6,30 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
+import 'package:triage/classes/process_step.dart';
 import 'package:uuid/uuid.dart';
 import 'data_seeder.dart';
 
-class Acuity{
+class Acuity {
   final int level;
   final String statusName;
   final String clinicalPicture;
   final int interventionWindow;
-  Acuity({required this.level, required this.statusName, required this.clinicalPicture, required this.interventionWindow});
+
+  Acuity({
+    required this.level,
+    required this.statusName,
+    required this.clinicalPicture,
+    required this.interventionWindow,
+  });
+
   // Using an initializer list is best practice for final fields in Dart
   Acuity.fromJson(dynamic item)
-      : level = item['level'],
-        statusName = item['status'],
-        clinicalPicture = item['clinical_picture'],
-        interventionWindow = item['intervention_window'];
-
+    : level = item['level'],
+      statusName = item['status'],
+      clinicalPicture = item['clinical_picture'],
+      interventionWindow = item['intervention_window'];
 }
-
 
 class DatabaseManager {
   // Singleton pattern
@@ -31,20 +37,18 @@ class DatabaseManager {
   Database? _db;
   static const uuid = Uuid();
 
-// The Gatekeeper: This prevents multiple calls to init()
+  // The Gatekeeper: This prevents multiple calls to init()
   Completer<Database>? _dbCompleter;
-// Cache the SQL configuration in memory
+
+  // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
   Map<int, Acuity>? acuity;
-// Your cache and loadProcessMaps function stay as they are.
-  final Map<String, Map<String, dynamic>> _cachedProcessMaps = {};
-  Map<String, Map<String, dynamic>> get processMaps => _cachedProcessMaps;
 
   DatabaseManager._internal();
 
   factory DatabaseManager() => _instance;
 
-// Accessor that ensures only ONE initialization happens
+  // Accessor that ensures only ONE initialization happens
   Future<Database> get database async {
     // 1. If DB is already open, return it immediately
     if (_db != null) return _db!;
@@ -66,12 +70,19 @@ class DatabaseManager {
     }
   }
 
+  List<ProcessStep> processBlueprint = [];
+
   Future<Database> init({bool overwrite = false}) async {
+    final String rawAcuityString = await rootBundle.loadString('assets/patients/acuity.json');
+    final List<dynamic> acuityJson = json.decode(rawAcuityString);
+    acuity = {for (var item in acuityJson) item['level'] as int: Acuity.fromJson(item)};
 
-    final String jsonString = await rootBundle.loadString('assets/patients/acuity.json');
-    final List<dynamic> decodedList = json.decode(jsonString);
-    acuity = { for (var item in decodedList) item['level'] as int : Acuity.fromJson(item) };
+    final String rawProcessString = await rootBundle.loadString('assets/process/process.json');
+    final Map<String, dynamic> processJson = json.decode(rawProcessString) as Map<String, dynamic>;
 
+    // Use a map transformation to parse each raw item into a valid Step instance
+    final List<dynamic> rawPhases = processJson["phases"] as List<dynamic>? ?? const [];
+    processBlueprint = rawPhases.map((phaseMap) => ProcessStep.fromJson(phaseMap as Map<String, dynamic>)).toList();
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 
@@ -92,9 +103,37 @@ class DatabaseManager {
       },
     );
 
-
-
     return db;
+  }
+
+
+  // Inside your classes/database_manager.dart file
+  Future<bool> updatePatientProcessStep({
+    required String uuid,
+    required int targetStepId,
+  }) async {
+    try {
+      // 1. Get a handle to your initialized database engine instance
+      final db = await database;
+
+      // 2. Execute a targeted update on the specific patient row matching the UUID
+      final int rowsAffected = await db.update(
+        'patient',
+        {
+          'phase_step_id': targetStepId,
+          'last_update': DateTime.now().toIso8601String(), // Optional: if you track transaction records
+        },
+        where: 'patient_uuid = ?',
+        whereArgs: [uuid],
+      );
+
+      // 3. Return true only if at least one record was successfully modified in the schema
+      return rowsAffected > 0;
+
+    } catch (e) {
+      debugPrint("Database Engine Error: Failed to write step transition: $e");
+      return false; // Safely fail without crashing the app thread
+    }
   }
 
   // The New Patient Retrieval Function
@@ -104,6 +143,19 @@ class DatabaseManager {
 
     // Directly pull every row from the patient table
     return await db.query('patient');
+  }
+
+  Future<Map<String, dynamic>> getPatientForUuid(String uuid) async {
+  final db = await database;
+
+    List<Map<String, dynamic>> matches = await db.query(
+      'patient',
+      where: 'patient_uuid = ?',
+      whereArgs: [uuid],
+      limit: 1, // We only ever care about finding the single matching record
+    );
+
+    return matches.isEmpty ? {} : matches.first;
   }
 
   Future<void> _createTablesFromConfig(Database db) async {
@@ -123,13 +175,9 @@ class DatabaseManager {
     await db.execute('PRAGMA foreign_keys = ON;');
   }
 
-// Helper to avoid deadlocks during the open/create cycle
+  // Helper to avoid deadlocks during the open/create cycle
   Future<void> rawInsertVitals(Database db, Map<String, dynamic> data) async {
-    await db.insert(
-      'vitals',
-      data,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('vitals', data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // Inside your DatabaseManager class:
@@ -137,10 +185,7 @@ class DatabaseManager {
     final db = await database;
 
     // Fetch all conditions ordered alphabetically by category and name
-    final List<Map<String, dynamic>> maps = await db.query(
-      'condition',
-      orderBy: 'category ASC, name ASC',
-    );
+    final List<Map<String, dynamic>> maps = await db.query('condition', orderBy: 'category ASC, name ASC');
 
     // Reconstruct our grouped layout pattern dynamically
     final Map<String, List<ConditionReference>> catalog = {};
@@ -163,11 +208,7 @@ class DatabaseManager {
     // Guard clause: If the record doesn't have a database ID, there's nothing to drop
     final db = await database;
 
-    await db.delete(
-      'patient_condition',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('patient_condition', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> insertPatientCondition(PatientCondition record) async {
@@ -226,8 +267,8 @@ class DatabaseManager {
   Future<int> deleteObservation(int id) async {
     final db = await database;
     return await db.delete(
-      'observations',      // Your database table name
-      where: 'id = ?',     // Target row filter
+      'observations', // Your database table name
+      where: 'id = ?', // Target row filter
       whereArgs: [id],
     );
   }
@@ -239,12 +280,7 @@ class DatabaseManager {
 
   Future<int> updateObservation(int id, Map<String, dynamic> row) async {
     final db = await database;
-    return await db.update(
-      'observations',
-      row,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.update('observations', row, where: 'id = ?', whereArgs: [id]);
   }
 
   // Retrieve all vital readings for a specific patient, newest first
@@ -262,12 +298,7 @@ class DatabaseManager {
 
   Future<List<Map<String, dynamic>>> getPatientEvents(String uuid) async {
     final db = await database;
-    return await db.query(
-      'patient_events',
-      where: 'patient_uuid = ?',
-      whereArgs: [uuid],
-      orderBy: 'timestamp DESC',
-    );
+    return await db.query('patient_events', where: 'patient_uuid = ?', whereArgs: [uuid], orderBy: 'timestamp DESC');
   }
 
   Future<Map<String, dynamic>?> getStoredDatasheet(String setId) async {
@@ -295,7 +326,6 @@ class DatabaseManager {
         // 3. MERGE: This puts all keys from the JSON into the fullRow map.
         // If there are duplicate keys, the JSON blob values win.
         fullRow.addAll(decodedJson);
-
       } catch (e) {
         debugPrint('Error decoding stored blob for $setId: $e');
       }
@@ -306,10 +336,7 @@ class DatabaseManager {
   }
 
   // Internal helper to avoid calling 'await database' during initialization
-  Future<void> rawInsertMedication(
-    Database db,
-    Map<String, dynamic> medication,
-  ) async {
+  Future<void> rawInsertMedication(Database db, Map<String, dynamic> medication) async {
     await db.insert('medication', {
       'id': medication['id'],
       'patient_uuid': medication['patient_uuid'],
@@ -343,10 +370,7 @@ class DatabaseManager {
     final db = await database;
     await db.update(
       'medication',
-      {
-        'set_id': newSetId,
-        'has_local_datasheet': 1,
-      },
+      {'set_id': newSetId, 'has_local_datasheet': 1},
       where: 'id = ?',
       whereArgs: [localUuid],
     );
@@ -369,16 +393,11 @@ class DatabaseManager {
       'version': fdaJson['version'],
       'classes': classes,
       // RXCUI is often an array in openfda, grab the first one
-      'rxcui': (openfda['rxcui'] != null && openfda['rxcui'].isNotEmpty)
-          ? openfda['rxcui'][0]
-          : null,
-      'brand_name':
-          (openfda['brand_name'] != null && openfda['brand_name'].isNotEmpty)
+      'rxcui': (openfda['rxcui'] != null && openfda['rxcui'].isNotEmpty) ? openfda['rxcui'][0] : null,
+      'brand_name': (openfda['brand_name'] != null && openfda['brand_name'].isNotEmpty)
           ? openfda['brand_name'][0]
           : null,
-      'generic_name':
-          (openfda['generic_name'] != null &&
-              openfda['generic_name'].isNotEmpty)
+      'generic_name': (openfda['generic_name'] != null && openfda['generic_name'].isNotEmpty)
           ? openfda['generic_name'][0]
           : null,
       'raw_json_blob': json.encode(fdaJson),
@@ -407,17 +426,10 @@ class DatabaseManager {
 
   Future<void> updateDatasheetClasses(String setId, String classes) async {
     final db = await database;
-    await db.update(
-      'datasheet',
-      {'classes': classes},
-      where: 'set_id = ?',
-      whereArgs: [setId],
-    );
+    await db.update('datasheet', {'classes': classes}, where: 'set_id = ?', whereArgs: [setId]);
   }
 
-  Future<List<Map<String, dynamic>>> scanLocalDatasheetsForContraindications(
-    List<String> drugNames,
-  ) async {
+  Future<List<Map<String, dynamic>>> scanLocalDatasheetsForContraindications(List<String> drugNames) async {
     List<Map<String, dynamic>> found = [];
     for (var name in drugNames) {
       // 1. Get the local blob for this drug
@@ -446,8 +458,7 @@ class DatabaseManager {
             'drugB': otherName,
             'severity': 'high', // Contraindications are always high risk
             'type': 'contraindication',
-            'description':
-                'Interaction found in $name label regarding $otherName.',
+            'description': 'Interaction found in $name label regarding $otherName.',
           });
         }
       }
@@ -455,9 +466,7 @@ class DatabaseManager {
     return found;
   }
 
-  Future<List<Map<String, dynamic>>> getMedicationsForPatient(
-    String patientUuid,
-  ) async {
+  Future<List<Map<String, dynamic>>> getMedicationsForPatient(String patientUuid) async {
     final db = await database;
 
     return await db.query(
@@ -506,12 +515,7 @@ class DatabaseManager {
     final db = await database; // Your getter for the Database instance
 
     // We query the specific table for the single row matching the ID
-    final List<Map<String, dynamic>> results = await db.query(
-      'medication',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
+    final List<Map<String, dynamic>> results = await db.query('medication', where: 'id = ?', whereArgs: [id], limit: 1);
 
     if (results.isNotEmpty) {
       return results.first;
@@ -522,11 +526,7 @@ class DatabaseManager {
 
   Future<List<Map<String, dynamic>>> getPatientConditions(String uuid) async {
     final db = await database;
-    return await db.query(
-      'patient_condition',
-      where: 'patient_uuid = ? AND is_active = 1',
-      whereArgs: [uuid],
-    );
+    return await db.query('patient_condition', where: 'patient_uuid = ? AND is_active = 1', whereArgs: [uuid]);
   }
 
   Future<Map<String, dynamic>?> getDatasheetBySetId(String setId) async {
@@ -546,18 +546,18 @@ class DatabaseManager {
     final db = await database;
 
     // We query the table directly using the assessment_id column as our key
-    final List<Map<String, dynamic>> results = await db.rawQuery('''
+    final List<Map<String, dynamic>> results = await db.rawQuery(
+      '''
     SELECT assessment_id, COUNT(*) as total
     FROM completed_assessment
     WHERE patient_id = ? AND complete = 1
     GROUP BY assessment_id
-  ''', [patientId]);
+  ''',
+      [patientId],
+    );
 
     // Convert the list of rows into a Map: {'PHQ-9': 1, 'GAD-7': 0, ...}
-    return {
-      for (var row in results)
-        row['assessment_id'] as String: row['total'] as int
-    };
+    return {for (var row in results) row['assessment_id'] as String: row['total'] as int};
   }
 
   Future<void> saveAssessmentResults({
@@ -619,17 +619,15 @@ class DatabaseManager {
     );
 
     // Reconstruct the Map<String, String> (question_id -> answer)
-    return {
-      for (var row in questionMaps)
-        row['question_id'] as String: row['answer'] as String,
-    };
+    return {for (var row in questionMaps) row['question_id'] as String: row['answer'] as String};
   }
 
   Future<(bool, String)> checkInteractionsInDb(String primarySetId, String otherSetId) async {
     final db = await database;
 
     // STEP 3: The Full CTE
-    final List<Map<String, dynamic>> result = await db.rawQuery(r'''
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      r'''
     WITH RECURSIVE split_classes(class_name, remainder) AS (
       SELECT 
         trim(substr(classes || ',', 1, instr(classes || ',', ',') - 1)),
@@ -643,7 +641,9 @@ class DatabaseManager {
       WHERE remainder != ''
     )
     SELECT class_name FROM split_classes WHERE class_name != '';
-  ''', [otherSetId]);
+  ''',
+      [otherSetId],
+    );
 
     if (result.isNotEmpty) {
       List<String> list = result.map((e) => e['class_name'].toString()).toList();
@@ -651,5 +651,4 @@ class DatabaseManager {
     }
     return (false, "");
   }
-
 }

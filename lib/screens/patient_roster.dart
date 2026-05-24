@@ -24,6 +24,7 @@ class _PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
   final idFront = 'assets/screen_captures/license_front.png';
   final idBack = 'assets/screen_captures/license_back.png';
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +53,7 @@ class _PatientRosterState extends State<PatientRoster> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack,),
+        builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
       ),
@@ -85,10 +86,7 @@ class _PatientRosterState extends State<PatientRoster> {
                 Container(
                   width: 40,
                   height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
                 ),
 
                 Expanded(child: VitalsScreen()),
@@ -100,10 +98,7 @@ class _PatientRosterState extends State<PatientRoster> {
     );
   }
 
-  void _launchTimelineModal(
-    BuildContext context,
-    Map<String, dynamic> patient,
-  ) {
+  void _launchTimelineModal(BuildContext context, Map<String, dynamic> patient) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Essential for large/tall content
@@ -127,10 +122,7 @@ class _PatientRosterState extends State<PatientRoster> {
                 Container(
                   width: 40,
                   height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
                 ),
 
                 // The Header
@@ -138,10 +130,7 @@ class _PatientRosterState extends State<PatientRoster> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     "TIMELINE: ${patient['first_name']} ${patient['last_name'].toString().toUpperCase()}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.1,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
                   ),
                 ),
 
@@ -171,9 +160,7 @@ class _PatientRosterState extends State<PatientRoster> {
     if (didSave == true) {
       setState(() {
         // Create our writable copy
-        Map<String, dynamic> updatedPatient = Map<String, dynamic>.from(
-          _patients[index],
-        );
+        Map<String, dynamic> updatedPatient = Map<String, dynamic>.from(_patients[index]);
 
         // Increment the assessment count
         int currentCount = updatedPatient['assessments'] ?? 0;
@@ -190,9 +177,7 @@ class _PatientRosterState extends State<PatientRoster> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
       builder: (BuildContext context) {
         return AcuityViewer(acuity: acuity);
       },
@@ -208,7 +193,7 @@ class _PatientRosterState extends State<PatientRoster> {
       body: _patients.isEmpty
           ? const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF1A365D), // Navy indicator for a "smart" feel
+                color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
               ),
             )
           : ListView.builder(
@@ -216,78 +201,63 @@ class _PatientRosterState extends State<PatientRoster> {
               // Added top padding for breathing room
               itemCount: _patients.length,
               itemBuilder: (context, index) {
-                final Map<String, dynamic> patient = Map<String, dynamic>.from(
-                  _patients[index],
-                );
+                final Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
                 return FlippableCardController(
-                    front: PatientMedicalCard(
-                      patient: patient,
-                      onVitalsTap: () => _launchVitalsModal(context),
-                      onInterviewTap: () => _launchInterviewModal(context, index),
-                      onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
-                      onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
-                      onMedsTap: () async {
-                        final Map<String, dynamic>? result =
-                        await showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          showDragHandle: true,
-                          builder: (context) =>
-                              MedicationScreen(patient: _patients[index]),
-                        );
+                  height: 304,
+                  front: PatientMedicalCard(
+                    patient: patient,
+                    onVitalsTap: () => _launchVitalsModal(context),
+                    onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
+                    onTimeLineTap: () => _launchTimelineModal(context, _patients[index]),
+                  ),
+                  back: PatientInformationCard(patient: patient,onInterviewTap: () => _launchInterviewModal(context, index),
+                    onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
+                    onMedsTap: () async {
+                      final Map<String, dynamic>? result = await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        showDragHandle: true,
+                        builder: (context) => MedicationScreen(patient: _patients[index]),
+                      );
 
-                        if (result != null) {
-                          setState(() {
-                            // Create the writable copy to avoid read-only errors
-                            Map<String, dynamic> updatedPatient = {
-                              ..._patients[index],
-                            };
+                      if (result != null) {
+                        setState(() {
+                          // Create the writable copy to avoid read-only errors
+                          Map<String, dynamic> updatedPatient = {..._patients[index]};
 
-                            // Map the returned values to our flat patient structure
-                            updatedPatient['medications'] = result['medications'];
-                            updatedPatient['medication_safety_audit'] =
-                            result['medication_safety_audit'];
+                          // Map the returned values to our flat patient structure
+                          updatedPatient['medications'] = result['medications'];
+                          updatedPatient['medication_safety_audit'] = result['medication_safety_audit'];
 
-                            _patients[index] = updatedPatient;
-                          });
-                        }
-                      },
-                      onPoliceTap: () async {
-                        // 1. Navigate and WAIT for the signal from the Save button
-                        final int? reportCount = await Navigator.push<int>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PoliceReportScreen(),
-                          ),
-                        );
+                          _patients[index] = updatedPatient;
+                        });
+                      }
+                    },
+                    onPoliceTap: () async {
+                      // 1. Navigate and WAIT for the signal from the Save button
+                      final int? reportCount = await Navigator.push<int>(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+                      );
 
-                        // 2. If the user hit "Save" (which returns true)
-                        // Use a standard null check instead of the ! operator
-                        if (reportCount != null && reportCount > 0) {
-                          setState(() {
-                            patient['police_reports'] = reportCount;
-                            _patients[index] = patient;
-                          });
-                        }
-                      },
-                      // Your existing assessment menu
-                      onTimeLineTap: () =>
-                          _launchTimelineModal(context, _patients[index]),
-                    ),
-                    back: PatientInformationCard(
-                      patient: patient
-                        ));
+                      // 2. If the user hit "Save" (which returns true)
+                      // Use a standard null check instead of the ! operator
+                      if (reportCount != null && reportCount > 0) {
+                        setState(() {
+                          patient['police_reports'] = reportCount;
+                          _patients[index] = patient;
+                        });
+                      }
+                    },),
+                );
               },
             ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _launchIntakeScreen(context),
         // New dedicated screen
-        label: const Text(
-          "INTAKE",
-          style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600),
-        ),
+        label: const Text("INTAKE", style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600)),
         icon: const Icon(Icons.qr_code_scanner),
         // Signals scanning capability
         backgroundColor: AppTheme.deepLogicViolet,
@@ -295,5 +265,4 @@ class _PatientRosterState extends State<PatientRoster> {
       ),
     );
   }
-
 }

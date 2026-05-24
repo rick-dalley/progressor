@@ -10,7 +10,7 @@ class FlippableCardController extends StatefulWidget {
     super.key,
     required this.front,
     required this.back,
-    this.height = 368,
+    this.height = 360,
   });
 
   @override
