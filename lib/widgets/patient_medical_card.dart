@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:triage/widgets/process_tree_widget.dart';
 import 'package:triage/widgets/process_widgets.dart';
+import 'package:triage/widgets/pulsing_icon.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
@@ -110,9 +111,8 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 GestureDetector(
                   onTap: () => widget.onAcuityTap(acuity!),
                   child: _buildInfoChip(
-                    Icons.psychology_alt_sharp,
+                    acuityId,
                     "Acuity: ${acuity?.statusName}",
-                    AppTheme.acuityColors[acuityId]!,
                   ),
                 ),
               ],
@@ -206,10 +206,15 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label, Color color) {
+  Widget _buildInfoChip(int acuityLevel, String label) {
+    IconData icon =  AppTheme.acuityIcons[acuityLevel]!;
+    Color color = AppTheme.acuityColors[acuityLevel]!;
+    Color fontColor = AppTheme.acuityFontColors[acuityLevel]!;
     return Row(
       children: [
-        Icon(
+        acuityLevel == 0
+            ? PulsingIcon(icon:icon, color: color, size: 32,)
+       : Icon(
           icon,
           size: 30,
           color: color,
@@ -222,7 +227,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
           ],
         ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.black54)),
+        Text(label, style: TextStyle(fontSize: 16, color: fontColor)),
       ],
     );
   }

@@ -199,7 +199,7 @@ class _HorizontalStepViewerState extends State<HorizontalStepViewer> {
   @override
   Widget build(BuildContext context) {
     final Map<int, ProcessStep> stepsMap = widget.siblings ?? {};
-    List<int> concurrentStepIds = [];
+
     return SizedBox(
       height: 64.0,
       child: ShaderMask(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:triage/widgets/pulsing_icon.dart';
 import '../app_theme.dart';
 import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
@@ -36,8 +37,10 @@ class AcuityViewer extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    Icon(
-                      Icons.psychology,
+                    acuity.level == 0
+                    ? PulsingIcon(icon: AppTheme.acuityIcons[acuity.level]!, color: AppTheme.acuityColors[acuity.level]!, size: 32,)
+                    :Icon(
+                      AppTheme.acuityIcons[acuity.level],
                       size: 32,
                       color: AppTheme.acuityColors[acuity.level],
                       shadows: [
