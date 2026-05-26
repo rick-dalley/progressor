@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:triage/widgets/process_tree_widget.dart';
 import 'package:triage/widgets/process_widgets.dart';
-import 'package:triage/widgets/pulsing_icon.dart';
+import 'package:triage/widgets/pulsing_chip.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
@@ -50,12 +50,22 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   // A completely separate, clean async routine to fetch fresh row data
   Future<void> _refreshPatientData() async {
     final updatedPatient = await DatabaseManager().getPatientForUuid(patient["patient_uuid"]);
-    if ( mounted) {
+    if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
         patient["phase_step_id"] = updatedPatient["phase_step_id"];
       });
     }
+  }
+
+  void showVitalsHistory(BuildContext context, String patientUuid) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.clinicalWhite,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (context) => VitalsHistoryView(patientUuid: patientUuid),
+    );
   }
 
   @override
@@ -70,7 +80,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     final int thisPhaseId = thisStepId ~/ 100;
     final Map<int, ProcessStep>? siblings = DatabaseManager().processBlueprint[thisPhaseId]?.children;
     final ProcessStep? thisStep = siblings?[thisStepId];
-    final ProcessStep? previousStep = siblings?[thisStepId-1];
+    final ProcessStep? previousStep = siblings?[thisStepId - 1];
 
     return Card(
       elevation: 4,
@@ -110,9 +120,15 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
               children: [
                 GestureDetector(
                   onTap: () => widget.onAcuityTap(acuity!),
-                  child: _buildInfoChip(
-                    acuityId,
-                    "Acuity: ${acuity?.statusName}",
+                  child: PulsingChip(
+                    iconData: AppTheme.acuityIcons[acuityId]!,
+                    text: "Acuity: ${acuity?.statusName}",
+                    color: AppTheme.acuityColors[acuityId],
+                    backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
+                    onTap: () {
+                      showVitalsHistory(context, patientUuid);
+                    },
+                    pulse: acuityId == 0,
                   ),
                 ),
               ],
@@ -152,11 +168,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                     builder: (context) {
                       // 1. Generate the flat registry from our typed blueprint list
 
-                      return HorizontalStepViewer(
-                        thisStep: thisStep,
-                        previousStep: previousStep,
-                        siblings:siblings,
-                      );
+                      return HorizontalStepViewer(thisStep: thisStep, previousStep: previousStep, siblings: siblings);
                     },
                   ),
                 ],
@@ -203,42 +215,6 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       height: 4,
       width: 40,
       decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(2)),
-    );
-  }
-
-  Widget _buildInfoChip(int acuityLevel, String label) {
-    IconData icon =  AppTheme.acuityIcons[acuityLevel]!;
-    Color color = AppTheme.acuityColors[acuityLevel]!;
-    Color fontColor = AppTheme.acuityFontColors[acuityLevel]!;
-    return Row(
-      children: [
-        acuityLevel == 0
-            ? PulsingIcon(icon:icon, color: color, size: 32,)
-       : Icon(
-          icon,
-          size: 30,
-          color: color,
-          shadows: [
-            Shadow(
-              color: Colors.black.withAlpha(64), // Soft dark shadow layer
-              offset: const Offset(2, 2), // Pushes the shadow subtly downward
-              blurRadius: 4.0, // Keeps the shadow soft and realistic
-            ),
-          ],
-        ),
-        const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 16, color: fontColor)),
-      ],
-    );
-  }
-
-  void showVitalsHistory(BuildContext context, String patientUuid) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.clinicalWhite,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (context) => VitalsHistoryView(patientUuid: patientUuid),
     );
   }
 }
