@@ -39,14 +39,14 @@ class DataSeeder {
 
       parsedJson.forEach((categoryKey, ailmentList) {
         if (ailmentList is List) {
-          for (var ailmentName in ailmentList) {
-            if (ailmentName is String) {
+          for (var ailment in ailmentList) {
+            if (ailment is Map) {
 
-              // 🟢 Pass only name and category. SQLite generates the integer ID automatically!
+              // Pass only name and category. SQLite generates the integer ID automatically!
               migrationBatch.insert(
                 'condition',
                 {
-                  'name': ailmentName,
+                  'name': ailment["name"],
                   'category': categoryKey,
                 },
                 conflictAlgorithm: ConflictAlgorithm.ignore,

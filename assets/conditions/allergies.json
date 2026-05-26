@@ -1,0 +1,119 @@
+[
+  {
+    "category": "Environmental & Airborne Allergens",
+    "description": "Airborne particles are the most widespread cause of chronic, year-round, or seasonal allergic rhinitis (commonly known as hay fever).",
+    "allergens": [
+      {
+        "name": "Pollen",
+        "description": "Fine powder released by trees, weeds, and grasses that spikes seasonally."
+      },
+      {
+        "name": "Dust Mites",
+        "description": " Microscopic bugs that thrive in household dust, bedding, and carpets, causing year-round symptoms."
+      },
+      {
+        "name": "Animal Dander",
+        "description": " Tiny flakes of skin, fur, feathers, or saliva shed by domestic pets like cats and dogs."
+      },
+      {
+        "name": "Mold Spores",
+        "description": "Airborne fungi spores that grow in damp, humid indoor or outdoor environments."
+      }
+    ]
+  },
+  {
+    "category": "Food Allergens",
+    "description": "While you can be allergic to almost any food, nine specific foods account for roughly 90% of all severe food allergy reactions: [1, 2, 3]",
+    "allergens": [
+      {
+        "name": "Peanuts",
+        "description": " Legumes grown underground that frequently trigger severe, lifelong reactions."
+      },
+      {
+        "name": "Tree Nuts",
+        "description": " Tree-grown nuts including almonds, walnuts, cashews, hazelnuts, and pistachios."
+      },
+      {
+        "name": "Cow’s Milk",
+        "description": "One of the most common childhood allergies, though many children outgrow it."
+      },
+      {
+        "name": "Eggs",
+        "description": "Another highly prevalent childhood allergen, primarily triggered by proteins in the egg white."
+      },
+      {
+        "name": "Shellfish",
+        "description": "Divided into crustaceans (like shrimp, crab, and lobster) and mollusks (clams, oysters), which often cause severe adult-onset reactions."
+      },
+      {
+        "name": "Fish",
+        "description": "Finned fish such as salmon, tuna, and cod."
+      },
+      {
+        "name": "Soy",
+        "description": "Common in processed foods, though often outgrown by adulthood."
+      },
+      {
+        "name": "Wheat",
+        "description": "Distinct from celiac disease, this is an immune response to wheat proteins."
+      },
+      {
+        "name": "Sesame",
+        "description": "Recognized globally as a priority allergen due to increasing prevalence and risk of severe reactions."
+      },
+      {
+        "name": "Mustards",
+        "description": " Mustard is a priority food allergen. It is an immune system response that can cause severe, life-threatening anaphylaxis."
+      },
+      {
+        "name": "Sulphites",
+        "description": "Sulphites are preservatives, not a true allergy. They cause a non-allergic sensitivity (intolerance) that most commonly triggers asthma symptoms, wheezing, or skin irritation."
+        ]
+      },
+      {
+        "name": "Medications & Drug Allergies",
+        "description": "Certain medications can cause the immune system to overreact, resulting in hives, rashes, or respiratory distress.",
+        "allergens": [
+          {
+            "name": "Penicillin",
+            "description": "Penicillin and related antibiotic variants are the most common sources of drug allergies."
+          },
+          {
+            "name": "NSAID",
+            "description": "Over-the-counter pain relievers such as aspirin and ibuprofen."
+          }
+        ]
+      },
+      {
+        "name": "Insect Stings",
+        "description": "Venom injected during an insect bite or sting can spark localized swelling or full-body anaphylaxis.",
+        "allergens": [
+          {
+            "name": "Stinging Insects",
+            "description": "Honeybees, hornets, wasps, yellowjackets, and fire ants."
+          }
+        ]
+      },
+      {
+        "name": "Skin & Contact Allergens (Contact Dermatitis)",
+        "description": "Direct skin contact with specific materials or chemicals can induce localized rashes, itching, and blisters.",
+        "allergens": [
+          {
+            "name": "Latex",
+            "description": "Natural rubber latex found in medical gloves, elastic bands, and balloons."
+          },
+          {
+            "name": "Fragrances and Preservatives",
+            "description": "Chemicals used in cosmetics, soaps, and laundry detergents."
+          },
+          {
+            "name": "Nickel",
+            "description": "A common metal used in jewelry, belt buckles, and zippers."
+          },
+          {
+            "name": "Poison Ivy/Oak",
+            "description": "Plants containing urushiol oil, which triggers an intensely itchy rash upon touch."
+          }
+        ]
+      }
+    ]

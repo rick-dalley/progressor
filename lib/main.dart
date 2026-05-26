@@ -6,7 +6,6 @@ import 'generated/l10n.dart';
 import 'screens/patient_roster.dart';
 import 'app_theme.dart';
 
-
 void main() {
   // Ensure the binding is ready for the splash screen to render
   WidgetsFlutterBinding.ensureInitialized();

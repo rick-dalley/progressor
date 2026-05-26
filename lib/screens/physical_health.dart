@@ -3,6 +3,28 @@ import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/patient_condition.dart';
 import '../widgets/condition_chip.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../widgets/halo_ripple_chip.dart';
+
+class MedicalCategory {
+  final IconData iconData;
+  final Color color;
+  final Color textColor;
+  MedicalCategory({required this.iconData, required this.color, required this.textColor});
+}
+
+Map<String, MedicalCategory> categoryIcons = {
+  "Cardiovascular": MedicalCategory(iconData: Symbols.cardiology, color: Color(0xFFBA0000), textColor: Colors.white),
+  "Dermatological": MedicalCategory(iconData: Symbols.dermatology, color: Color(0xFFBA5D00), textColor: Colors.white),
+  "Gastrointestinal": MedicalCategory(iconData: Symbols.gastroenterology, color: Color(0xFF64008C), textColor: Colors.white),
+  "Infectious and Immunological":MedicalCategory(iconData: Symbols.microbiology, color: Color(0xFFBA8002), textColor: Colors.white),
+  "Mental and Behavioral Health": MedicalCategory(iconData: Symbols.psychiatry, color: Color(0xFF187303), textColor: Colors.white),
+  "Metabolic & Endocrine": MedicalCategory(iconData: Symbols.metabolism, color: Color(0xFF730350), textColor: Colors.white),
+  "Musculoskeletal": MedicalCategory(iconData: Symbols.orthopedics, color: Color(0xFF636363), textColor: Colors.white),
+  "Neurological": MedicalCategory(iconData: Symbols.neurology, color: Color(0xFF215A8A), textColor: Colors.white),
+  "Respiratory": MedicalCategory(iconData: Symbols.pulmonology, color: Color(0xFF0298BA), textColor: Colors.white),
+  "Urological and Reproductive": MedicalCategory(iconData: Symbols.urology, color: Color(0xFF8A346C), textColor: Colors.white),
+};
 
 class PhysicalHealthAssessment extends StatefulWidget {
   final String patientUuid;
@@ -19,7 +41,7 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
   late Future<Map<String, List<ConditionReference>>> _catalogFuture;
   late Future<List<PatientCondition>> _patientConditions;
 
-  // 🟢 We will store a flat list of references once loaded to quickly render the top dock
+  // We will store a flat list of references once loaded to quickly render the top dock
   List<ConditionReference> _allConditionsFlat = [];
 
   @override
@@ -74,54 +96,60 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
               child: !hasActiveConditions
                   ? const SizedBox.shrink()
                   : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.assignment_late_outlined, size: 16, color: AppTheme.clinicalCyan),
-                      SizedBox(width: 6),
-                      Text(
-                        "PATIENT ACTIVE PROFILE SUMMARY",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.clinicalCyan,
-                          letterSpacing: 0.5,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.assignment_late_outlined, size: 16, color: AppTheme.clinicalCyan),
+                            SizedBox(width: 6),
+                            Text(
+                              "PATIENT ACTIVE PROFILE SUMMARY",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.clinicalCyan,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: livePatientConditions.map((PatientCondition currentCondition) {
-                      // Find the matching master reference metadata in memory for this row
-                      final selectedCurrentRef = _allConditionsFlat.firstWhere(
-                            (ref) => ref.id == currentCondition.conditionId,
-                        orElse: () => ConditionReference(id: currentCondition.conditionId, name: currentCondition.name, category: ""),
-                      );
-                      currentCondition.name = selectedCurrentRef.name;
-                      return ConditionChip(
-                        patientUuid: widget.patientUuid,
-                        patientCondition: currentCondition,
-                        onDeleteCondition: (int id) async {
-                          await DatabaseManager().deletePatientCondition(id);
-                          setState(() {
-                            _patientConditions = DatabaseManager().getConditionsForPatient(widget.patientUuid);
-                          });
-                        },
-                        onUpdateCondition: () {
-                          // 🟢 When a chip updates, trigger the exact same parent refresh query!
-                          setState(() {
-                            _patientConditions = DatabaseManager().getConditionsForPatient(widget.patientUuid);
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: livePatientConditions.map((PatientCondition currentCondition) {
+                            // Find the matching master reference metadata in memory for this row
+                            final selectedCurrentRef = _allConditionsFlat.firstWhere(
+                              (ref) => ref.id == currentCondition.conditionId,
+                              orElse: () => ConditionReference(
+                                id: currentCondition.conditionId,
+                                name: currentCondition.name,
+                                category: "",
+                              ),
+                            );
+                            currentCondition.name = selectedCurrentRef.name;
+                            return ConditionChip(
+                              patientUuid: widget.patientUuid,
+                              icon: categoryIcons[selectedCurrentRef.category]!.iconData,
+                              color: categoryIcons[selectedCurrentRef.category]!.color,
+                              patientCondition: currentCondition,
+                              onDeleteCondition: (int id) async {
+                                await DatabaseManager().deletePatientCondition(id);
+                                setState(() {
+                                  _patientConditions = DatabaseManager().getConditionsForPatient(widget.patientUuid);
+                                });
+                              },
+                              onUpdateCondition: () {
+                                // When a chip updates, trigger the exact same parent refresh query!
+                                setState(() {
+                                  _patientConditions = DatabaseManager().getConditionsForPatient(widget.patientUuid);
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
             ),
 
             // The main scrollable data input catalog
@@ -142,7 +170,10 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
                     builder: (context, catalogSnapshot) {
                       if (catalogSnapshot.connectionState == ConnectionState.waiting) {
                         return const Center(
-                          child: Padding(padding: EdgeInsets.symmetric(vertical: 20.0), child: CircularProgressIndicator()),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.0),
+                            child: CircularProgressIndicator(),
+                          ),
                         );
                       }
                       if (catalogSnapshot.hasError || !catalogSnapshot.hasData) {
@@ -160,7 +191,9 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           // Pass down livePatientConditions so your individual sub-group chips know their selection state synchronously
-                          children: catalogMap.entries.map((group) => _buildGroup(group.key, group.value, livePatientConditions)).toList(),
+                          children: catalogMap.entries
+                              .map((group) => _buildGroup(group.key, group.value, livePatientConditions))
+                              .toList(),
                         ),
                       );
                     },
@@ -217,10 +250,21 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
   }
 
   Widget _buildGroup(String category, List<ConditionReference> conditions, List<PatientCondition> liveRecords) {
+    MedicalCategory categoryIcon = categoryIcons[category]!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+        Row(
+          children: [
+            HaloRippleChip(
+              iconData: categoryIcon.iconData,
+              text: category,
+              color: categoryIcon.color,
+              backgroundColor: Color(0xFF000000),
+              animate: false,
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -231,6 +275,24 @@ class _PhysicalHealthAssessmentState extends State<PhysicalHealthAssessment> {
 
             return FilterChip(
               label: Text(condition.name),
+              // 1. Customize the Text Style and Font Color
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : categoryIcon.color,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+              // 2. Customize the Border Color and Thickness
+              side: BorderSide(
+                color: isSelected ? Colors.transparent : categoryIcon.color.withAlpha(128),
+                width: 1.5,
+              ),
+              // 3. Customize Background Fill dynamically to match
+              color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return categoryIcon.color; // Solid category color when active
+                }
+                return categoryIcon.color.withAlpha(20); // Soft tint when inactive
+              }),
               selected: isSelected,
               onSelected: (bool selected) async {
                 if (selected) {

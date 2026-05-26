@@ -5,16 +5,20 @@ import 'condition_update.dart';
 
 class ConditionChip extends StatefulWidget {
   final String patientUuid;
+  final IconData icon;
+  final Color color;
   final PatientCondition patientCondition;
   final Function(int) onDeleteCondition;
-  final VoidCallback onUpdateCondition; // 🟢 Add this line here
+  final VoidCallback onUpdateCondition;
 
   const ConditionChip({
     super.key,
     required this.patientUuid,
+    required this.icon,
+    required this.color,
     required this.patientCondition,
     required this.onDeleteCondition,
-    required this.onUpdateCondition, // 🟢 Add this line here
+    required this.onUpdateCondition,
   });
 
   @override
@@ -24,9 +28,14 @@ class ConditionChipState extends State<ConditionChip> {
   @override
   Widget build(BuildContext context) {
     return RawChip(
+      avatar: Icon(
+        widget.icon, // Pass your Material Symbol or Icon here
+        size: 16,
+        color: AppTheme.clinicalWhite,
+      ),
       label: Text(widget.patientCondition.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       labelStyle: const TextStyle(color: Colors.white),
-      backgroundColor: AppTheme.deepLogicViolet,
+      backgroundColor: widget.color,
       deleteIcon: const Icon(Icons.cancel, size: 14, color: AppTheme.clinicalWhite),
       onDeleted: () {
         int? id = widget.patientCondition.id;

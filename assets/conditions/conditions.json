@@ -1,37 +1,423 @@
-
 {
-  "Psychiatric / Neurodivergent": [
-    "Schizoid PD",
-    "Schizoaffective",
-    "Bipolar I",
-    "Bipolar II",
-    "PTSD",
-    "ADHD",
-    "ASD",
-    "Major Depression"
-  ],
   "Cardiovascular": [
-    "Hypertension",
-    "AFib",
-    "CAD",
-    "CHF"
+    {
+      "name": "Hypertension",
+      "description": "High blood pressure that strains blood vessels."
+    },
+    {
+      "name": "Hyperlipidemia",
+      "description": "High cholesterol or triglycerides in the blood."
+    },
+    {
+      "name": "Coronary Artery Disease (CAD)",
+      "description": "Narrowing of the heart's primary arteries."
+    },
+    {
+      "name": "Heart Failure",
+      "description": "Inability of the heart to pump blood effectively."
+    },
+    {
+      "name": "Arrhythmia",
+      "description": "Irregular heartbeat rhythms, including atrial fibrillation."
+    },
+    {
+      "name": "Angina",
+      "description": "Chest pain caused by reduced blood flow to the heart."
+    },
+    {
+      "name": "Peripheral Artery Disease (PAD)",
+      "description": "Narrowed blood vessels reducing limb circulation."
+    },
+    {
+      "name": "Deep Vein Thrombosis (DVT)",
+      "description": "Blood clots forming in deep veins, typically legs."
+    },
+    {
+      "name": "Myocardial Infarction",
+      "description": "Commonly known as a heart attack."
+    },
+    {
+      "name": "Stroke",
+      "description": "Interrupted blood flow to the brain, causing tissue damage."
+    }
   ],
   "Respiratory": [
-    "Sleep Apnea",
-    "COPD",
-    "Asthma",
-    "Emphysema"
+    {
+      "name": "Common Cold",
+      "description": "Viral upper respiratory tract infection."
+    },
+    {
+      "name": "Influenza (Flu)",
+      "description": "Highly contagious viral infection of the respiratory system."
+    },
+    {
+      "name": "Asthma",
+      "description": "Chronic inflammation making the airways narrow and swell."
+    },
+    {
+      "name": "Chronic Obstructive Pulmonary Disease (COPD)",
+      "description": "Progressive lung airflow blockage."
+    },
+    {
+      "name": "Acute Bronchitis",
+      "description": "Temporary inflammation of the main airways in the lungs."
+    },
+    {
+      "name": "Pneumonia",
+      "description": "Infection that inflames air sacs in one or both lungs."
+    },
+    {
+      "name": "Allergic Rhinitis",
+      "description": "Seasonal or year-round allergies (hay fever)."
+    },
+    {
+      "name": "Sinusitis",
+      "description": "Swelling and inflammation of the nasal sinuses."
+    },
+    {
+      "name": "Sleep Apnea",
+      "description": "Disrupted breathing patterns during sleep."
+    },
+    {
+      "name": "COVID-19",
+      "description": "Respiratory illness caused by the SARS-CoV-2 virus."
+    }
+  ],
+  "Metabolic & Endocrine": [
+    {
+      "name": "Type 2 Diabetes",
+      "description": "Chronic condition affecting how the body processes blood sugar."
+    },
+    {
+      "name": "Type 1 Diabetes",
+      "description": "Autoimmune condition where the pancreas produces little to no insulin."
+    },
+    {
+      "name": "Hypothyroidism",
+      "description": "Underactive thyroid gland producing insufficient hormones."
+    },
+    {
+      "name": "Hyperthyroidism",
+      "description": "Overactive thyroid gland producing too much hormone."
+    },
+    {
+      "name": "Obesity",
+      "description": "Excessive body fat that increases other health risks."
+    },
+    {
+      "name": "Prediabetes",
+      "description": "Elevated blood sugar levels not yet high enough for a diabetes diagnosis."
+    },
+    {
+      "name": "Metabolic Syndrome",
+      "description": "Cluster of increasing heart disease and stroke risk."
+    },
+    {
+      "name": "Vitamin D Deficiency",
+      "description": "Insufficient vitamin levels impacting bone and immune health."
+    },
+    {
+      "name": "Gout",
+      "description": "Form of inflammatory arthritis tied to high uric acid."
+    },
+    {
+      "name": "Polycystic Ovary Syndrome (PCOS)",
+      "description": "Hormonal disorder causing enlarged ovaries with small cysts."
+    }
+  ],
+  "Mental and Behavioral Health": [
+    {
+      "name": "Generalized Anxiety Disorder (GAD)",
+      "description": "Chronic, exaggerated worry and tension."
+    },
+    {
+      "name": "Major Depressive Disorder (MDD)",
+      "description": "Persistent feelings of sadness and loss of interest."
+    },
+    {
+      "name": "Panic Disorder",
+      "description": "Sudden, recurring episodes of intense fear (panic attacks)."
+    },
+    {
+      "name": "Post-Traumatic Stress Disorder (PTSD)",
+      "description": "Mental health condition triggered by terrifying events."
+    },
+    {
+      "name": "Attention-Deficit/Hyperactivity Disorder (ADHD)",
+      "description": "Persistent patterns of inattention or hyperactivity."
+    },
+    {
+      "name": "Obsessive-Compulsive Disorder (OCD)",
+      "description": "Unwanted, recurring thoughts leading to repetitive behaviors."
+    },
+    {
+      "name": "Bipolar Disorder",
+      "description": "Brain disorder causing severe shifts in mood, energy, and activity."
+    },
+    {
+      "name": "Insomnia",
+      "description": "Chronic difficulty falling or staying asleep."
+    },
+    {
+      "name": "Substance Use Disorder",
+      "description": "Dependence on drugs, alcohol, or medications."
+    },
+    {
+      "name": "Social Anxiety Disorder",
+      "description": "Intense fear of being watched and judged by others."
+    }
+  ],
+  "Musculoskeletal": [
+    {
+      "name": "Osteoarthritis",
+      "description": "Degenerative joint disease causing cartilage breakdown."
+    },
+    {
+      "name": "Rheumatoid Arthritis",
+      "description": "Chronic inflammatory disorder affecting joints."
+    },
+    {
+      "name": "Osteoporosis",
+      "description": "Weakened, brittle bones prone to fracture."
+    },
+    {
+      "name": "Non-Specific Back Pain",
+      "description": "Pain in the lumbar or thoracic spine region."
+    },
+    {
+      "name": "Fibromyalgia",
+      "description": "Widespread musculoskeletal pain accompanied by fatigue and sleep issues."
+    },
+    {
+      "name": "Sciatica",
+      "description": "Pain radiating along the sciatic nerve down the legs."
+    },
+    {
+      "name": "Carpal Tunnel Syndrome",
+      "description": "Compression of the median nerve in the wrist."
+    },
+    {
+      "name": "Plantar Fasciitis",
+      "description": "Inflammation of tissue along the bottom of the foot."
+    },
+    {
+      "name": "Tendinitis",
+      "description": "Inflammation or irritation of a tendon from overuse."
+    },
+    {
+      "name": "Bursitis",
+      "description": "Painful condition affecting the fluid-filled sacs protecting joints."
+    }
   ],
   "Gastrointestinal": [
-    "IBS",
-    "Crohn's Disease",
-    "GERD",
-    "Liver Disease"
+    {
+      "name": "Gastroesophageal Reflux Disease (GERD)",
+      "description": "Chronic acid reflux irritating the food pipe."
+    },
+    {
+      "name": "Irritable Bowel Syndrome (IBS)",
+      "description": "Common disorder affecting the large intestine."
+    },
+    {
+      "name": "Gastritis",
+      "description": "Inflammation of the protective stomach lining."
+    },
+    {
+      "name": "Gastroenteritis",
+      "description": "Intestinal infection causing diarrhea and cramps (stomach flu)."
+    },
+    {
+      "name": "Hemorrhoids",
+      "description": "Swollen veins in the lowest part of the rectum and anus."
+    },
+    {
+      "name": "Constipation",
+      "description": "Infrequent bowel movements or difficult passage of stool."
+    },
+    {
+      "name": "Gallstones",
+      "description": "Hardened deposits of digestive fluid in the gallbladder."
+    },
+    {
+      "name": "Celiac Disease",
+      "description": "Immune reaction to eating gluten that damages the small intestine."
+    },
+    {
+      "name": "Crohn's Disease",
+      "description": "Type of inflammatory bowel disease causing tract inflammation."
+    },
+    {
+      "name": "Ulcerative Colitis",
+      "description": "Inflammatory bowel disease causing long-lasting ulcers."
+    }
   ],
-  "Renal / Metabolic": [
-    "CKD",
-    "Diabetes Type 1",
-    "Diabetes Type 2",
-    "Thyroid Disorder"
+  "Dermatological": [
+    {
+      "name": "Acne Vulgaris",
+      "description": "Skin condition occurring when hair follicles plug with oil."
+    },
+    {
+      "name": "Eczema (Atopic Dermatitis)",
+      "description": "Condition making skin red and itchy."
+    },
+    {
+      "name": "Psoriasis",
+      "description": "Skin disease causing red, itchy, scaly patches."
+    },
+    {
+      "name": "Contact Dermatitis",
+      "description": "Red, itchy rash caused by direct contact with a substance."
+    },
+    {
+      "name": "Rosacea",
+      "description": "Common skin condition causing blushing or flushing in the face."
+    },
+    {
+      "name": "Alopecia Areata",
+      "description": "Autoimmune condition causing patchy hair loss."
+    },
+    {
+      "name": "Onychomycosis",
+      "description": "Fungal infection of the fingernails or toenails."
+    },
+    {
+      "name": "Hives (Urticaria)",
+      "description": "Itchy, raised welts on the skin surface."
+    },
+    {
+      "name": "Cellulitis",
+      "description": "Common, potentially serious bacterial skin infection."
+    },
+    {
+      "name": "Warts",
+      "description": "Small, grainy skin growths caused by human papillomavirus (HPV)."
+    }
+  ],
+  "Neurological": [
+    {
+      "name": "Migraine",
+      "description": "Headache type causing severe throbbing pain or pulsing sensations."
+    },
+    {
+      "name": "Tension Headaches",
+      "description": "Mild to moderate pain often described as a tight band around the head."
+    },
+    {
+      "name": "Alzheimer's Disease",
+      "description": "Progressive neurologic disorder causing brain atrophy and memory loss."
+    },
+    {
+      "name": "Vascular Dementia",
+      "description": "Memory loss caused by reduced blood flow to the brain."
+    },
+    {
+      "name": "Epilepsy",
+      "description": "Central nervous system disorder causing recurrent seizures."
+    },
+    {
+      "name": "Parkinson's Disease",
+      "description": "Progressive nervous system disorder affecting movement."
+    },
+    {
+      "name": "Multiple Sclerosis (MS)",
+      "description": "Disease where the immune system eats away at nerve protection."
+    },
+    {
+      "name": "Peripheral Neuropathy",
+      "description": "Nerve damage causing weakness, numbness, and pain in hands or feet."
+    },
+    {
+      "name": "Essential Tremor",
+      "description": "Neurological disorder causing involuntary, rhythmic shaking."
+    },
+    {
+      "name": "Vertigo (Benign Paroxysmal Positional Vertigo)",
+      "description": "Sensation of spinning caused by inner ear issues."
+    }
+  ],
+  "Urological and Reproductive": [
+    {
+      "name": "Urinary Tract Infection (UTI)",
+      "description": "Infection in any part of the urinary system."
+    },
+    {
+      "name": "Benign Prostatic Hyperplasia (BPH)",
+      "description": "Age-associated prostate gland enlargement."
+    },
+    {
+      "name": "Urinary Incontinence",
+      "description": "Loss of bladder control causing accidental leakage."
+    },
+    {
+      "name": "Kidney Stones",
+      "description": "Hard deposits of minerals and acid salts forming inside kidneys."
+    },
+    {
+      "name": "Chronic Kidney Disease (CKG)",
+      "description": "Gradual loss of kidney function over time."
+    },
+    {
+      "name": "Erectile Dysfunction (ED)",
+      "description": "Inability to get or keep an erection firm enough for intercourse."
+    },
+    {
+      "name": "Endometriosis",
+      "description": "Tissue similar to the uterine lining growing outside the uterus."
+    },
+    {
+      "name": "Uterine Fibroids",
+      "description": "Non-cancerous growths of the uterus during childbearing years."
+    },
+    {
+      "name": "Bacterial Vaginosis",
+      "description": "Vaginal inflammation caused by overgrowth of natural bacteria."
+    },
+    {
+      "name": "Vaginal Candidiasis",
+      "description": "Fungal infection commonly called a vaginal yeast infection."
+    }
+  ],
+  "Infectious and Immunological": [
+    {
+      "name": "Conjunctivitis",
+      "description": "Inflammation of the transparent membrane lining the eyelid (pink eye)."
+    },
+    {
+      "name": "Otitis Media",
+      "description": "Middle ear infection common in pediatric patients."
+    },
+    {
+      "name": "Streptococcal Pharyngitis",
+      "description": "Bacterial throat infection commonly known as strep throat."
+    },
+    {
+      "name": "Herpes Simplex (Oral or Genital)",
+      "description": "Viral infection causing sores on lips or genitals."
+    },
+    {
+      "name": "Human Papillomavirus (HPV)",
+      "description": "Viral infection passed through skin-to-skin contact."
+    },
+    {
+      "name": "Chlamydia",
+      "description": "Common sexually transmitted infection that may not show symptoms."
+    },
+    {
+      "name": "Shingles (Herpes Zoster)",
+      "description": "Viral infection causing a painful, localized rash."
+    },
+    {
+      "name": "Lyme Disease",
+      "description": "Tick-borne bacterial illness causing fever and rashes."
+    },
+    {
+      "name": "Mononucleosis",
+      "description": "Infectious disease often transmitted through saliva (mono)."
+    },
+    {
+      "name": "HIV/AIDS",
+      "description": "Chronic, life-threatening condition caused by the human immunodeficiency virus."
+    }
   ]
 }
+

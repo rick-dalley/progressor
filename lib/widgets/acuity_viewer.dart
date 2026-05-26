@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:triage/widgets/pulsing_icon.dart';
 import '../app_theme.dart';
 import '../classes/acuity.dart';
-import '../classes/database_manager.dart';
 
 class AcuityViewer extends StatelessWidget {
   final Acuity acuity;

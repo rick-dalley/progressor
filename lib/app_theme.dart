@@ -35,6 +35,7 @@ class AppTheme {
     3: lessUrgent,
     4: nonUrgent,
   };
+
   static const Map<int, Color> acuityFontColors = {
     0: resuscitation,
     1: emergent,
@@ -42,6 +43,7 @@ class AppTheme {
     3: lessUrgent,
     4: Color(0xFF080808),
   };
+
   static  Map<int, Color> acuityBackgroundColors = {
     0: resuscitationBackground,
     1: emergentBackground,
@@ -49,14 +51,15 @@ class AppTheme {
     3: lessUrgentBackground,
     4: nonUrgentBackground,
   };
+
   static const Map<int, IconData> acuityIcons = {
     0: Icons.emergency,
     1: Icons.circle_rounded,
     2: Icons.circle_rounded,
     3: Icons.circle_rounded,
     4: Icons.circle_rounded,
-
   };
+
   // Background colors
   static const Color canvasColor = Color(0xFFF5F5F7);
   static const Color cardBorder = Color(0xFFAAAAAA);
@@ -70,6 +73,7 @@ class AppTheme {
   static const Color processStepPossible = Color(0xFF90A4AE);
   static const Color processStepRequired = Color(0xFF1E88E5);
   static const Color processStepActive = Color(0xFF7C4DFF);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
