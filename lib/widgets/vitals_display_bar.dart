@@ -74,7 +74,7 @@ class VitalsBar extends StatelessWidget {
             child: Ink(
               width: 54,
               decoration: BoxDecoration(
-                color: AppTheme.deepLogicViolet,
+                color: AppTheme.clinicalCyan,
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(8),
                   bottomRight: Radius.circular(8),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:triage/widgets/process_tree.dart';
+import 'package:triage/widgets/process_tree_widget.dart';
 import 'package:triage/widgets/process_widgets.dart';
 import 'package:triage/widgets/vitals_display_bar.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
+import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
 import '../classes/process_step.dart';
@@ -64,10 +65,11 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String patientUuid = patient['patient_uuid'] ?? "";
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
-    final int dynamicPatientStepId = patient['phase_step_id'] ?? 101;
-    final int currentPhaseId = dynamicPatientStepId ~/ 100;
-    final List<ProcessStep> bluePrint = DatabaseManager().processBlueprint;
-    final List activePhaseStepsList = bluePrint[currentPhaseId - 1].children;
+    final int thisStepId = patient['phase_step_id'] ?? 101;
+    final int thisPhaseId = thisStepId ~/ 100;
+    final Map<int, ProcessStep>? siblings = DatabaseManager().processBlueprint[thisPhaseId]?.children;
+    final ProcessStep? thisStep = siblings?[thisStepId];
+    final ProcessStep? previousStep = siblings?[thisStepId-1];
 
     return Card(
       elevation: 4,
@@ -141,7 +143,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // A. The Macro Linear Rail — tracks active phase block seamlessly
-                  ProcessPhaseRail(activePhaseId: currentPhaseId, phases: DatabaseManager().processBlueprint),
+                  ProcessPhaseRail(currentPhaseId: thisPhaseId, phases: DatabaseManager().processBlueprint),
 
                   const SizedBox(height: 10),
 
@@ -149,14 +151,11 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   Builder(
                     builder: (context) {
                       // 1. Generate the flat registry from our typed blueprint list
-                      final Map<int, ProcessStep> registry = {};
-                      for (final blueprint in DatabaseManager().processBlueprint) {
-                        registry.addAll(blueprint.generateRegistry());
-                      }
 
                       return HorizontalStepViewer(
-                        activePhaseStepsList: activePhaseStepsList,
-                        dynamicPatientStepId: dynamicPatientStepId,
+                        thisStep: thisStep,
+                        previousStep: previousStep,
+                        siblings:siblings,
                       );
                     },
                   ),

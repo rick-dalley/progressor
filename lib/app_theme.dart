@@ -51,11 +51,17 @@ class AppTheme {
   };
   // Background colors
   static const Color canvasColor = Color(0xFFF5F5F7);
-  static const Color cardBorder = Color(0xFF202020);
+  static const Color cardBorder = Color(0xFFAAAAAA);
+  static const Color chipBorder = Color(0xFFCCCCCC);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color defaultFontColor = deepCharcoal;
   static const Color defaultInverseFontColor = surfaceColor;
-
+  static const Color processStepPrimary = Color(0xFF2E7D32);
+  static const Color processStepTerminal = Color(0xFFFF3232);
+  static const Color processStepPlain = Color(0xFFA0A0A0);
+  static const Color processStepPossible = Color(0xFF90A4AE);
+  static const Color processStepRequired = Color(0xFF1E88E5);
+  static const Color processStepActive = Color(0xFF7C4DFF);
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

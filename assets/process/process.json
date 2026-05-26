@@ -219,7 +219,7 @@
           "record": ["Note"],
           "source": ["Psychiatrist"],
           "description": "Conduct a psychiatric assessment of the subject and decide whether to certify, continue observing, or discharge the patient.",
-          "required_next": [],
+          "required_next": [402, 403, 404, 501, 502, 503, 504],
           "possible_next": [402, 403, 404, 501, 502, 503, 504],
           "time_limit": 0
         },

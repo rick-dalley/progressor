@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import '../classes/database_manager.dart';
+import '../app_theme.dart';
+import '../classes/process_category.dart';
 import '../classes/process_step.dart';
 
 // Represents the macro phase block
 class ProcessPhaseRail extends StatelessWidget {
-  final int activePhaseId;
-  final List<dynamic> phases;
+  final int currentPhaseId;
+  final Map<int, ProcessStep> phases;
 
-  const ProcessPhaseRail({super.key, required this.activePhaseId, required this.phases});
+  const ProcessPhaseRail({super.key, required this.currentPhaseId, required this.phases});
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: phases.map((phase) {
-        // Use direct dot-notation property lookups instead of bracket strings
-        final isCompleted = phase.id < activePhaseId;
-        final isActive = phase.id == activePhaseId;
+      // 👈 FIXED: Route through .values to map the data models directly into your Widgets
+      children: phases.values.map<Widget>((phase) {
+        // Now direct dot-notation property lookups work perfectly
+        final isCompleted = phase.id < currentPhaseId;
+        final isActive = phase.id == currentPhaseId;
 
         return Expanded(
           flex: isActive ? 2 : 1, // Give the active phase extra real estate
@@ -36,40 +38,50 @@ class ProcessPhaseRail extends StatelessWidget {
 
 // Micro step badge layout to render right below the tracking rail
 class CompactStepBadge extends StatelessWidget {
-  final String stepName;
+  final ProcessStep currentStep;
+  final bool isConcurrent;
   final String criticality;
   final String type;
+  final bool isCurrentStep;
   final bool isTerminalClosure;
+  final bool isFirstInPhase;
+  final bool isFirstInProcess;
 
   const CompactStepBadge({
     super.key,
-    required this.stepName,
+    required this.currentStep,
+    required this.isConcurrent,
     required this.criticality,
     required this.type,
+    this.isCurrentStep = false,
     this.isTerminalClosure = false,
+    this.isFirstInPhase = false,
+    this.isFirstInProcess = false,
   });
 
   @override
   Widget build(BuildContext context) {
     // Determine color schemes based on execution states
-    Color backgroundColor = Colors.grey.shade100;
-    Color textColor = Colors.black87;
+    Color textColor = isCurrentStep ? Colors.white : Colors.black;
+    Color backgroundColor = isCurrentStep ? AppTheme.processStepActive : AppTheme.canvasColor;
+    Color borderColor = isCurrentStep ? AppTheme.deepCharcoal : AppTheme.processStepPlain;
 
     if (isTerminalClosure) {
-      if (criticality == 'terminal_active') {
-        backgroundColor = Colors.teal.shade700;
-        textColor = Colors.white;
-      } else if (criticality == 'terminal_available') {
-        backgroundColor = Colors.teal.shade50;
-        textColor = Colors.teal.shade900;
-      }
+      backgroundColor = isCurrentStep ? AppTheme.processStepTerminal : AppTheme.processStepTerminal.withAlpha(96);
+      textColor = isCurrentStep ? Colors.white : AppTheme.processStepTerminal;
+      borderColor = AppTheme.processStepTerminal;
     } else {
-      // Fall back to standard warning / high / standard color mappings
-      if (criticality == 'warning') {
-        backgroundColor = Colors.orange.shade600;
-        textColor = Colors.white;
-      } // ... other states
+      if (isFirstInProcess) {
+        backgroundColor = isCurrentStep ? AppTheme.processStepPrimary : AppTheme.processStepPrimary.withAlpha(96);
+        textColor = isCurrentStep ? Colors.white : AppTheme.processStepPrimary;
+        borderColor = AppTheme.processStepPrimary.withAlpha(96);
+      } else {
+        backgroundColor = isCurrentStep ? AppTheme.processStepActive : AppTheme.canvasColor;
+        textColor = isCurrentStep ? Colors.white : Colors.black;
+        borderColor = Colors.grey;
+      }
     }
+
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -78,29 +90,24 @@ class CompactStepBadge extends StatelessWidget {
         color: backgroundColor,
         // Shape Transition: Terminal targets render as a strict rounded pill
         borderRadius: BorderRadius.circular(isTerminalClosure ? 20.0 : 6.0),
-        border: isTerminalClosure && criticality == 'terminal_available'
-            ? Border.all(color: Colors.teal.shade300, width: 1.5)
-            : null,
+        border: Border.all(color: borderColor, width: 1.5),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          Text(
-            stepName,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 12.0,
+          Expanded(
+            child: Text(
+              currentStep.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis, // This will now trigger reliably
+              textAlign: TextAlign.center,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 12.0),
             ),
           ),
           // Append trailing validation mark to clearly sign off on action completion
           if (isTerminalClosure) ...[
             const SizedBox(width: 4.0),
-            Icon(
-              Icons.check_circle_outline,
-              size: 14.0,
-              color: textColor,
-            ),
+            Icon(Icons.check_circle_outline, size: 14.0, color: textColor),
           ],
         ],
       ),
@@ -109,14 +116,11 @@ class CompactStepBadge extends StatelessWidget {
 }
 
 class HorizontalStepViewer extends StatefulWidget {
-  final List<dynamic> activePhaseStepsList;
-  final int dynamicPatientStepId;
+  final ProcessStep? thisStep;
+  final ProcessStep? previousStep;
+  final Map<int, ProcessStep>? siblings;
 
-  const HorizontalStepViewer({
-    super.key,
-    required this.activePhaseStepsList,
-    required this.dynamicPatientStepId,
-  });
+  const HorizontalStepViewer({super.key, required this.thisStep, required this.previousStep, required this.siblings});
 
   @override
   State<HorizontalStepViewer> createState() => _HorizontalStepViewerState();
@@ -128,40 +132,58 @@ class _HorizontalStepViewerState extends State<HorizontalStepViewer> {
   @override
   void initState() {
     super.initState();
-    // Schedule an execution frame pass, then scroll to the active item position smoothly
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToActiveStep();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToActiveStep());
   }
 
   @override
   void didUpdateWidget(HorizontalStepViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If the step changed while the card was active, smoothly re-center the view
-    if (oldWidget.dynamicPatientStepId != widget.dynamicPatientStepId) {
+    if (oldWidget.thisStep?.id != widget.thisStep?.id) {
       _scrollToActiveStep();
     }
   }
 
   void _scrollToActiveStep() {
-    if (!_scrollController.hasClients) return;
+    if (!_scrollController.hasClients || widget.siblings == null || widget.thisStep == null) return;
 
-    // Standardize and chronologically sort the internal working list to find the true index
-    final List<ProcessStep> typedSteps = widget.activePhaseStepsList
-        .map((item) => item as ProcessStep)
-        .toList();
-    typedSteps.sort((a, b) => a.id.compareTo(b.id));
+    final stepList = widget.siblings!.values.toList();
+    List<int> concurrentStepIds = [];
 
-    // Find where our active item is sitting in the sorted layout sequence
-    final int activeIndex = typedSteps.indexWhere((step) => step.id == widget.dynamicPatientStepId);
+    double calculatedXOffset = 0.0;
+    bool targetFound = false;
 
-    // Fixed strict type safety validation check
-    if (activeIndex != -1) {
-      // Estimate the scroll position (approx. 125px per badge width + right padding offset)
-      double estimatedOffset = activeIndex * 125.0;
+    for (final stepItem in stepList) {
+      final flags = ProcessFlags.fromProcessStep(stepItem);
+
+      if (flags.branches) {
+        concurrentStepIds.addAll(stepItem.requiredNext);
+      }
+
+      final bool isConcurrent = concurrentStepIds.contains(stepItem.id);
+
+      if (isConcurrent) {
+        concurrentStepIds.remove(stepItem.id);
+      }
+
+      // 👈 STOP CALCULATION: If this is our target step, we have our exact X position
+      if (stepItem.id == widget.thisStep!.id) {
+        targetFound = true;
+        break;
+      }
+
+      // Progress the layout tracker forward ONLY when passing true sequential base steps
+      if (!isConcurrent) {
+        calculatedXOffset += 125.0; // Matches your horizontal baseline stride exactly
+      }
+    }
+
+    if (targetFound) {
+      // Subtract a small buffer (e.g., 20.0 to 40.0) if you want the active card
+      // to sit slightly padded from the left edge of the screen instead of hard-flush.
+      double finalScrollTarget = calculatedXOffset;
 
       _scrollController.animateTo(
-        estimatedOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        finalScrollTarget.clamp(0.0, _scrollController.position.maxScrollExtent),
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubic,
       );
@@ -176,73 +198,91 @@ class _HorizontalStepViewerState extends State<HorizontalStepViewer> {
 
   @override
   Widget build(BuildContext context) {
-    // Rebuild the registry matrix from the global blueprint layout
-    final Map<int, ProcessStep> registry = {};
-    for (final phase in DatabaseManager().processBlueprint) {
-      registry.addAll(phase.generateRegistry());
-    }
-
-    final List<ProcessStep> typedSteps = widget.activePhaseStepsList
-        .map((item) => item as ProcessStep)
-        .toList();
-
-    // FIXED: Sorted chronologically by sequence ID so elements maintain stable natural order
-    typedSteps.sort((a, b) => a.id.compareTo(b.id));
-
-    final ProcessStep? currentLocusStep = registry[widget.dynamicPatientStepId];
-
+    final Map<int, ProcessStep> stepsMap = widget.siblings ?? {};
+    List<int> concurrentStepIds = [];
     return SizedBox(
-      height: 38.0,
+      height: 64.0,
       child: ShaderMask(
         shaderCallback: (Rect bounds) {
           return LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [
-              Colors.black,
-              Colors.black.withValues(alpha: 0.95),
-              Colors.black.withValues(alpha: 0.0),
-            ],
+            colors: [Colors.black, Colors.black.withValues(alpha: 0.95), Colors.black.withValues(alpha: 0.0)],
             stops: const [0.0, 0.88, 1.0],
           ).createShader(bounds);
         },
         blendMode: BlendMode.dstIn,
         child: SingleChildScrollView(
-          controller: _scrollController, // Connected automated tracking controller
+          controller: _scrollController,
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(right: 32.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: typedSteps.map<Widget>((stepItem) {
-              final bool isCurrentStep = stepItem.id == widget.dynamicPatientStepId;
+          padding: const EdgeInsets.only(right: 32.0, bottom: 16.0),
+          child: Builder(
+            builder: (context) {
+              final List<ProcessStep> stepsList = stepsMap.values.toList();
+              List<int> concurrentStepIds = [];
 
-              // Evaluate Terminal Signature: next points explicitly to 0 with no alternatives
-              final bool isTerminalStep = stepItem.requiredNext.length == 1 &&
-                  stepItem.requiredNext.first == 0;
+              double xOffset = 128;
+              int stackDepthCounter = 0;
+              double leftPosition = xOffset * -1;
+              double topPosition = 0;
 
-              String computedCriticality;
+              return SizedBox(
+                width: (stepsList.length * 136.0),
+                height: 76.0,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: stepsList.map((stepItem) {
+                    final bool isCurrentStep = stepItem.id == widget.thisStep?.id;
+                    final flags = ProcessFlags.fromProcessStep(stepItem);
+                    final String computedCriticality = isCurrentStep ? 'warning' : 'inactive';
 
-              if (isCurrentStep) {
-                computedCriticality = isTerminalStep ? 'terminal_active' : 'warning';
-              } else if (currentLocusStep != null && currentLocusStep.requiredNext.contains(stepItem.id)) {
-                computedCriticality = isTerminalStep ? 'terminal_available' : 'high';
-              } else if (currentLocusStep != null && currentLocusStep.possibleNext.contains(stepItem.id)) {
-                computedCriticality = 'standard';
-              } else {
-                computedCriticality = 'inactive';
-              }
+                    if (flags.branches) {
+                      concurrentStepIds.addAll(stepItem.requiredNext);
+                    }
 
-              return Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: CompactStepBadge(
-                  stepName: stepItem.name,
-                  criticality: computedCriticality,
-                  type: stepItem.requirement.isNotEmpty ? stepItem.requirement.first : 'general',
-                  isTerminalClosure: isTerminalStep,
+                    final bool isConcurrent = concurrentStepIds.contains(stepItem.id);
+
+                    if (isConcurrent) {
+                      concurrentStepIds.remove(stepItem.id);
+                      if (stackDepthCounter == 0) {
+                        leftPosition += xOffset;
+                      }
+                      leftPosition += (8.0 * stackDepthCounter);
+                      topPosition += (6.0 * stackDepthCounter);
+                      stackDepthCounter = 1;
+                    } else {
+                      leftPosition += xOffset;
+                      topPosition = 0;
+                      stackDepthCounter = 0;
+                    }
+
+                    return AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      left: leftPosition,
+                      top: topPosition,
+                      child: SizedBox(
+                        width: 130.0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 6.0),
+                          child: CompactStepBadge(
+                            currentStep: stepItem,
+                            isConcurrent: isConcurrent,
+                            criticality: computedCriticality,
+                            type: stepItem.requirement.isNotEmpty ? stepItem.requirement.first : 'general',
+                            isCurrentStep: isCurrentStep,
+                            isTerminalClosure: flags.isTerminal,
+                            isFirstInProcess: flags.isPrimary,
+                            isFirstInPhase: flags.isFirst,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               );
-            }).toList(),
+            },
           ),
         ),
       ),

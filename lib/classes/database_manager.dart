@@ -8,28 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
 import 'package:triage/classes/process_step.dart';
 import 'package:uuid/uuid.dart';
+import 'acuity.dart';
 import 'data_seeder.dart';
-
-class Acuity {
-  final int level;
-  final String statusName;
-  final String clinicalPicture;
-  final int interventionWindow;
-
-  Acuity({
-    required this.level,
-    required this.statusName,
-    required this.clinicalPicture,
-    required this.interventionWindow,
-  });
-
-  // Using an initializer list is best practice for final fields in Dart
-  Acuity.fromJson(dynamic item)
-    : level = item['level'],
-      statusName = item['status'],
-      clinicalPicture = item['clinical_picture'],
-      interventionWindow = item['intervention_window'];
-}
 
 class DatabaseManager {
   // Singleton pattern
@@ -70,7 +50,24 @@ class DatabaseManager {
     }
   }
 
-  List<ProcessStep> processBlueprint = [];
+  Map<int, ProcessStep> processBlueprint = {};
+
+  ProcessStep? getProcessStepForId(int stepId) {
+
+    ProcessStep? currentStepNode;
+
+    // 2. Iterate through the phases using .values to find where the step lives
+    for (final phase in processBlueprint.values) {
+      final match = phase.children[stepId];
+      if (match != null) {
+        currentStepNode =  match;
+        break; // Stop searching once we find the node
+      }
+    }
+    return currentStepNode;
+
+  }
+
 
   Future<Database> init({bool overwrite = false}) async {
     final String rawAcuityString = await rootBundle.loadString('assets/patients/acuity.json');
@@ -79,10 +76,13 @@ class DatabaseManager {
 
     final String rawProcessString = await rootBundle.loadString('assets/process/process.json');
     final Map<String, dynamic> processJson = json.decode(rawProcessString) as Map<String, dynamic>;
-
     // Use a map transformation to parse each raw item into a valid Step instance
     final List<dynamic> rawPhases = processJson["phases"] as List<dynamic>? ?? const [];
-    processBlueprint = rawPhases.map((phaseMap) => ProcessStep.fromJson(phaseMap as Map<String, dynamic>)).toList();
+    processBlueprint = {
+      for (final phaseMap in rawPhases)
+        (phaseMap['id'] as int): ProcessStep.fromJson(phaseMap as Map<String, dynamic>)
+    };
+
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
 
 class AcuityViewer extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/process_step.dart';
 
@@ -6,41 +7,36 @@ class ProcessTreeOverlay extends StatelessWidget {
   final String patientUuid;
   final int processStepId;
   final VoidCallback onProcessStepTapped;
+
   const ProcessTreeOverlay({
     super.key,
     required this.patientUuid,
     required this.processStepId,
-    required this.onProcessStepTapped
+    required this.onProcessStepTapped,
   });
 
   @override
   Widget build(BuildContext context) {
-    // bluePrint is the top-level List<ProcessStep> containing your 5 Phases (id: 1, 2, 3, 4, 5)
-    final List<ProcessStep> bluePrint = DatabaseManager().processBlueprint;
+    final Map<int, ProcessStep> bluePrint = DatabaseManager().processBlueprint;
 
-    // Use your extension method to find the active leaf step node anywhere in the document tree
-    ProcessStep? currentStepNode;
-    for (final phase in bluePrint) {
-      final match = phase.findNode(processStepId);
-      if (match != null) {
-        currentStepNode = match;
-        break;
-      }
-    }
-
+    ProcessStep? currentStepNode = DatabaseManager().getProcessStepForId(processStepId);
     final List<int> requiredNext = currentStepNode?.requiredNext ?? const [];
     final List<int> possibleNext = currentStepNode?.possibleNext ?? const [];
 
+    // Convert the top-level phase map values to a list for positional index rendering
+    final List<ProcessStep> phasesList = bluePrint.values.toList();
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-      itemCount: bluePrint.length,
+      itemCount: phasesList.length,
       itemBuilder: (context, index) {
-        // Each top-level item in bluePrint is a structural Phase (e.g., Medical Triage, Containment)
-        final ProcessStep phase = bluePrint[index];
-        final List<ProcessStep> stepChildren = phase.children;
+        final ProcessStep phase = phasesList[index];
 
-        // Correctly evaluate if this phase contains the patient's active leaf step (e.g., id: 201)
-        final bool containsActiveStep = stepChildren.any((step) => step.id == processStepId);
+        // 👈 UPDATED: children is now a Map<int, ProcessStep>
+        final Map<int, ProcessStep> stepChildrenMap = phase.children;
+
+        // 👈 UPDATED: Direct O(1) map lookup replaces linear collection .any() scans
+        final bool containsActiveStep = stepChildrenMap.containsKey(processStepId);
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12.0),
@@ -48,12 +44,11 @@ class ProcessTreeOverlay extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: BorderSide(
-              color: containsActiveStep ? Colors.deepPurple.shade300 : Colors.grey.shade200,
+              color: containsActiveStep ? AppTheme.processStepPrimary.withAlpha(128) : AppTheme.processStepPrimary,
               width: containsActiveStep ? 1.5 : 1,
             ),
           ),
           child: ExpansionTile(
-            // Auto-expands the phase the patient is currently in (e.g., Containment)
             initiallyExpanded: containsActiveStep,
             title: Text(
               phase.name,
@@ -63,35 +58,37 @@ class ProcessTreeOverlay extends StatelessWidget {
                 color: containsActiveStep ? Colors.deepPurple.shade800 : Colors.black87,
               ),
             ),
-            subtitle: phase.longName.isNotEmpty && phase.longName != phase.name
-                ? Text(
-              phase.longName,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            )
+            // Fallback checking utilizing direct property dot-notation
+            subtitle: (phase.requirement.isNotEmpty && phase.requirement.first != phase.name)
+                ? Text(phase.requirement.first, style: const TextStyle(fontSize: 12, color: Colors.grey))
                 : null,
-            shape: const Border(), // Clears standard Flutter tile border line injection
+            shape: const Border(),
             collapsedShape: const Border(),
             childrenPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-            children: stepChildren.map((step) {
+            // Route through .values to loop over the child map steps safely
+            children: stepChildrenMap.values.map((step) {
               final bool isCurrentStep = step.id == processStepId;
               final bool isRequiredNext = requiredNext.contains(step.id);
               final bool isPossibleNext = possibleNext.contains(step.id);
               final bool isClickable = isRequiredNext || isPossibleNext;
-
-              Color stepBorderColor = Colors.grey.shade200;
-              Color stepBgColor = Colors.grey.shade50;
+              Color fontColor = AppTheme.processStepPlain;
+              Color stepBorderColor = AppTheme.processStepPlain;
+              Color stepBgColor = AppTheme.canvasColor;
               VoidCallback? onStepSelected;
 
               if (isCurrentStep) {
-                stepBorderColor = Colors.deepPurple.shade400;
+                stepBorderColor = AppTheme.processStepActive;
                 stepBgColor = Colors.white;
+                fontColor = AppTheme.processStepActive;
               } else if (isRequiredNext) {
-                stepBorderColor = Colors.amber.shade600;
-                stepBgColor = Colors.amber.withAlpha(5);
+                stepBorderColor = AppTheme.processStepRequired;
+                stepBgColor = AppTheme.processStepRequired.withAlpha(5);
+                fontColor = AppTheme.processStepRequired;
                 onStepSelected = () => _handleStepSelection(context, step.id, currentStepNode);
               } else if (isPossibleNext) {
-                stepBorderColor = Colors.teal.shade300;
-                stepBgColor = Colors.teal.withAlpha(5);
+                stepBorderColor = AppTheme.processStepPossible;
+                stepBgColor = AppTheme.processStepPossible.withAlpha(5);
+                fontColor = AppTheme.processStepPossible;
                 onStepSelected = () => _handleStepSelection(context, step.id, currentStepNode);
               }
 
@@ -113,9 +110,7 @@ class ProcessTreeOverlay extends StatelessWidget {
                         children: [
                           Icon(
                             isCurrentStep ? Icons.play_circle_filled_rounded : Icons.radio_button_off,
-                            color: isCurrentStep
-                                ? Colors.deepPurple
-                                : (isRequiredNext ? Colors.amber.shade700 : (isPossibleNext ? Colors.teal : Colors.grey)),
+                            color: fontColor,
                             size: 16,
                           ),
                           const SizedBox(width: 10),
@@ -127,27 +122,29 @@ class ProcessTreeOverlay extends StatelessWidget {
                                   step.name,
                                   style: TextStyle(
                                     fontWeight: isCurrentStep ? FontWeight.bold : FontWeight.w600,
-                                    color: isCurrentStep ? Colors.black87 : Colors.black54,
+                                    color: fontColor,
                                     fontSize: 13,
                                   ),
                                 ),
-                                if (step.description.isNotEmpty && isCurrentStep) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    step.description,
-                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600, height: 1.2),
-                                  ),
-                                ]
+                                const SizedBox(height: 4),
+                                Text(
+                                  step.description,
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isCurrentStep ? FontWeight.bold : FontWeight.w600,
+                                      color:fontColor,
+                                      height: 1.2),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
                           if (isCurrentStep)
-                            _buildChipBadge(text: "CURRENT", color: Colors.deepPurple)
+                            _buildChipBadge(text: "CURRENT", color: AppTheme.processStepActive)
                           else if (isRequiredNext)
-                            _buildChipBadge(text: "REQUIRED", color: Colors.amber.shade800)
+                            _buildChipBadge(text: "REQUIRED", color: AppTheme.processStepRequired)
                           else if (isPossibleNext)
-                              _buildChipBadge(text: "POSSIBLE", color: Colors.teal),
+                            _buildChipBadge(text: "POSSIBLE", color: AppTheme.processStepPossible),
                         ],
                       ),
                     ),
@@ -165,14 +162,10 @@ class ProcessTreeOverlay extends StatelessWidget {
     final List<int> requiredNext = activeNode?.requiredNext ?? const [];
     final List<int> possibleNext = activeNode?.possibleNext ?? const [];
 
-    final bool isValidRoute = requiredNext.contains(targetStepId) ||
-        possibleNext.contains(targetStepId);
+    final bool isValidRoute = requiredNext.contains(targetStepId) || possibleNext.contains(targetStepId);
 
-    // Guard: If the step is invalid, warn the user but STAY in the modal
     if (!isValidRoute) {
       debugPrint("UI Warning: Selection step $targetStepId violates blueprint tracks.");
-
-      // Provide explicit feedback so the clinician knows why the tap did nothing
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("This step is out of sequence for the patient's current tracking pathway."),
@@ -180,26 +173,21 @@ class ProcessTreeOverlay extends StatelessWidget {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      return; // Exit early. The modal remains open, waiting for a valid choice.
+      return;
     }
 
-    // Proceed only if the route is verified as valid
     final bool isSaveSuccessful = await DatabaseManager().updatePatientProcessStep(
       uuid: patientUuid,
       targetStepId: targetStepId,
     );
 
-    // Only dismiss the view if the database transaction was successful
     if (isSaveSuccessful && context.mounted) {
       onProcessStepTapped();
       Navigator.pop(context);
     } else if (context.mounted) {
-      // Handle rare database save failures cleanly
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Failed to update patient step. Please try again."),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Failed to update patient step. Please try again.")));
     }
   }
 
@@ -207,7 +195,7 @@ class ProcessTreeOverlay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withAlpha(26), // Absolute 0-255 scale matching your exact usage
+        color: color.withAlpha(26),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withAlpha(102), width: 0.5),
       ),

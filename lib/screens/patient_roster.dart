@@ -6,6 +6,7 @@ import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
+import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
@@ -203,7 +204,7 @@ class _PatientRosterState extends State<PatientRoster> {
               itemBuilder: (context, index) {
                 final Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
                 return FlippableCardController(
-                  height: 304,
+                  height: 324,
                   front: PatientMedicalCard(
                     patient: patient,
                     onVitalsTap: () => _launchVitalsModal(context),
