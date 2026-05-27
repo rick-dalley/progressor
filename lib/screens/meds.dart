@@ -1,3 +1,6 @@
+
+
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
@@ -8,6 +11,56 @@ import '../classes/medication_services.dart';
 import '../widgets/medication_card.dart';
 import '../widgets/text_scanner.dart';
 
+enum BannerType {
+  acknowledged,
+  advisory,
+  critical,
+  none,
+  unknown
+}
+
+class BannerData {
+  final Color color;
+  final String message;
+  final IconData icon;
+
+  const BannerData({
+    required this.color,
+    required this.message,
+    required this.icon,
+  });
+
+  Color get bannerColor => color.withAlpha(128);
+}
+
+// Fixed map syntax using standard key: value pairs
+final Map<BannerType, BannerData> banners = {
+  BannerType.critical: const BannerData(
+    color: Color(0xFFD32F2F),
+    message: "CRITICAL: Contraindication Detected",
+    icon: Symbols.join_inner,
+  ),
+  BannerType.advisory: const BannerData(
+    color: Color(0xFFFF8F00),
+    message: "ADVISORY: Precautions Required",
+    icon: Symbols.warning_amber_rounded,
+  ),
+  BannerType.acknowledged: const BannerData(
+    color: Color(0xFF673AB7),
+    message: "All Risks Acknowledged & Accepted",
+    icon: Icons.check_circle_outline,
+  ),
+  BannerType.none: const BannerData(
+    color: Color(0xFF2E7D32),
+    message: "No Interactions Detected",
+    icon: Symbols.verified,
+  ),
+  BannerType.unknown: const BannerData(
+    color: Color(0xFF888888),
+    message: "Unknown",
+    icon: Symbols.unknown_document,
+  ),
+};
 class MedicationScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
 
@@ -64,20 +117,25 @@ class _MedicationScreenState extends State<MedicationScreen> {
   }
 
   void _runSafetyAudit() async {
+    // Guard clause: Don't spend processing cycles if the list hasn't loaded yet
+    if (_meds.isEmpty) return;
+
     setState(() {
       _isLoading = true;
       _currentConflicts.clear();
     });
 
     for (var primaryMed in _meds) {
-      final String pId = primaryMed['set_id'];
+      // 1. Defend against null values coming from SQLite mapping
+      final String pId = primaryMed['set_id'] ?? '';
       primaryMed['has_interaction'] = 0;
 
-      for (var otherMed in _meds) {
-        final String oId = otherMed['set_id'];
-        if (pId == oId) continue;
+      if (pId.isEmpty) continue; // 2. Skip audit logic if it has no FDA set_id synced yet
 
-        // SQLite parses the classes and finds the hit
+      for (var otherMed in _meds) {
+        final String oId = otherMed['set_id'] ?? '';
+        if (oId.isEmpty || pId == oId) continue;
+
         final (isMatch, matchedClass) = await DatabaseManager()
             .checkInteractionsInDb(pId, oId);
 
@@ -134,46 +192,36 @@ class _MedicationScreenState extends State<MedicationScreen> {
   // Logic-driven Banner Widget
   Widget _buildStatusBanner() {
     // Determine state based on your list logic
-    Color bannerColor;
-    String message;
-    IconData icon;
-
+    BannerData bannerData;
     // Example Logic check:
     if (!_auditRun) {
-      bannerColor = Colors.grey[600]!;
-      message = "Safety Audit: Status Unknown";
-      icon = Icons.help_outline;
+      bannerData = banners[BannerType.unknown]!;
     } else if (_hasContraIndications) {
-      bannerColor = const Color(0xFFD32F2F); // Red
-      message = "CRITICAL: Contraindication Detected";
-      icon = Icons.block;
+      bannerData = banners[BannerType.critical]!;
     } else if (_hasPrecautions) {
-      bannerColor = const Color(0xFFFF8F00); // Amber
-      message = "ADVISORY: Precautions Required";
-      icon = Icons.warning_amber_rounded;
+      bannerData = banners[BannerType.advisory]!;
     } else if (_acceptedIndications) {
-      bannerColor = const Color(0xFF673AB7); // Purple
-      message = "All Risks Acknowledged & Accepted";
-      icon = Icons.check_circle_outline;
+      bannerData = banners[BannerType.acknowledged]!;
     } else {
-      bannerColor = const Color(0xFF2E7D32); // Green
-      message = "No Interactions Detected";
-      icon = Icons.verified_user_outlined;
+      bannerData = banners[BannerType.none]!;
     }
 
     return Container(
       width: double.infinity,
-      color: bannerColor,
+      color: AppTheme.lightTheme.canvasColor,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white, size: 20),
+          if (_meds.length > 1)
+          Icon(bannerData.icon, color: bannerData.color, size: 20),
+          if (_meds.length > 1)
           const SizedBox(width: 12),
+          if (_meds.length > 1)
           Expanded(
             child: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white,
+              bannerData.message,
+              style: TextStyle(
+                color: bannerData.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -184,11 +232,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: OutlinedButton.icon(
                   onPressed: _runSafetyAudit,
-                  icon: const Icon(Icons.security, color: Colors.white),
+                  icon: const Icon(Symbols.fact_check, color: Colors.white),
                   label: const Text("CHECK"),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(45),
                     foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.lightTheme.primaryColor
                   ),
                 ),
               ),
@@ -424,7 +473,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddMedicationSheet(),
         label: const Text("ADD MEDICATION"),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.pill),
         backgroundColor: AppTheme.deepLogicViolet,
         foregroundColor: AppTheme.clinicalWhite,
       ),

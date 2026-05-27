@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/database_manager.dart';
 import 'package:triage/screens/assessment_screen.dart';
 import 'package:triage/screens/physical_health.dart';
@@ -94,9 +95,9 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                           child: ListTile(
                             leading: _buildDynamicIcon(
                               isCompleted: true,
-                              outlineIcon: Icons.healing_outlined,
-                              solidIcon: Icons.healing,
-                              activeColor: AppTheme.vitalsBP,
+                              outlineIcon: Symbols.conditions,
+                              solidIcon: Symbols.conditions_sharp,
+                              activeColor: AppTheme.deepLogicViolet,
                             ),
                             title: const Text("Pre-existing Conditions"),
                             subtitle: const Text("Review & Update Physical Health History"),
@@ -131,8 +132,8 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                           child: ListTile(
                             leading: _buildDynamicIcon(
                               isCompleted: true,
-                              outlineIcon: Icons.note_add_outlined,
-                              solidIcon: Icons.note_add,
+                              outlineIcon: Symbols.clinical_notes,
+                              solidIcon: Symbols.clinical_notes_sharp,
                               activeColor: AppTheme.deepLogicViolet,
                             ),
                             title: const Text("Observations"),
@@ -309,7 +310,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Center(
                   child: Icon(
-                    isCompleted ? Icons.assignment : Icons.assignment_outlined,
+                    isCompleted ? Symbols.ballot : Symbols.ballot_sharp,
                     color: isCompleted ? AppTheme.clinicalCyan : AppTheme.deepCharcoal,
                     size: 32,
                   ),

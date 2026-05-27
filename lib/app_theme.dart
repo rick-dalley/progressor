@@ -10,23 +10,23 @@ class AppTheme {
   static const Color clinicalCyanCanvas = Color(0x1A00BCD4);
   static const Color clinicalWhite = Color(0xFFF8F9FA);
   // Hpspital Monitor Vitals Palette
-  static const Color vitalsBP = Color(0xFFFFB300);   // Gold/Orange
-  static const Color vitalsOxygen = Color(0xFF82B1FF); // Blue
-  static const Color vitalsPulse = Color(0xFF00E676);  // Green
-  static const Color vitalsTemp = Color(0xFFFFFFFF);   // White
+  static const Color vitalsBP = Color(0xFFFFB300);
+  static const Color vitalsOxygen = Color(0xFF82B1FF);
+  static const Color vitalsPulse = Color(0xFF00E676);
+  static const Color vitalsTemp = Color(0xFFFFFFFF);
   static const Color monitorBlack = Color(0xFF000000);
 
-  static const Color resuscitation = Color(0xFF043AC4); // Level 1 - Crimson Berry (Deep cool red/pink base)
-  static const Color emergent = Color(0xFFFC900F);     // Level 2 - Burnt Ochre (Deep earthy safety orange)
-  static const Color urgent = Color(0xFFFFEA00);       // Level 3 - Lemon Zest (Bright, high-contrast yellow)
-  static const Color lessUrgent = Color(0xFF23C402);   // Level 4 - Forest Green (Deep dark value)
+  static const Color resuscitation = Color(0xFF043AC4);
+  static const Color emergent = Color(0xFFFC900F);
+  static const Color urgent = Color(0xFFFFEA00);
+  static const Color lessUrgent = Color(0xFF23C402);
   static const Color nonUrgent = Color(0xFFFFFFFF);
 
-  static  Color resuscitationBackground = resuscitation.withAlpha(96); // Level 1 - Crimson Red (Immediate life threat)
-  static  Color emergentBackground = emergent.withAlpha(96);     // Level 2 - Deep Safety Orange (Critical condition)
-  static  Color urgentBackground = urgent .withAlpha(96);      // Level 3 - Rich Amber Yellow (Severe/Urgent)
-  static  Color lessUrgentBackground = lessUrgent.withAlpha(96);   // Level 4 - Forest/Clinical Green (Mild to Moderate)
-  static  Color nonUrgentBackground = nonUrgent.withAlpha(96); // Level 5 - Royal/Signal Blue (Minor/Routine)
+  static  Color resuscitationBackground = resuscitation.withAlpha(96);
+  static  Color emergentBackground = emergent.withAlpha(96);
+  static  Color urgentBackground = urgent .withAlpha(96);
+  static  Color lessUrgentBackground = lessUrgent.withAlpha(96);
+  static  Color nonUrgentBackground = nonUrgent.withAlpha(96);
 
   static const Map<int, Color> acuityColors = {
     0: resuscitation,

@@ -123,12 +123,14 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   child: PulsingChip(
                     iconData: AppTheme.acuityIcons[acuityId]!,
                     text: "Acuity: ${acuity?.statusName}",
-                    color: AppTheme.acuityColors[acuityId],
+                    textColor: AppTheme.lightTheme.disabledColor,
+                    iconColor: AppTheme.acuityColors[acuityId],
                     backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
                     onTap: () {
                       showVitalsHistory(context, patientUuid);
                     },
                     pulse: acuityId == 0,
+                    shadowText: false,
                   ),
                 ),
               ],

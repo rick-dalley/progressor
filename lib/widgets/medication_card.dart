@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import '../app_theme.dart';
 import '../classes/medication_services.dart';
 
 class MedicationCard extends StatefulWidget {
@@ -70,9 +72,10 @@ class _MedicationCardState extends State<MedicationCard> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ExpansionTile(
         key: ValueKey("tile_$medicationId"),
-        leading: Icon(
-          hasDatasheet ? Icons.assignment_turned_in : Icons.assignment_late,
-          color: hasDatasheet ? Colors.green : Colors.blueGrey,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        leading: Icon(hasDatasheet ? Symbols.prescriptions :Symbols.cloud_download,
+          color: hasDatasheet ? Colors.green : AppTheme.lightTheme.disabledColor,
         ),
         title: Text(
           medicationName,
@@ -247,7 +250,7 @@ class InteractionsChipState extends State<InteractionsChip> {
         largeSize: 18,
         child: ActionChip(
           avatar: const Icon(
-              Icons.hub,
+              Symbols.join_inner,
               size: 16,
               color: Colors.white
           ),

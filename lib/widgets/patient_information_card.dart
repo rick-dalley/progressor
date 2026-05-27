@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/admittance_utils.dart';
 import '../app_theme.dart';
 import '../classes/medication_services.dart';
@@ -40,7 +41,7 @@ class PatientInformationCard extends StatelessWidget {
     final String formattedAdmission = AdmittanceUtils.formatAdmission(admitted);
     bool hasReports = policeReports > 0;
     Color? medColor;
-    IconData medIcon = Icons.medication;
+
     if (medicationCount > 0) {
       switch (medicationAudit) {
         case MedicationSafetyAudit.interactionsNotDetected:
@@ -102,14 +103,14 @@ class PatientInformationCard extends StatelessWidget {
                 _buildCompactButton(
                   context: context,
                   label: "Assess",
-                  icon: Icons.psychology,
+                  icon: Symbols.medical_information,
                   onTap: onAssessmentsTap ?? () {},
                 ),
                 _buildCompactButton(context: context, label: "Interview", icon: Icons.mic, onTap: onInterviewTap),
                 _buildCompactButton(
                   context: context,
                   label: "Meds",
-                  icon: medIcon,
+                  icon: Symbols.medication,
                   onTap: onMedsTap ?? () {},
                   color: medColor,
                 ),
