@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/admittance_utils.dart';
+import 'package:triage/classes/database_manager.dart';
 import '../app_theme.dart';
 import '../classes/medication_services.dart';
+import '../classes/metric.dart';
+import 'body_metrics.dart';
 
-class PatientInformationCard extends StatelessWidget {
+class StringValuePair {
+  final String label;
+  final dynamic value;
+
+  const StringValuePair({required this.value, required this.label});
+}
+
+class Tuple {
+  final StringValuePair first;
+  final StringValuePair second;
+
+  const Tuple({required this.first, required this.second});
+}
+
+class PatientInformationCard extends StatefulWidget{
   final Map<String, dynamic> patient;
   final VoidCallback? onPoliceTap;
   final VoidCallback? onAssessmentsTap;
   final VoidCallback onInterviewTap; // <--- Add this
   final VoidCallback? onMedsTap;
-
 
   const PatientInformationCard({
     super.key,
@@ -22,10 +38,235 @@ class PatientInformationCard extends StatelessWidget {
   });
 
   @override
+  State<StatefulWidget> createState() => PatientInformationCardState();
+
+}
+
+class PatientInformationCardState extends State<PatientInformationCard> {
+  late final Map<String, dynamic> patient;
+  String heightUom = "cm";
+  String weightUom = "kg";
+
+  @override
+  void initState() {
+    super.initState();
+    patient = widget.patient;
+  }
+
+  void onMetricsChanged({double? newHeight, double? newWeight}) async {
+    final String patientUuid = patient["patient_uuid"]?.toString() ?? "";
+    if (patientUuid.isEmpty) return;
+
+    // --- 1. HANDLE HEIGHT FILTER ---
+    if (newHeight != null && newHeight > 0) {
+      final Metric? lastHeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'height');
+
+      if (lastHeightMetric == null || lastHeightMetric.value != newHeight) {
+        await DatabaseManager().insertPatientMetric(patientUuid, newHeight, 'height');
+        setState(() {
+          patient["current_height"] = newHeight;
+        });
+      } else {
+        debugPrint("Optimization: Height unchanged. Skipped write.");
+      }
+    }
+
+    // --- 2. HANDLE WEIGHT FILTER ---
+    if (newWeight != null && newWeight > 0) {
+      final Metric? lastWeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'weight');
+      bool shouldWriteWeight = true;
+
+      if (lastWeightMetric != null) {
+        final Duration timeSinceLastLog = DateTime.now().difference(lastWeightMetric.recorded);
+        if (lastWeightMetric.value == newWeight && timeSinceLastLog.inHours < 23) {
+          shouldWriteWeight = false;
+          debugPrint("Optimization: Weight stable and logged within 23h. Skipped write.");
+        }
+      }
+
+      if (shouldWriteWeight) {
+        await DatabaseManager().insertPatientMetric(patientUuid, newWeight, 'weight');
+        setState(() {
+          patient["current_weight"] = newWeight;
+        });
+      }
+    }
+  }
+
+
+  void _showMetricsEntryDialog({
+    required BuildContext context,
+    double? initialHeight,
+    required String initialHeightUom,
+    double? initialWeight,
+    required String initialWeightUom,
+  }) {
+    // 1. Sanitize variables and assign them to strict local copies
+    // BEFORE entering the framework's showDialog execution stack.
+    final double? cleanHeight = (initialHeight == 0.0) ? null : initialHeight;
+    final double? cleanWeight = (initialWeight == 0.0) ? null : initialWeight;
+
+    // Normalize the unit strings here to avoid doing text mutations inside the render tree
+    final String normalizedHeightUom = initialHeightUom.toLowerCase();
+    final String normalizedWeightUom = initialWeightUom.toLowerCase();
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Update Patient Metrics',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BodyMetricsWidget(
+                  height: cleanHeight,
+                  weight: cleanWeight,
+                  heightUom: normalizedHeightUom,
+                  weightUom: normalizedWeightUom,
+                  onMetricsChanged: (newWeightValue, newHeightValue) {
+                    //Pop the UI instantly so the app feels snappy
+                    Navigator.pop(dialogContext);
+                    Future.microtask(() {
+                      onMetricsChanged(newWeight: newWeightValue, newHeight: newHeightValue);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTappableMetricsRow({
+    required BuildContext context,
+    double? currentHeight,
+    required String heightUom,
+    double? currentWeight,
+    required String weightUom,
+  }) {
+    final heightStr = currentHeight != null ? '${currentHeight.toStringAsFixed(1)} $heightUom' : 'Not Set';
+    final weightStr = currentWeight != null ? '${currentWeight.toStringAsFixed(1)} $weightUom' : 'Not Set';
+
+    final bmiValue = MedicalMath.calculateBMI(
+        weight: currentWeight ?? 0.0,
+        weightUom: weightUom,
+        height: currentHeight ?? 0.0,
+        heightUom: heightUom
+    );
+    final bmiStr = bmiValue > 0 ? bmiValue.toStringAsFixed(1) : 'Not Set';
+
+    return InkWell(
+      onTap: () {
+        _showMetricsEntryDialog(
+          context: context,
+          initialHeight: currentHeight,
+          initialHeightUom: heightUom,
+          initialWeight: currentWeight,
+          initialWeightUom: weightUom,
+        );
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+        child: Row(
+          children: [
+            // 1. HEIGHT COLUMN (Occupies exactly 1/3 of available row space)
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'HEIGHT', // Pro-tip: Shortening labels to HT/WT saves massive real estate on small screens
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      heightStr,
+                      style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal, fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis, // Prevents layout explosion if string is long
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 4), // Small safe gutter padding
+
+            // 2. WEIGHT COLUMN (Occupies exactly 1/3 of available row space)
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'WEIGHT',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      weightStr,
+                      style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal, fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 4),
+
+            // 3. BMI COLUMN (Occupies exactly 1/3 of available row space)
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'BMI',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      bmiStr,
+                      style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal, fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 4. FIXED ICON ANCHOR
+            Icon(Icons.edit, size: 18, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final String name = '${patient["first_name"]} ${patient["last_name"]}';
     final String phn = patient["phn"];
     final String? phone = patient["phone"];
+    final String? rawDoB = patient["dob"];
+    final double? rawHeight = patient["current_height"];
+    final String? rawHeightUom = patient["current_height_uom"];
+    final double? rawWeight = patient["current_weight"];
+    final String? rawWeightUom = patient["current_weight_uom"];
     final String? proxyName = patient["contact_name"];
     final String? proxyPhone = patient["contact_phone"];
     final String? familyDoctorName = patient["family_doctor_name"];
@@ -37,8 +278,19 @@ class PatientInformationCard extends StatelessWidget {
     final int auditIndex = patient['medication_safety_audit'] ?? 0;
     final medicationAudit = MedicationSafetyAudit.values[auditIndex];
     final String? rawAdmissionDate = patient["admitted"];
-    final DateTime? admitted = rawAdmissionDate == null ? AdmittanceUtils.generateRandomAdmittance() : AdmittanceUtils.parseDatabaseDate(rawAdmissionDate);
+    final DateTime? admitted = rawAdmissionDate == null
+        ? AdmittanceUtils.generateRandomAdmittance()
+        : AdmittanceUtils.parseDatabaseDate(rawAdmissionDate);
+    final DateTime? dob = rawDoB == null
+        ? AdmittanceUtils.generateRandomDoB()
+        : AdmittanceUtils.parseDatabaseDate(rawDoB);
     final String formattedAdmission = AdmittanceUtils.formatAdmission(admitted);
+    final String formattedDoB = AdmittanceUtils.formatDoB(dob);
+    final int age = AdmittanceUtils.calculateYearsSince(dob!);
+    final String weightUom = rawWeightUom ?? "kg";
+    final String heightUom = rawHeightUom ?? "cm";
+    final double weight = rawWeight ?? 0.0;
+    final double height = rawHeight ?? 0.0;
     bool hasReports = policeReports > 0;
     Color? medColor;
 
@@ -51,7 +303,7 @@ class PatientInformationCard extends StatelessWidget {
           medColor = Colors.redAccent;
           break;
         case MedicationSafetyAudit.auditNotPerformed:
-        // Keep default theme colors
+          // Keep default theme colors
           break;
       }
     }
@@ -72,29 +324,24 @@ class PatientInformationCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.deepCharcoal,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Text(
+                  name,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
+                  overflow: TextOverflow.ellipsis,
                 ),
+                Spacer(),
+                Text("Provincial Health #:"),
+                Text(_formatPHN(phn.toString())),
               ],
             ),
-            SizedBox(height: 16,),
+            SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("PHN:"), Text(_formatPHN(phn.toString())),
-                Spacer(),
-                Text("Admitted:"),Text(formattedAdmission)
-              ],
+              children: [Text("Born: $formattedDoB ($age yrs)"), Spacer(), Text("Admitted: $formattedAdmission")],
             ),
-            SizedBox(height:16),
+            SizedBox(height: 16),
+           _buildTappableMetricsRow(context: context, currentHeight: height, heightUom: heightUom, currentWeight:weight, weightUom: weightUom),
+            SizedBox(height: 16),
             Wrap(
               spacing: 8, // Horizontal space between buttons
               runSpacing: 8, // Vertical space between lines
@@ -104,37 +351,44 @@ class PatientInformationCard extends StatelessWidget {
                   context: context,
                   label: "Assess",
                   icon: Symbols.medical_information,
-                  onTap: onAssessmentsTap ?? () {},
+                  onTap: widget.onAssessmentsTap ?? () {},
                 ),
-                _buildCompactButton(context: context, label: "Interview", icon: Icons.mic, onTap: onInterviewTap),
+                _buildCompactButton(context: context, label: "Interview", icon: Icons.mic, onTap: widget.onInterviewTap),
                 _buildCompactButton(
                   context: context,
                   label: "Meds",
                   icon: Symbols.medication,
-                  onTap: onMedsTap ?? () {},
+                  onTap: widget.onMedsTap ?? () {},
                   color: medColor,
                 ),
                 _buildCompactButton(
                   context: context,
                   label: "Police",
                   icon: Icons.local_police,
-                  onTap: onPoliceTap ?? () {},
+                  onTap: widget.onPoliceTap ?? () {},
                   color: hasReports ? Colors.greenAccent : null,
                 ),
               ],
             ),
-            SizedBox(height:16),
-            _buildLabeledRow("PHONE", phone!),
-            // Gap
-            const SizedBox(height: 8),
-            // Contact Name and Number (Next of Kin / Proxy)
-            _buildLabeledRow("CONTACT", "$proxyName • $proxyPhone"),
-            const SizedBox(height: 8),
-            // Family Doctor details
-            _buildLabeledRow("DOCTOR", "$familyDoctorName • $familyDoctorPhone"),
-            const SizedBox(height: 8),
-            // Pharmacy details
-            _buildLabeledRow("PHARMACY", "$pharmacyFax • $pharmacyPhone"),
+            SizedBox(height: 8,),
+            _buildTuple(
+              Tuple(
+                first: StringValuePair(label: "CONTACT:", value: "$proxyName"),
+                second: StringValuePair(label: "PHONE:", value: "$proxyPhone"),
+              ),
+            ),
+            _buildTuple(
+              Tuple(
+                first: StringValuePair(label: "DOCTOR:", value: "$familyDoctorName"),
+                second: StringValuePair(label: "PHONE:", value: "$familyDoctorPhone"),
+              ),
+            ),
+            _buildTuple(
+              Tuple(
+                first: StringValuePair(label: "PHRMCY PHONE:", value: "$pharmacyPhone"),
+                second: StringValuePair(label: "FAX:", value: "$pharmacyFax"),
+              ),
+            ),
           ],
         ),
       ),
@@ -142,33 +396,75 @@ class PatientInformationCard extends StatelessWidget {
   }
 
   // Helper row helper to maintain perfect horizontal tabular alignment across fields
-  Widget _buildLabeledRow(String label, String value) {
+  Widget _buildTuple(Tuple tuple) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 85, // Fixed label width handles precise vertical grid alignment
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade500,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppTheme.deepCharcoal,
-              fontWeight: FontWeight.w500,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+            child: Row(
+              children: [
+                Text(
+                  tuple.first.label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    tuple.first.value,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.deepCharcoal,
+                        fontWeight: FontWeight.w500
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ),
+
+        const SizedBox(width: 16), // Gutter separation between the two columns
+
+        // RIGHT COLUMN (Second Pair: e.g., CONTACT or PHARMACY)
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+            child: Row(
+              children: [
+                Text(
+                  tuple.second.label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    tuple.second.value,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.deepCharcoal,
+                        fontWeight: FontWeight.w500
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
       ],
     );
   }
@@ -225,6 +521,4 @@ class PatientInformationCard extends StatelessWidget {
       ),
     );
   }
-
-
 }

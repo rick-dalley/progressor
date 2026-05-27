@@ -10,6 +10,7 @@ import 'package:triage/classes/process_step.dart';
 import 'package:uuid/uuid.dart';
 import 'acuity.dart';
 import 'data_seeder.dart';
+import 'metric.dart';
 
 class DatabaseManager {
   // Singleton pattern
@@ -202,6 +203,50 @@ class DatabaseManager {
     }
 
     return catalog;
+  }
+
+  Future<void> insertPatientMetric(String patientUuid,double value, String metricType)async {
+    final db = await database;
+    final sanitizedType = metricType.toLowerCase().trim();
+    final String metricEventUuid = const Uuid().v4();
+
+    // 3. Execute the database write.
+    // Note: This insert will instantly trigger your SQLite triggers on the backend
+    // to update the flat fast-cache on the patients table automatically!
+    await db.execute('''
+    INSERT INTO patient_metrics (
+      id, 
+      patient_uuid, 
+      metric_type, 
+      metric_value
+    ) VALUES (?, ?, ?, ?)
+  ''', [
+      metricEventUuid,
+      patientUuid,
+      sanitizedType,
+      value,
+    ]);
+
+  }
+
+  Future<Metric?> getLatestMetric(String patientUuid, String metricType) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'patient_metrics',
+      columns: ['metric_value', 'recorded_at'],
+      where: 'patient_uuid = ? AND metric_type = ?',
+      whereArgs: [patientUuid, metricType],
+      orderBy: 'recorded_at DESC',
+      limit: 1,
+    );
+
+    if (maps.isEmpty) {
+      return null; // Return null if the user has no history yet
+    }
+
+    // Instantly map the database row to our strongly typed data model object
+    return Metric.fromJson(maps.first);
   }
 
   Future<void> deletePatientCondition(int id) async {

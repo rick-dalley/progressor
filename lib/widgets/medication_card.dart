@@ -8,12 +8,13 @@ class MedicationCard extends StatefulWidget {
   final Map<String, dynamic> medData;
   final List<InteractionConflict> interactions;
   final VoidCallback onDelete;
-
+  final ValueChanged<bool>? onExpansionChanged;
   const MedicationCard({
     super.key,
     required this.medData,
     required this.interactions,
     required this.onDelete,
+    this.onExpansionChanged,
   });
 
   @override
@@ -113,6 +114,7 @@ class _MedicationCardState extends State<MedicationCard> {
           if (expanded && _datasheet == null) {
             _triggerFetch();
           }
+          widget.onExpansionChanged?.call(expanded);
         },
         children: [
           if (_isFetching)

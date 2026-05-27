@@ -61,6 +61,7 @@ final Map<BannerType, BannerData> banners = {
     icon: Symbols.unknown_document,
   ),
 };
+
 class MedicationScreen extends StatefulWidget {
   final Map<String, dynamic> patient;
 
@@ -76,20 +77,32 @@ class _MedicationScreenState extends State<MedicationScreen> {
   bool _hasContraIndications = false;
   final bool _acceptedIndications = false;
   List<Map<String, dynamic>> _meds = [];
-  final List<InteractionConflict> _currentConflicts =
-      []; // The source of truth for the UI
+  final List<InteractionConflict> _currentConflicts = []; // The source of truth for the UI
   bool _auditRun = false;
 
   // These are derived flags
   final bool _hasPrecautions = false; // Set this based on your separate logic
   final _nameController = TextEditingController();
   final _doseController = TextEditingController();
+  late int _dataSheetCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadMedsForPatient();
     _runSafetyAudit();
+  }
+
+  int _countDataSheets() {
+    int count = 0;
+    if (_meds.isNotEmpty){
+      for(dynamic m in _meds ){
+        if (m["has_local_datasheet"] > 0){
+          count ++;
+        }
+      }
+    }
+    return count;
   }
 
   Future<void> _loadMedsForPatient() async {
@@ -117,8 +130,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
   }
 
   void _runSafetyAudit() async {
+    _dataSheetCount = _countDataSheets();
     // Guard clause: Don't spend processing cycles if the list hasn't loaded yet
-    if (_meds.isEmpty) return;
+    if (_meds.isEmpty || _dataSheetCount < 2) return;
 
     setState(() {
       _isLoading = true;
@@ -191,6 +205,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   // Logic-driven Banner Widget
   Widget _buildStatusBanner() {
+    _dataSheetCount = _countDataSheets();
+    if (_meds.isEmpty || _dataSheetCount < 2){
+      return SizedBox(height: 0,);
+    }
     // Determine state based on your list logic
     BannerData bannerData;
     // Example Logic check:
@@ -226,7 +244,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
               ),
             ),
           ),
-          if (_meds.length > 1)
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -452,8 +470,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name =
-        "${widget.patient['first_name']} ${widget.patient['last_name']}";
+    final name = "${widget.patient['first_name']} ${widget.patient['last_name']}";
 
     return Scaffold(
       appBar: AppBar(
@@ -502,11 +519,20 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     // 2. Remove from the UI state
                     setState(() {
                       _meds.removeAt(index);
+                      _dataSheetCount = _countDataSheets();
                     });
 
                     debugPrint(
                       'Permanently deleted medication: $medIdToDelete',
                     );
+                  },
+                  onExpansionChanged: (isExpanded) {
+                    setState(() {
+                      med["has_local_datasheet"] = 1;
+                      _dataSheetCount = _countDataSheets();
+                    });
+
+                    debugPrint("Parent caught expansion event! State updated.");
                   },
                 );
               },

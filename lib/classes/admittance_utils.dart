@@ -37,15 +37,24 @@ class AdmittanceUtils {
     return null;
   }
 
-static String formatAdmission(DateTime? dateToFormat){
-  DateFormat inputFormat = DateFormat('yyyy MM dd HH:mm');
-  String admittedFormatted = "";
-  if (dateToFormat != null){
-    admittedFormatted = inputFormat.format(dateToFormat);
-  }
-  return admittedFormatted;
+  static String formatAdmission(DateTime? dateToFormat){
+    DateFormat inputFormat = DateFormat('yyyy MM dd HH:mm');
+    String admittedFormatted = "";
+    if (dateToFormat != null){
+      admittedFormatted = inputFormat.format(dateToFormat);
+    }
+    return admittedFormatted;
 
-}
+  }
+  static String formatDoB(DateTime? dateToFormat){
+    DateFormat inputFormat = DateFormat('yyyy MM dd');
+    String admittedFormatted = "";
+    if (dateToFormat != null){
+      admittedFormatted = inputFormat.format(dateToFormat);
+    }
+    return admittedFormatted;
+
+  }
   /// Generates a random admittance time between 1 and 48 hours ago
   static DateTime generateRandomAdmittance() {
     final randomHours = Random().nextInt(48) + 1;
@@ -67,4 +76,21 @@ static String formatAdmission(DateTime? dateToFormat){
     return "Admitted: ${admittedAt.hour}:${admittedAt.minute.toString().padLeft(2, '0')}\n"
         "Time Left: ${hours}h ${minutes}m";
   }
+
+  static int calculateYearsSince(DateTime pastDate) {
+    final DateTime now = DateTime.now();
+
+    // 1. Get the raw difference in years
+    int years = now.year - pastDate.year;
+
+    // 2. Adjust downwards if the anniversary hasn't happened yet this year
+    if (now.month < pastDate.month ||
+        (now.month == pastDate.month && now.day < pastDate.day)) {
+      years--;
+    }
+
+    return years;
+  }
+
 }
+

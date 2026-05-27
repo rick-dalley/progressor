@@ -2,11 +2,43 @@
   "CREATE": [
     {
       "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, current_systolic int, current_diastolic int, current_pulse int, current_temp real, current_spo2 real, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, current_systolic int, current_diastolic int, current_pulse int, current_temp real, current_spo2 real, current_weight real, current_height real, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL,  metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,  FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_systolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'systolic' BEGIN UPDATE patient SET current_systolic = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_diastolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'diastolic' BEGIN UPDATE patient SET current_diastolic = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_weight_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'weight' BEGIN UPDATE patient SET current_weight = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_pulse_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'pulse' BEGIN UPDATE patient SET current_pulse = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temperature' BEGIN UPDATE patient SET current_temp = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_spo2_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'spo2' BEGIN UPDATE patient SET current_spo2 = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_height_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'height' BEGIN UPDATE patient SET current_height = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
     },
     {
       "table": "datasheet",
-      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, classes TEXT, raw_json_blob TEXT,  last_synced_at TEXT);"
+      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, classes TEXT, raw_json_blob TEXT, last_synced_at TEXT);"
     },
     {
       "table": "assessment",
@@ -26,7 +58,7 @@
     },
     {
       "table": "completed_assessment",
-      "query": "CREATE TABLE IF NOT EXISTS completed_assessment ( id TEXT PRIMARY KEY,  assessment_id TEXT NOT NULL, patient_id TEXT NOT NULL,  date_started DATETIME DEFAULT CURRENT_TIMESTAMP,  complete INTEGER DEFAULT 0,  date_completed DATETIME,  last_modified DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE RESTRICT,  FOREIGN KEY (patient_id) REFERENCES patient(patient_uuid) ON DELETE RESTRICT);"
+      "query": "CREATE TABLE IF NOT EXISTS completed_assessment ( id TEXT PRIMARY KEY, assessment_id TEXT NOT NULL, patient_id TEXT NOT NULL, date_started DATETIME DEFAULT CURRENT_TIMESTAMP, complete INTEGER DEFAULT 0, date_completed DATETIME, last_modified DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE RESTRICT, FOREIGN KEY (patient_id) REFERENCES patient(patient_uuid) ON DELETE RESTRICT);"
     },
     {
       "table": "completed_question",
@@ -38,15 +70,15 @@
     },
     {
       "table": "patient_condition",
-      "query": "CREATE TABLE patient_condition (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id int,  treatment_notes TEXT,  is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
+      "query": "CREATE TABLE patient_condition (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id int, treatment_notes TEXT, is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
     },
     {
       "table": "observations",
-      "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT,  content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
+      "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT, content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
     },
     {
       "table": "phase_step",
-      "query" : "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
+      "query": "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
     }
   ],
   "INSERT": [
@@ -120,7 +152,7 @@
     },
     {
       "table": "condition",
-      "query": "DELETE FROM condition WHERE patient_id = ?  "
+      "query": "DELETE FROM condition WHERE patient_id = ? "
     }
   ],
   "SELECT": [
@@ -132,12 +164,17 @@
     {
       "name": "patients_single",
       "table": "patient",
-      "query": "SELECT  *  FROM  patient WHERE patient_uuid = ?;"
-      },
+      "query": "SELECT * FROM patient WHERE patient_uuid = ?;"
+    },
     {
       "name": "patient_medications",
       "table": "medication",
       "query": "SELECT * FROM medication WHERE patient_uuid = ?;"
+    },
+    {
+      "name": "patient_metrics",
+      "table": "patient_metrics",
+      "query": "SELECT metric_type, metric_value, uom, MAX(recorded_at) as last_recorded FROM patient_metrics WHERE patient_uuid = ? GROUP BY metric_type;"
     },
     {
       "name": "patient_datasheets",
