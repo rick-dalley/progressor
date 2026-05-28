@@ -14,15 +14,15 @@ import 'countdown_timer.dart';
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
   final Map<String, dynamic> patient;
-  final VoidCallback? onVitalsTap;
-  final VoidCallback? onTimeLineTap;
+  final VoidCallback onVitalsTap;
+  final VoidCallback onTimeLineTap;
   final void Function(Acuity) onAcuityTap;
 
   const PatientMedicalCard({
     super.key,
     required this.patient,
-    this.onVitalsTap,
-    this.onTimeLineTap,
+    required this.onVitalsTap,
+    required this.onTimeLineTap,
     required this.onAcuityTap,
   });
 
@@ -111,7 +111,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   ),
                   const Spacer(),
                   // Replace the old monitor_heart button with this:
-                  CountdownTimer(admittedAt: admittedDate, onTap: widget.onTimeLineTap ?? () {}),
+                  CountdownTimer(admittedAt: admittedDate, onTap: widget.onTimeLineTap),
                 ],
               ),
             ),
@@ -139,11 +139,12 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
 
             // Tappable Vitals
             VitalsBar(
-              onAddPressed: widget.onVitalsTap ?? () {},
+              onAddPressed: widget.onVitalsTap,
               onHistoryPressed: () => showVitalsHistory(context, patientUuid),
               vitals: VitalsData(
                 pulse: patient['current_pulse'],
-                bp: "${patient['current_systolic']}/${patient['current_diastolic']}",
+                systolic: patient['current_systolic'],
+                diastolic: patient['current_diastolic'],
                 temp: patient['current_temp'],
                 spo2: patient['current_spo2'],
               ),
@@ -160,15 +161,15 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // A. The Macro Linear Rail — tracks active phase block seamlessly
+                  // The Macro Linear Rail — tracks active phase block seamlessly
                   ProcessPhaseRail(currentPhaseId: thisPhaseId, phases: DatabaseManager().processBlueprint),
 
                   const SizedBox(height: 10),
 
-                  // B. The Micro Active Steps Row — displays current sibling tasks
+                  // The Micro Active Steps Row — displays current sibling tasks
                   Builder(
                     builder: (context) {
-                      // 1. Generate the flat registry from our typed blueprint list
+                      // Generate the flat registry from our typed blueprint list
 
                       return HorizontalStepViewer(thisStep: thisStep, previousStep: previousStep, siblings: siblings);
                     },

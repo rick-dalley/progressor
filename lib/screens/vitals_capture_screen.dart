@@ -7,7 +7,6 @@ class VitalEntry {
   final String unit;
   final String key;
   final IconData icon;
-
   VitalEntry(this.label, this.unit, this.key, this.icon);
 }
 
@@ -17,15 +16,16 @@ final List<VitalEntry> vitalsList = [
   VitalEntry("Temperature", "°C", "temp", Icons.thermostat),
 ];
 
-class VitalsScreen extends StatefulWidget {
+class VitalsCaptureScreen extends StatefulWidget {
+  final void Function(int systolic, int diastolic, int pulse, double spo2, double temperature) onAddVitals;
 
-  const VitalsScreen({super.key});
+  const VitalsCaptureScreen({super.key, required this.onAddVitals});
 
   @override
-  VitalsScreenState createState() => VitalsScreenState();
+  VitalsCaptureScreenState createState() => VitalsCaptureScreenState();
 }
 
-class VitalsScreenState extends State<VitalsScreen> {
+class VitalsCaptureScreenState extends State<VitalsCaptureScreen> {
   final Map<String, TextEditingController> _controllers = {
     'sys': TextEditingController(),
     'dia': TextEditingController(),
@@ -193,7 +193,15 @@ class VitalsScreenState extends State<VitalsScreen> {
 
   void _submitVitals() {
     // Collect data for database/API
-    final data = _controllers.map((key, controller) => MapEntry(key, controller.text));
-    Navigator.pop(context, data);
+    int sys = int.tryParse(_controllers['sys']?.text ?? '') ?? 0;
+    int dia = int.tryParse(_controllers['dia']?.text ?? '') ?? 0;
+    int hr  = int.tryParse(_controllers['hr']?.text ?? '') ?? 0;
+
+    double o2   = double.tryParse(_controllers['o2']?.text ?? '') ?? 0.0;
+    double temp = double.tryParse(_controllers['temp']?.text ?? '') ?? 0.0;
+
+    // 2. SYNTAX: Invoke the parent callback via the 'widget.' prefix
+    // This sends the integers and doubles running back up to your Patient List Screen
+    widget.onAddVitals(sys, dia, hr, o2, temp);
   }
 }

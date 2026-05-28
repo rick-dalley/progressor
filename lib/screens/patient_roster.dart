@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/screens/timeline.dart';
-import 'package:triage/screens/vitals.dart';
+import 'package:triage/screens/vitals_capture_screen.dart';
 import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
@@ -30,6 +30,55 @@ class _PatientRosterState extends State<PatientRoster> {
   void initState() {
     super.initState();
     _loadPatientData();
+  }
+
+  Future<void> onAddVitals({
+    int? patientIndex,
+    int? systolic,
+    int? diastolic,
+    int? pulse,
+    double? spo2,
+    double? temperature,
+  }) async {
+    if (patientIndex == null) return;
+
+    // 1. Create a fully writable local copy from your underlying state list
+    Map<String, dynamic> patientCopy = Map<String, dynamic>.from(_patients[patientIndex]);
+
+    int newSystolic = systolic ?? 0;
+    int newDiastolic = diastolic ?? 0;
+    int newPulse = pulse ?? 0;
+    double newSpo2 = spo2 ?? 0;
+    double newTemperature = temperature ?? 0;
+
+    // Strict Machine Guard
+    bool isBatchComplete = newSystolic > 0 && newDiastolic > 0 && newPulse > 0 && newSpo2 > 0 && newTemperature > 0;
+
+    if (!isBatchComplete) return;
+
+    // CRITICAL: Mutate the copy and re-insert it back into the master array
+    setState(() {
+      patientCopy["current_systolic"] = newSystolic;
+      patientCopy["current_diastolic"] = newDiastolic;
+      patientCopy["current_pulse"] = newPulse;
+      patientCopy["current_spo2"] = newSpo2;
+      patientCopy["current_temperature"] = newTemperature;
+
+      // FIX: Push the updated map right back into the main state tracking array!
+      _patients[patientIndex] = patientCopy;
+    });
+
+    debugPrint("Vitals bar state elements fully refreshed for patient index $patientIndex.");
+
+    // Disk I/O Pass
+    await DatabaseManager().insertVitalsBatch(
+      patientUuid: patientCopy["patient_uuid"],
+      systolic: newSystolic,
+      diastolic: newDiastolic,
+      pulse: newPulse,
+      spo2: newSpo2,
+      temperature: newTemperature,
+    );
   }
 
   Future<void> _loadPatientData() async {
@@ -61,7 +110,7 @@ class _PatientRosterState extends State<PatientRoster> {
     );
   }
 
-  void _launchVitalsModal(BuildContext context) {
+  void _launchVitalsModal(BuildContext context, int index) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -90,7 +139,24 @@ class _PatientRosterState extends State<PatientRoster> {
                   decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
                 ),
 
-                Expanded(child: VitalsScreen()),
+                Expanded(
+                  child: VitalsCaptureScreen(
+                    onAddVitals: (sys, dia, pulse, ox, temp) {
+                      // 1. POP THE SHEET INSTANTLY: Use the modalContext from your showModalBottomSheet
+                      Navigator.pop(context);
+
+                      // 2. RUN THE DATABASE/STATE WORK
+                      onAddVitals(
+                        patientIndex: index,
+                        systolic: sys,
+                        diastolic: dia,
+                        pulse: pulse,
+                        spo2: ox,
+                        temperature: temp,
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           );
@@ -207,11 +273,13 @@ class _PatientRosterState extends State<PatientRoster> {
                   height: 324,
                   front: PatientMedicalCard(
                     patient: patient,
-                    onVitalsTap: () => _launchVitalsModal(context),
+                    onVitalsTap: () => _launchVitalsModal(context, index),
                     onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
                     onTimeLineTap: () => _launchTimelineModal(context, _patients[index]),
                   ),
-                  back: PatientInformationCard(patient: patient,onInterviewTap: () => _launchInterviewModal(context, index),
+                  back: PatientInformationCard(
+                    patient: patient,
+                    onInterviewTap: () => _launchInterviewModal(context, index),
                     onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
                     onMedsTap: () async {
                       final Map<String, dynamic>? result = await showModalBottomSheet(
@@ -250,7 +318,8 @@ class _PatientRosterState extends State<PatientRoster> {
                           _patients[index] = patient;
                         });
                       }
-                    },),
+                    },
+                  ),
                 );
               },
             ),

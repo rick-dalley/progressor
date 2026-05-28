@@ -229,6 +229,61 @@ class DatabaseManager {
 
   }
 
+  // If you are using the standard 'uuid' package, import it at the top of your database file:
+// import 'package:uuid/uuid.dart';
+
+  Future<void> insertVitalsBatch({
+    required String patientUuid,
+    required int systolic,
+    required int diastolic,
+    required int pulse,
+    required double spo2,
+    required double temperature,
+  }) async {
+    final db = await database;
+
+    // 1. Initialize a highly optimized atomic write batch
+    final batch = db.batch();
+    final String timestamp = DateTime.now().toIso8601String();
+
+    // Initialize your UUID generator instance if using the package
+    // final uuidGenerator = const Uuid();
+
+    // A helper map to structure our loop properties cleanly
+    final Map<String, double> vitalsMap = {
+      'systolic': systolic.toDouble(),
+      'diastolic': diastolic.toDouble(),
+      'pulse': pulse.toDouble(),
+      'spo2': spo2,
+      'temperature': temperature,
+    };
+
+    // 2. Queue all 5 unique metric types into the batch execution buffer
+    vitalsMap.forEach((metricType, value) {
+      if (value > 0) {
+        // GENERATE GUID SYNTAX:
+        // Option A: If you have the 'uuid' package installed:
+        // final String rowId = uuidGenerator.v4();
+
+        // Option B: If you want a quick fallback without packages, generating a unique
+        // composite key anchor from the timestamp, patient, and metric type works perfectly:
+        final String rowId = "${patientUuid}_${metricType}_${DateTime.now().microsecondsSinceEpoch}";
+
+        batch.insert('patient_metrics', {
+          'id': rowId, // <-- Supply the required primary key GUID here!
+          'patient_uuid': patientUuid,
+          'metric_type': metricType,
+          'metric_value': value,
+          'recorded_at': timestamp,
+        });
+      }
+    });
+
+    // 3. Commit all rows to the phone storage database in one single disk pass
+    await batch.commit(noResult: true);
+    debugPrint("⚡ Database Batch: Successfully committed raw OCR/Manual vitals with explicit GUIDs.");
+  }
+
   Future<Metric?> getLatestMetric(String patientUuid, String metricType) async {
     final db = await database;
 

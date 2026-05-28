@@ -3,13 +3,15 @@ import '../app_theme.dart';
 
 class VitalsData {
   final int pulse;
-  final String bp;
+  final int systolic;
+  final int diastolic;
   final double temp;
   final double spo2;
 
   VitalsData({
     required this.pulse,
-    required this.bp,
+    required this.systolic,
+    required this.diastolic,
     required this.temp,
     required this.spo2,
   });
@@ -54,7 +56,7 @@ class VitalsBar extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _vitalItem(vitals.bp, "NIBP", "SYS/DIA", AppTheme.vitalsBP),
+                    _vitalItem('${vitals.systolic}/${vitals.diastolic}', "NIBP", "SYS/DIA", AppTheme.vitalsBP),
                     _vitalItem(vitals.pulse.toString(), "PULSE", "\u2661/MIN", AppTheme.vitalsPulse),
                     _vitalItem(vitals.spo2.toString(), "SpO2", "%", AppTheme.vitalsOxygen),
                     _vitalItem(vitals.temp.toString(), "TEMP", "°C", AppTheme.vitalsTemp),
