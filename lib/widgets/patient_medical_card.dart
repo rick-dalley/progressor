@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:triage/classes/vitals.dart';
 import 'package:triage/widgets/process_tree_widget.dart';
 import 'package:triage/widgets/process_widgets.dart';
 import 'package:triage/widgets/pulsing_chip.dart';
-import 'package:triage/widgets/vitals_display_bar.dart';
+import 'package:triage/widgets/vertical_bar_mini.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
 import '../classes/acuity.dart';
@@ -32,11 +33,13 @@ class PatientMedicalCard extends StatefulWidget {
 
 class PatientMedicalCardState extends State<PatientMedicalCard> {
   late Map<String, dynamic> patient;
+  late CurrentVitals vitals;
 
   @override
   void initState() {
     super.initState();
     patient = widget.patient;
+    vitals = CurrentVitals.fromPatientJson(patient);
   }
 
   @override
@@ -44,15 +47,18 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.patient != widget.patient) {
       patient = widget.patient;
+      vitals = CurrentVitals.fromPatientJson(patient);
     }
   }
 
   // A completely separate, clean async routine to fetch fresh row data
   Future<void> _refreshPatientData() async {
-    final updatedPatient = await DatabaseManager().getPatientForUuid(patient["patient_uuid"]);
+    final dynamic result = await DatabaseManager().getPatientWithVitals(patientUuid: patient["patient_uuid"]);
+    final Map<String, dynamic> updatedPatient = result[0];
     if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
+        vitals = CurrentVitals.fromPatientJson(patient);
         patient["phase_step_id"] = updatedPatient["phase_step_id"];
       });
     }
@@ -90,7 +96,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
         // side: BorderSide(color: statusColor, width: 3),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -115,7 +121,6 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
             Row(
               children: [
                 GestureDetector(
@@ -135,26 +140,36 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.monitor_heart, size: 32, color: Colors.red), // Replacing the symbol reference
+                    const SizedBox(width: 8),
+                    const Text(
+                      "Vital Signs",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
+                    ),
+                    Spacer(),
 
-            // Tappable Vitals
-            VitalsBar(
-              onAddPressed: widget.onVitalsTap,
-              onHistoryPressed: () => showVitalsHistory(context, patientUuid),
-              vitals: VitalsData(
-                pulse: patient['current_pulse'],
-                systolic: patient['current_systolic'],
-                diastolic: patient['current_diastolic'],
-                temp: patient['current_temp'],
-                spo2: patient['current_spo2'],
-              ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.add_circle_outline, color: AppTheme.lightTheme.primaryColor),
+                      onPressed: widget.onVitalsTap,
+                    ),
+                    Spacer(),
+                    VitalTrendContainerSmall(vitals: vitals, height: 56),
+                  ],
+                ),
+                // 2. The Graph (Your existing indicator)
+              ],
             ),
 
-            const SizedBox(height: 16),
-
-            // Assessments/Meds Row
-            // Replace the Row with a Wrap for automatic overflow handling
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             InkWell(
               onTap: () => _showProcessModal(context, patient['patient_uuid'], patient["phase_step_id"]),
               child: Column(

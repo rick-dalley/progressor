@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
 import 'package:triage/classes/process_step.dart';
+import 'package:triage/classes/vitals.dart';
 import 'package:uuid/uuid.dart';
 import 'acuity.dart';
 import 'data_seeder.dart';
@@ -54,21 +55,18 @@ class DatabaseManager {
   Map<int, ProcessStep> processBlueprint = {};
 
   ProcessStep? getProcessStepForId(int stepId) {
-
     ProcessStep? currentStepNode;
 
     // 2. Iterate through the phases using .values to find where the step lives
     for (final phase in processBlueprint.values) {
       final match = phase.children[stepId];
       if (match != null) {
-        currentStepNode =  match;
+        currentStepNode = match;
         break; // Stop searching once we find the node
       }
     }
     return currentStepNode;
-
   }
-
 
   Future<Database> init({bool overwrite = false}) async {
     final String rawAcuityString = await rootBundle.loadString('assets/patients/acuity.json');
@@ -80,8 +78,7 @@ class DatabaseManager {
     // Use a map transformation to parse each raw item into a valid Step instance
     final List<dynamic> rawPhases = processJson["phases"] as List<dynamic>? ?? const [];
     processBlueprint = {
-      for (final phaseMap in rawPhases)
-        (phaseMap['id'] as int): ProcessStep.fromJson(phaseMap as Map<String, dynamic>)
+      for (final phaseMap in rawPhases) (phaseMap['id'] as int): ProcessStep.fromJson(phaseMap as Map<String, dynamic>),
     };
 
     final String response = await rootBundle.loadString('assets/sql/sql.json');
@@ -107,12 +104,8 @@ class DatabaseManager {
     return db;
   }
 
-
   // Inside your classes/database_manager.dart file
-  Future<bool> updatePatientProcessStep({
-    required String uuid,
-    required int targetStepId,
-  }) async {
+  Future<bool> updatePatientProcessStep({required String uuid, required int targetStepId}) async {
     try {
       // 1. Get a handle to your initialized database engine instance
       final db = await database;
@@ -130,7 +123,6 @@ class DatabaseManager {
 
       // 3. Return true only if at least one record was successfully modified in the schema
       return rowsAffected > 0;
-
     } catch (e) {
       debugPrint("Database Engine Error: Failed to write step transition: $e");
       return false; // Safely fail without crashing the app thread
@@ -146,17 +138,27 @@ class DatabaseManager {
     return await db.query('patient');
   }
 
-  Future<Map<String, dynamic>> getPatientForUuid(String uuid) async {
-  final db = await database;
+  Future<List<Map<String, dynamic>>> getAllPatientsWithVitals() async {
+    final db = await database;
 
-    List<Map<String, dynamic>> matches = await db.query(
-      'patient',
-      where: 'patient_uuid = ?',
-      whereArgs: [uuid],
-      limit: 1, // We only ever care about finding the single matching record
-    );
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    return await db.rawQuery('''
+    SELECT p.*, m.*
+    FROM patient p
+    LEFT JOIN patient_current_metrics m ON p.patient_uuid = m.patient_uuid
+  ''');
+  }
 
-    return matches.isEmpty ? {} : matches.first;
+  Future<List<Map<String, dynamic>>> getPatientWithVitals({required String patientUuid}) async {
+    final db = await database;
+
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    return await db.rawQuery('''
+    SELECT p.*, m.*
+    FROM patient p
+    LEFT JOIN patient_current_metrics m ON p.patient_uuid = m.patient_uuid
+    WHERE p.patient_uuid = ?
+  ''',[patientUuid]);
   }
 
   Future<void> _createTablesFromConfig(Database db) async {
@@ -205,7 +207,7 @@ class DatabaseManager {
     return catalog;
   }
 
-  Future<void> insertPatientMetric(String patientUuid,double value, String metricType)async {
+  Future<void> insertPatientMetric(String patientUuid, double value, String metricType) async {
     final db = await database;
     final sanitizedType = metricType.toLowerCase().trim();
     final String metricEventUuid = const Uuid().v4();
@@ -213,24 +215,21 @@ class DatabaseManager {
     // 3. Execute the database write.
     // Note: This insert will instantly trigger your SQLite triggers on the backend
     // to update the flat fast-cache on the patients table automatically!
-    await db.execute('''
+    await db.execute(
+      '''
     INSERT INTO patient_metrics (
       id, 
       patient_uuid, 
       metric_type, 
       metric_value
     ) VALUES (?, ?, ?, ?)
-  ''', [
-      metricEventUuid,
-      patientUuid,
-      sanitizedType,
-      value,
-    ]);
-
+  ''',
+      [metricEventUuid, patientUuid, sanitizedType, value],
+    );
   }
 
   // If you are using the standard 'uuid' package, import it at the top of your database file:
-// import 'package:uuid/uuid.dart';
+  // import 'package:uuid/uuid.dart';
 
   Future<void> insertVitalsBatch({
     required String patientUuid,
@@ -282,6 +281,57 @@ class DatabaseManager {
     // 3. Commit all rows to the phone storage database in one single disk pass
     await batch.commit(noResult: true);
     debugPrint("⚡ Database Batch: Successfully committed raw OCR/Manual vitals with explicit GUIDs.");
+  }
+
+  Future<CurrentVitals?> getCurrentVitals(String patientUuid) async {
+    final db = await database; // Your DB instance
+
+    // Query the sidecar table
+    final List<Map<String, dynamic>> results = await db.query(
+      'patient_current_metrics',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+    );
+
+    if (results.isEmpty) return null;
+
+    final row = results.first;
+
+    // Convert the flat database row into the format CurrentVitals expects
+    final List<Map<String, dynamic>> metricList = [
+      {
+        'metric_type': 'systolic',
+        'metric_value': row['current_systolic'],
+        'min_found': row['min_systolic'],
+        'max_found': row['max_systolic'],
+      },
+      {
+        'metric_type': 'diastolic',
+        'metric_value': row['current_diastolic'],
+        'min_found': row['min_diastolic'],
+        'max_found': row['max_diastolic'],
+      },
+      {
+        'metric_type': 'pulse',
+        'metric_value': row['current_pulse'],
+        'min_found': row['min_pulse'],
+        'max_found': row['max_pulse'],
+      },
+      {
+        'metric_type': 'spo2',
+        'metric_value': row['current_spo2'],
+        'min_found': row['min_spo2'],
+        'max_found': row['max_spo2'],
+      },
+      {
+        'metric_type': 'temperature',
+        'metric_value': row['current_temperature'],
+        'min_found': row['min_temperature'],
+        'max_found': row['max_temperature'],
+      },
+    ];
+
+    return CurrentVitals.fromJson(metricList);
   }
 
   Future<Metric?> getLatestMetric(String patientUuid, String metricType) async {

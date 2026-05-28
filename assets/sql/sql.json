@@ -2,39 +2,47 @@
   "CREATE": [
     {
       "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, current_systolic int, current_diastolic int, current_pulse int, current_temp real, current_spo2 real, current_weight real, current_height real, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+    },
+    {
+      "table": "patient_current_metrics",
+      "query": "CREATE TABLE IF NOT EXISTS patient_current_metrics (uuid TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, current_weight REAL DEFAULT 0.0, min_weight REAL DEFAULT 0.0, max_weight REAL DEFAULT 0.0, current_height REAL DEFAULT 0.0, min_height REAL DEFAULT 0.0, max_height REAL DEFAULT 0.0, current_systolic INTEGER DEFAULT 0, min_systolic INTEGER DEFAULT 0, max_systolic INTEGER DEFAULT 0, current_diastolic INTEGER DEFAULT 0, min_diastolic INTEGER DEFAULT 0, max_diastolic INTEGER DEFAULT 0, current_temperature REAL DEFAULT 0.0, min_temperature REAL DEFAULT 0.0, max_temperature REAL DEFAULT 0.0, current_spo2 REAL DEFAULT 0.0, min_spo2 REAL DEFAULT 0.0, max_spo2 REAL DEFAULT 0.0, current_pulse INTEGER DEFAULT 0, min_pulse INTEGER DEFAULT 0, max_pulse INTEGER DEFAULT 0, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
     },
     {
       "table": "patient_metrics",
       "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL,  metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,  FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
     },
     {
-      "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_systolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'systolic' BEGIN UPDATE patient SET current_systolic = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "table": "patient",
+      "query": "CREATE TRIGGER IF NOT EXISTS create_patient_metrics_row AFTER INSERT ON patient BEGIN INSERT INTO patient_current_metrics (uuid, patient_uuid) VALUES (hex(randomblob(16)), NEW.patient_uuid); END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_diastolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'diastolic' BEGIN UPDATE patient SET current_diastolic = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_systolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'systolic' BEGIN UPDATE patient_current_metrics SET current_systolic = NEW.metric_value,  min_systolic = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'systolic'),  max_systolic = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'systolic') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_weight_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'weight' BEGIN UPDATE patient SET current_weight = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_diastolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'diastolic' BEGIN UPDATE patient_current_metrics SET current_diastolic = NEW.metric_value,  min_diastolic = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'diastolic'),  max_diastolic = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'diastolic') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_pulse_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'pulse' BEGIN UPDATE patient SET current_pulse = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temperature' BEGIN UPDATE patient_current_metrics SET current_temperature = NEW.metric_value,  min_temperature = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temperature'),  max_temperature = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temperature') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temperature' BEGIN UPDATE patient SET current_temp = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_spo2_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'spo2' BEGIN UPDATE patient_current_metrics SET current_spo2 = NEW.metric_value,  min_spo2 = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'spo2'),  max_spo2 = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'spo2') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_spo2_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'spo2' BEGIN UPDATE patient SET current_spo2 = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_pulse_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'pulse' BEGIN UPDATE patient_current_metrics SET current_pulse = NEW.metric_value,  min_pulse = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'pulse'),  max_pulse = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'pulse') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TRIGGER IF NOT EXISTS sync_last_height_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'height' BEGIN UPDATE patient SET current_height = NEW.metric_value WHERE patient_uuid = NEW.patient_uuid;END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_weight_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'weight' BEGIN UPDATE patient_current_metrics SET current_weight = NEW.metric_value,  min_weight = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'weight'),  max_weight = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'weight') WHERE patient_uuid = NEW.patient_uuid; END;"
+    },
+    {
+      "table": "patient_metrics",
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_height_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'height' BEGIN UPDATE patient_current_metrics SET current_height = NEW.metric_value,  min_height = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'height'),  max_height = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'height') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "datasheet",
@@ -256,3 +264,4 @@
     }
   ]
 }
+

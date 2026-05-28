@@ -83,7 +83,7 @@ class _PatientRosterState extends State<PatientRoster> {
 
   Future<void> _loadPatientData() async {
     // DatabaseManager is a singleton, so this is safe and fast
-    final data = await DatabaseManager().getAllPatients();
+    final data = await DatabaseManager().getAllPatientsWithVitals();
 
     setState(() {
       _patients = data.map((p) => Map<String, dynamic>.from(p)).toList();
@@ -270,7 +270,7 @@ class _PatientRosterState extends State<PatientRoster> {
               itemBuilder: (context, index) {
                 final Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
                 return FlippableCardController(
-                  height: 324,
+                  height: 360,
                   front: PatientMedicalCard(
                     patient: patient,
                     onVitalsTap: () => _launchVitalsModal(context, index),
