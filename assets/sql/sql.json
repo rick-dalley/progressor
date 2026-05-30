@@ -10,7 +10,7 @@
     },
     {
       "table": "patient_metrics",
-      "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL,  metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,  FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
+      "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL,  metric_value REAL NOT NULL, recorded_at TEXT NOT NULL,  FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
     },
     {
       "table": "patient",
@@ -26,7 +26,7 @@
     },
     {
       "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temperature' BEGIN UPDATE patient_current_metrics SET current_temperature = NEW.metric_value,  min_temperature = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temperature'),  max_temperature = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temperature') WHERE patient_uuid = NEW.patient_uuid; END;"
+      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temp' BEGIN UPDATE patient_current_metrics SET current_temperature = NEW.metric_value,  min_temperature = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temp'),  max_temperature = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temp') WHERE patient_uuid = NEW.patient_uuid; END;"
     },
     {
       "table": "patient_metrics",

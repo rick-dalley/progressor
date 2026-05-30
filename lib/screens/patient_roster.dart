@@ -18,10 +18,10 @@ class PatientRoster extends StatefulWidget {
   const PatientRoster({super.key});
 
   @override
-  State<PatientRoster> createState() => _PatientRosterState();
+  State<PatientRoster> createState() => PatientRosterState();
 }
 
-class _PatientRosterState extends State<PatientRoster> {
+class PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
   final idFront = 'assets/screen_captures/license_front.png';
   final idBack = 'assets/screen_captures/license_back.png';
@@ -30,55 +30,6 @@ class _PatientRosterState extends State<PatientRoster> {
   void initState() {
     super.initState();
     _loadPatientData();
-  }
-
-  Future<void> onAddVitals({
-    int? patientIndex,
-    int? systolic,
-    int? diastolic,
-    int? pulse,
-    double? spo2,
-    double? temperature,
-  }) async {
-    if (patientIndex == null) return;
-
-    // 1. Create a fully writable local copy from your underlying state list
-    Map<String, dynamic> patientCopy = Map<String, dynamic>.from(_patients[patientIndex]);
-
-    int newSystolic = systolic ?? 0;
-    int newDiastolic = diastolic ?? 0;
-    int newPulse = pulse ?? 0;
-    double newSpo2 = spo2 ?? 0;
-    double newTemperature = temperature ?? 0;
-
-    // Strict Machine Guard
-    bool isBatchComplete = newSystolic > 0 && newDiastolic > 0 && newPulse > 0 && newSpo2 > 0 && newTemperature > 0;
-
-    if (!isBatchComplete) return;
-
-    // CRITICAL: Mutate the copy and re-insert it back into the master array
-    setState(() {
-      patientCopy["current_systolic"] = newSystolic;
-      patientCopy["current_diastolic"] = newDiastolic;
-      patientCopy["current_pulse"] = newPulse;
-      patientCopy["current_spo2"] = newSpo2;
-      patientCopy["current_temperature"] = newTemperature;
-
-      // FIX: Push the updated map right back into the main state tracking array!
-      _patients[patientIndex] = patientCopy;
-    });
-
-    debugPrint("Vitals bar state elements fully refreshed for patient index $patientIndex.");
-
-    // Disk I/O Pass
-    await DatabaseManager().insertVitalsBatch(
-      patientUuid: patientCopy["patient_uuid"],
-      systolic: newSystolic,
-      diastolic: newDiastolic,
-      pulse: newPulse,
-      spo2: newSpo2,
-      temperature: newTemperature,
-    );
   }
 
   Future<void> _loadPatientData() async {
@@ -106,61 +57,6 @@ class _PatientRosterState extends State<PatientRoster> {
         builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
-      ),
-    );
-  }
-
-  void _launchVitalsModal(BuildContext context, int index) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      // Allows the modal to grow beyond 50% screen height
-      backgroundColor: Colors.transparent,
-      // Let the container handle the color
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        // Opens at 90% of screen height
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                // A small handle to indicate the modal is draggable
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
-                ),
-
-                Expanded(
-                  child: VitalsCaptureScreen(
-                    onAddVitals: (sys, dia, pulse, ox, temp) {
-                      // 1. POP THE SHEET INSTANTLY: Use the modalContext from your showModalBottomSheet
-                      Navigator.pop(context);
-
-                      // 2. RUN THE DATABASE/STATE WORK
-                      onAddVitals(
-                        patientIndex: index,
-                        systolic: sys,
-                        diastolic: dia,
-                        pulse: pulse,
-                        spo2: ox,
-                        temperature: temp,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
@@ -270,10 +166,9 @@ class _PatientRosterState extends State<PatientRoster> {
               itemBuilder: (context, index) {
                 final Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
                 return FlippableCardController(
-                  height: 360,
+                  height: 408,
                   front: PatientMedicalCard(
                     patient: patient,
-                    onVitalsTap: () => _launchVitalsModal(context, index),
                     onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
                     onTimeLineTap: () => _launchTimelineModal(context, _patients[index]),
                   ),

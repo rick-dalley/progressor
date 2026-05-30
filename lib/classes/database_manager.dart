@@ -161,6 +161,20 @@ class DatabaseManager {
   ''',[patientUuid]);
   }
 
+  Future<List<Map<String, dynamic>>> getPatientVitalsHistory({required String patientUuid}) async {
+    final db = await database;
+
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    return await db.rawQuery('''
+    SELECT m.*
+    FROM patient p
+    LEFT JOIN patient_metrics m ON p.patient_uuid = m.patient_uuid
+    WHERE p.patient_uuid = ?
+    ORDER BY m.recorded_at, m.metric_type
+  ''',[patientUuid]);
+  }
+
+
   Future<void> _createTablesFromConfig(Database db) async {
     if (sqlConfig == null) return;
     // 2. Extract the CREATE array
@@ -254,18 +268,12 @@ class DatabaseManager {
       'diastolic': diastolic.toDouble(),
       'pulse': pulse.toDouble(),
       'spo2': spo2,
-      'temperature': temperature,
+      'temp': temperature,
     };
 
     // 2. Queue all 5 unique metric types into the batch execution buffer
     vitalsMap.forEach((metricType, value) {
       if (value > 0) {
-        // GENERATE GUID SYNTAX:
-        // Option A: If you have the 'uuid' package installed:
-        // final String rowId = uuidGenerator.v4();
-
-        // Option B: If you want a quick fallback without packages, generating a unique
-        // composite key anchor from the timestamp, patient, and metric type works perfectly:
         final String rowId = "${patientUuid}_${metricType}_${DateTime.now().microsecondsSinceEpoch}";
 
         batch.insert('patient_metrics', {
@@ -280,10 +288,10 @@ class DatabaseManager {
 
     // 3. Commit all rows to the phone storage database in one single disk pass
     await batch.commit(noResult: true);
-    debugPrint("⚡ Database Batch: Successfully committed raw OCR/Manual vitals with explicit GUIDs.");
+    debugPrint("Database Batch: Successfully committed raw OCR/Manual vitals with explicit GUIDs.");
   }
 
-  Future<CurrentVitals?> getCurrentVitals(String patientUuid) async {
+  Future<CurrentVitalsRecord?> getCurrentVitals(String patientUuid) async {
     final db = await database; // Your DB instance
 
     // Query the sidecar table
@@ -331,7 +339,7 @@ class DatabaseManager {
       },
     ];
 
-    return CurrentVitals.fromJson(metricList);
+    return CurrentVitalsRecord.fromJson(metricList);
   }
 
   Future<Metric?> getLatestMetric(String patientUuid, String metricType) async {

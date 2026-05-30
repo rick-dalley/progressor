@@ -3,7 +3,7 @@ import 'package:triage/widgets/vertical_range_indicator.dart';
 import '../classes/vitals.dart';
 
 class VitalTrendContainerSmall extends StatelessWidget {
-  final CurrentVitals vitals;
+  final CurrentVitalsRecord vitals;
   final double? height;
 
   const VitalTrendContainerSmall({
@@ -21,7 +21,7 @@ class VitalTrendContainerSmall extends StatelessWidget {
         final VitalType type = entry.key;
         final VitalInstance data = entry.value;
         final Limits limits = vitalsLimits[type]!;
-        final String label = vitalTypeLabels[type] ?? "value";
+        final String label = vitalDisplayLabels[type] ?? "value";
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: VerticalRangeIndicator(

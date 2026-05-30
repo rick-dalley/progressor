@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class VerticalRangeIndicator extends StatelessWidget {
   final double current, min, max, clinicalMin, clinicalMax, height;
   final Color color;
+  final bool showHistoricOutlierMarkers;
   final String? label;
 
   const VerticalRangeIndicator({
@@ -13,6 +14,7 @@ class VerticalRangeIndicator extends StatelessWidget {
     required this.clinicalMin,
     required this.clinicalMax,
     required this.color,
+    this.showHistoricOutlierMarkers = false,
     this.label,
     this.height = 40.0,
   });
@@ -39,7 +41,7 @@ class VerticalRangeIndicator extends StatelessWidget {
       children: [
         // 1. The existing graph stack
         SizedBox(
-          width: 20,
+          width: 48,
           height: height,
           child: Stack(
             alignment: Alignment.center,
@@ -54,11 +56,12 @@ class VerticalRangeIndicator extends StatelessWidget {
                   clinicalMin: clinicalMin,
                   clinicalMax: clinicalMax,
                   color: color,
+                    showHistoricOutlierMarkers: showHistoricOutlierMarkers,
                 ),
               ),
               if (isOutlier)
                 Positioned(
-                  top: currentY - 8,
+                  top: currentY - 10,
                   child: IgnorePointer(child: RippleIndicator(color: color)),
                 ),
             ],
@@ -89,7 +92,7 @@ class VerticalRangeIndicator extends StatelessWidget {
 class IndicatorPainter extends CustomPainter {
   final double current, min, max, clinicalMin, clinicalMax;
   final Color color;
-
+final bool showHistoricOutlierMarkers;
   IndicatorPainter({
     required this.current,
     required this.min,
@@ -97,12 +100,14 @@ class IndicatorPainter extends CustomPainter {
     required this.clinicalMin,
     required this.clinicalMax,
     required this.color,
+    this.showHistoricOutlierMarkers = false,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final double range = clinicalMax - clinicalMin;
-    final double barWidth = 8.0;
+    final double barWidth = 12.0;
+    final circleRadius = barWidth * 0.5;
     final double centerX = size.width / 2;
     final bool hasHistory = (min != 0 || max != 0);
 
@@ -113,53 +118,81 @@ class IndicatorPainter extends CustomPainter {
 
     // 1. Light Grey Clinical Container (Pill shape)
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(centerX - barWidth/2, 0, barWidth, size.height), Radius.circular(4)),
-      Paint()..color = Colors.grey.shade200,
+      RRect.fromRectAndRadius(Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height), Radius.circular(circleRadius)),
+      Paint()..color = Colors.grey.shade300,
+    );
+    final borderRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height),
+      Radius.circular(circleRadius),
     );
 
     // 2. Dark Grey Historical Bar (Pill shape)
     if (hasHistory) {
       final Rect histRect = Rect.fromLTRB(
-        centerX - barWidth/2,
-        getY(max).clamp(0.0, size.height),
-        centerX + barWidth/2,
+        centerX - circleRadius,
+        getY(max).clamp(0.0, size.height - circleRadius),
+        centerX + circleRadius,
         getY(min).clamp(0.0, size.height),
       );
       canvas.drawRRect(
-        RRect.fromRectAndRadius(histRect, Radius.circular(4)),
-        Paint()..color = Colors.grey.shade600,
+        RRect.fromRectAndRadius(histRect, Radius.circular(circleRadius)),
+        Paint()..color = color.withAlpha(128),
       );
 
-      // 3. Red Round Boundary Markers (Width matched to bar, but circular)
-      final Paint redPaint = Paint()..color = Colors.red.shade300;
+      if(showHistoricOutlierMarkers){
+        // 3. Red Round Boundary Markers (Width matched to bar, but circular)
+        final Paint redPaint = Paint()..color = Colors.red;
+        double currentY;
 
-      // Top marker: centered horizontally on the bar
-      if (max > clinicalMax) {
-        canvas.drawCircle(Offset(centerX, 0), barWidth / 2, redPaint);
+        if (current > clinicalMax) {
+          // Instead of 0, shift it down by radius to keep it inside the rounded top
+          currentY = circleRadius;
+        } else if (current < clinicalMin) {
+          // Instead of size.height, shift it up by radius to keep it inside the rounded bottom
+          currentY = size.height - circleRadius;
+        } else {
+          // For values inside the range, getY(current) is correct,
+          // but we must ensure it doesn't overlap the caps if we want it strictly contained
+          currentY = getY(current).clamp(circleRadius, size.height - circleRadius);
+        }
+        // Top marker: centered horizontally on the bar
+        if (max > clinicalMax) {
+          canvas.drawCircle(Offset(centerX, currentY), circleRadius, redPaint);
+        }
+        // Bottom marker: centered horizontally on the bar
+        if (min < clinicalMin) {
+          canvas.drawCircle(Offset(centerX, size.height - circleRadius), circleRadius, redPaint);
+        }
       }
-      // Bottom marker: centered horizontally on the bar
-      if (min < clinicalMin) {
-        canvas.drawCircle(Offset(centerX, size.height), barWidth / 2, redPaint);
-      }
+
     }
+    canvas.drawRRect(
+      borderRect,
+      Paint()
+        ..color = Colors.black
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0, // Adjust this for thickness
+    );
 
     // 4. Current Status Dot
     double currentY;
     if (current > clinicalMax) {
-      currentY = -6.0;
+      currentY = -circleRadius;
     }
     else if (current < clinicalMin) {
-      currentY = size.height + 6.0;
+      currentY = size.height + circleRadius;
     }
     else {
       currentY = getY(current);
     }
 
-    canvas.drawCircle(Offset(centerX, currentY), 4, Paint()..color = color);
+    canvas.drawCircle(Offset(centerX, currentY), circleRadius, Paint()..color = color);
   }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
 class RippleIndicator extends StatefulWidget {
   final Color color;
   const RippleIndicator({super.key, required this.color});
@@ -191,7 +224,7 @@ class RippleIndicatorState extends State<RippleIndicator> with SingleTickerProvi
         // Opacity fades out as it grows
         final double opacity = (1.0 - _controller.value);
         // Scale grows from 0.2 to 1.0
-        final double size = 12.0 + (12.0 * _controller.value);
+        final double size = 16.0 + (12.0 * _controller.value);
 
         return Container(
           width: size,

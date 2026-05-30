@@ -1,9 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:triage/classes/vitals.dart';
 import '../app_theme.dart';
 
 class VitalsTrendGraph extends StatefulWidget {
-  final List<Map<String, dynamic>> history;
+  final List<VitalsRecord> history;
   const VitalsTrendGraph({super.key, required this.history});
 
   @override
@@ -20,35 +21,30 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
   @override
   Widget build(BuildContext context) {
     final double graphHeight = MediaQuery.of(context).size.height * 0.225;
-    return Container(
+    return Card(
       // Extends the Monitor Black background to the entire widget area
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.monitorBlack,
-        borderRadius: BorderRadius.circular(12), // Matches your hardware-aligned curves
-        border: Border.all(color: Colors.white10, width: 0.5),
-      ),
       child: Column(
         children: [
-          SizedBox(
+          Padding(padding: EdgeInsets.all(24),
+          child: SizedBox(
             height: graphHeight,
             child: LineChart(
               LineChartData(
                 // Set to transparent so the Container color shows through
                 backgroundColor: Colors.transparent,
-                gridData: const FlGridData(show: false),
+                gridData: const FlGridData(show: true),
                 titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
-                  if (showPulse) _generateLine(widget.history, 'pulse', AppTheme.vitalsPulse),
-                  if (showBP) _generateLine(widget.history, 'systolic', AppTheme.vitalsBP),
-                  if (showBP) _generateLine(widget.history, 'diastolic', AppTheme.vitalsBP.withAlpha(168)),
-                  if (showTemp) _generateLine(widget.history, 'temperature', AppTheme.vitalsTemp),
-                  if (showO2) _generateLine(widget.history, 'o2', AppTheme.vitalsOxygen),
+                  if (showPulse) _generateLine(widget.history, VitalType.pulse, AppTheme.vitalsPulse),
+                  if (showBP) _generateLine(widget.history, VitalType.systolic, AppTheme.vitalsBP),
+                  if (showBP) _generateLine(widget.history, VitalType.diastolic, AppTheme.vitalsBP.withAlpha(168)),
+                  if (showTemp) _generateLine(widget.history, VitalType.temperature, AppTheme.lightTheme.disabledColor),
+                  if (showO2) _generateLine(widget.history, VitalType.spo2, AppTheme.vitalsOxygen),
                 ],
               ),
             ),
-          ),
+          ),),
           const SizedBox(height: 16),
           // This will now sit on the black background
           _buildToggles(),
@@ -57,10 +53,22 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
     );
   }
 
-  LineChartBarData _generateLine(List<Map<String, dynamic>> data, String key, Color color) {
-    // Reverse data so it plots left-to-right (oldest to newest)
+  LineChartBarData _generateLine(List<VitalsRecord> data, VitalType type, Color color) {
     final points = data.reversed.toList().asMap().entries.map((e) {
-      return FlSpot(e.key.toDouble(), (e.value[key] as num).toDouble());
+      final record = e.value;
+
+      // Switch to get the specific metric object based on the type
+      final VitalMetric? metric = switch (type) {
+        VitalType.temperature => record.temp,
+        VitalType.systolic    => record.sys,
+        VitalType.diastolic   => record.dia,
+        VitalType.pulse       => record.pulse,
+        VitalType.spo2        => record.o2,
+        VitalType.unknown     => null,
+      };
+
+      // Return the value, defaulting to 0.0 or handling nulls as needed
+      return FlSpot(e.key.toDouble(), metric?.value ?? 0.0);
     }).toList();
 
     return LineChartBarData(
@@ -80,7 +88,7 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
       children: [
         _toggleChip("Pulse", showPulse, AppTheme.vitalsPulse, (v) => setState(() => showPulse = v)),
         _toggleChip("BP", showBP, AppTheme.vitalsBP, (v) => setState(() => showBP = v)),
-        _toggleChip("Temp", showTemp, AppTheme.vitalsTemp, (v) => setState(() => showTemp = v)),
+        _toggleChip("Temp", showTemp, AppTheme.lightTheme.disabledColor, (v) => setState(() => showTemp = v)),
         _toggleChip("O2", showO2, AppTheme.vitalsOxygen, (v) => setState(() => showO2 = v)),
       ],
     );
@@ -88,7 +96,7 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
 
   Widget _toggleChip(String label, bool active, Color color, Function(bool) onToggle) {
     return FilterChip(
-      label: Text(label, style: TextStyle(color: Colors.black, fontSize: 12)),
+      label: Text(label, style: TextStyle(color: active ? Colors.white:Colors.black, fontSize: 14, fontWeight: FontWeight.bold)),
       selected: active,
       onSelected: onToggle,
       selectedColor: color,

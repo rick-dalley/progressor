@@ -15,14 +15,12 @@ import 'countdown_timer.dart';
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
   final Map<String, dynamic> patient;
-  final VoidCallback onVitalsTap;
   final VoidCallback onTimeLineTap;
   final void Function(Acuity) onAcuityTap;
 
   const PatientMedicalCard({
     super.key,
     required this.patient,
-    required this.onVitalsTap,
     required this.onTimeLineTap,
     required this.onAcuityTap,
   });
@@ -33,13 +31,13 @@ class PatientMedicalCard extends StatefulWidget {
 
 class PatientMedicalCardState extends State<PatientMedicalCard> {
   late Map<String, dynamic> patient;
-  late CurrentVitals vitals;
+  late CurrentVitalsRecord vitals;
 
   @override
   void initState() {
     super.initState();
     patient = widget.patient;
-    vitals = CurrentVitals.fromPatientJson(patient);
+    vitals = CurrentVitalsRecord.fromPatientJson(patient);
   }
 
   @override
@@ -47,7 +45,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.patient != widget.patient) {
       patient = widget.patient;
-      vitals = CurrentVitals.fromPatientJson(patient);
+      vitals = CurrentVitalsRecord.fromPatientJson(patient);
     }
   }
 
@@ -58,19 +56,19 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
-        vitals = CurrentVitals.fromPatientJson(patient);
+        vitals = CurrentVitalsRecord.fromPatientJson(patient);
         patient["phase_step_id"] = updatedPatient["phase_step_id"];
       });
     }
   }
 
-  void showVitalsHistory(BuildContext context, String patientUuid) {
+  void showVitalsHistory({required BuildContext context, required String patientUuid, required CurrentVitalsRecord vitals}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppTheme.clinicalWhite,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (context) => VitalsHistoryView(patientUuid: patientUuid),
+      builder: (context) => VitalsHistoryView(patientUuid: patientUuid, vitals: vitals,),
     );
   }
 
@@ -132,7 +130,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                     iconColor: AppTheme.acuityColors[acuityId],
                     backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
                     onTap: () {
-                      showVitalsHistory(context, patientUuid);
+                      showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
                     },
                     pulse: acuityId == 0,
                     shadowText: false,
@@ -140,32 +138,50 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Column(
+              mainAxisSize: MainAxisSize.min, // Prevents Column from taking infinite height
               children: [
+                // 1. Header
                 Row(
                   children: [
-                    const Icon(Icons.monitor_heart, size: 32, color: Colors.red), // Replacing the symbol reference
+                    const Icon(Icons.monitor_heart, size: 32, color: AppTheme.deepLogicViolet),
                     const SizedBox(width: 8),
                     const Text(
                       "Vital Signs",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet),
                     ),
                     Spacer(),
+                    Icon(Icons.arrow_forward_ios, size: 20, color: AppTheme.lightTheme.disabledColor),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
 
-                  ],
+                // 2. Button and Graph Row
+                SizedBox(
+                  height: 100, // Increased height to comfortably fit stacked icon buttons
+                  child: Row(
+                    children: [
+                      Text("blah de blah"),
+                      SizedBox(width:24.0),
+                      // Graph: Expanded to fill remaining width
+                      Expanded(child:
+                      InkWell(
+                          child: VitalTrendContainerSmall(vitals: vitals, height: 56),
+                          onTap: () {
+                            showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
+                          }
+                      ),
+                      ),
+                    ],
+                  ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline, color: AppTheme.lightTheme.primaryColor),
-                      onPressed: widget.onVitalsTap,
-                    ),
-                    Spacer(),
-                    VitalTrendContainerSmall(vitals: vitals, height: 56),
-                  ],
+                Align(
+                  alignment: Alignment.centerRight ,
+                  child:                 Text("as of: 26/08/2026 12:35 pm",
+                    style: TextStyle(fontSize: 12, color: AppTheme.deepLogicViolet),
+                  ),
                 ),
-                // 2. The Graph (Your existing indicator)
               ],
             ),
 

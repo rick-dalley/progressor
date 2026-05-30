@@ -14,10 +14,10 @@ class FlippableCardController extends StatefulWidget {
   });
 
   @override
-  State<FlippableCardController> createState() => _FlippableCardControllerState();
+  State<FlippableCardController> createState() => FlippableCardControllerState();
 }
 
-class _FlippableCardControllerState extends State<FlippableCardController> with SingleTickerProviderStateMixin {
+class FlippableCardControllerState extends State<FlippableCardController> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
   bool _showFront = true;

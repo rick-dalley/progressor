@@ -80,6 +80,14 @@ class DataSeeder {
     debugPrint('Observations seeded.');
   }
 
+  static String normalize(String? timestamp) {
+    if (timestamp == null) return DateTime.now().toString();
+    // If it's already a string, parse it then format it
+    final dt = DateTime.tryParse(timestamp) ?? DateTime.now();
+    return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
+        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}";
+  }
+
   //Seed Patient Personal, Prescription and Vitals information
  static Future<void> _seedPatientData(Database db) async {
     // Parse the master JSON array
@@ -180,16 +188,20 @@ class DataSeeder {
 
           for (var vital in vitalsList) {
             // Define the map of metrics to insert
+            double convTemp =(vital['temp'] as num?)?.toDouble() ?? 0.0;
+            if (convTemp > 50){
+              convTemp = (convTemp - 32) * 0.55555555555;
+            }
             final Map<String, double> metrics = {
               'pulse': (vital['pulse'] as num?)?.toDouble() ?? 0.0,
               'systolic': (vital['systolic'] as num?)?.toDouble() ?? 0.0,
               'diastolic': (vital['diastolic'] as num?)?.toDouble() ?? 0.0,
               'spo2': (vital['spo2'] as num?)?.toDouble() ?? 0.0,
-              'temp': (vital['temp'] as num?)?.toDouble() ?? 0.0,
+              'temp': convTemp,
             };
-
             // Insert each metric as its own row
             for (var entry in metrics.entries) {
+              final String normalizedTime = normalize(vital['recorded_at']);
               await txn.insert(
                 'patient_metrics',
                 {
@@ -197,7 +209,7 @@ class DataSeeder {
                   'patient_uuid': item['patient_uuid'],
                   'metric_type': entry.key,
                   'metric_value': entry.value,
-                  'recorded_at': vital['recorded_at'],
+                  'recorded_at': normalizedTime,
                 },
                 conflictAlgorithm: ConflictAlgorithm.replace,
               );
