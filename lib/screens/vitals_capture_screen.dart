@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/widgets/vitals_scanner.dart';
 
 class VitalEntry {
@@ -26,24 +27,70 @@ class VitalsCaptureScreen extends StatefulWidget {
 }
 
 class VitalsCaptureScreenState extends State<VitalsCaptureScreen> {
-  final Map<String, TextEditingController> _controllers = {
-    'sys': TextEditingController(),
-    'dia': TextEditingController(),
-    'hr': TextEditingController(),
-    'o2': TextEditingController(),
-    'temp': TextEditingController(),
+
+  bool _isScannerLoaded = false;
+  String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
+
+  final Map<String, TextEditingController?> _controllers = {
+    'sys': null,
+    'dia': null,
+    'hr': null,
+    'o2': null,
+    'temp': null,
   };
 
+  TextEditingController getController(String key) {
+    _controllers[key] ??= TextEditingController();
+    return _controllers[key]!;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Delay scanner startup until the UI is idle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() => _isScannerLoaded = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _controllers.values) {
+      if (controller!=null) {
+        controller.dispose();
+      }
+    }
+    super.dispose();
+  }
+  Key _scannerKey = UniqueKey();
+
+  void _rescan() {
+    setState(() {
+      // Changing the key forces Flutter to dispose of the old
+      // scanner and build a brand-new one from scratch
+      _scannerKey = UniqueKey();
+    });
+  }
+
   // String assetPath = 'assets/screen_captures/Omron.png';
-  String assetPath = 'assets/screen_captures/WelchAllynConnex6000SpotProfileScreen.png';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Patient Vitals")),
+      appBar: AppBar(title: const Text("Patient Vitals"),
+      actions: [
+        IconButton(
+          icon: const Icon(Symbols.frame_reload),
+          onPressed: _rescan, // Trigger the rescan
+          tooltip: "Rescan Vitals",
+        )
+      ],),
       body: Column(
         children: [
           // 1. CAMERA / OCR PLACEHOLDER SECTION
-          VitalsScannerWidget(
+          !_isScannerLoaded
+            ? const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()))
+            :  VitalsScannerWidget(
+            key: _scannerKey,
             assetPath: assetPath,
             onScanCompleted: (results) {
               if (mounted && results.isNotEmpty) {
@@ -51,21 +98,21 @@ class VitalsCaptureScreenState extends State<VitalsCaptureScreen> {
                   for (var entry in results) {
                     switch (entry.key) {
                       case 'SYS':
-                        _controllers['sys']?.text = entry.value;
+                        getController('sys').text = entry.value;
                         break;
                       case 'DIA':
-                        _controllers['dia']?.text = entry.value;
+                        getController('dia').text = entry.value;
                         break;
                       case 'PULSE':
                       // Maps OCR "PULSE" to your controller "hr" (Heart Rate)
-                        _controllers['hr']?.text = entry.value;
+                        getController('hr').text = entry.value;
                         break;
                       case 'SPO2':
                       // Maps OCR "SPO2" to your controller "o2"
-                        _controllers['o2']?.text = entry.value;
+                        getController('o2').text = entry.value;
                         break;
                       case 'TEMP':
-                        _controllers['temp']?.text = entry.value;
+                        getController('temp').text = entry.value;
                         break;
                       case 'PATIENT_ID':
                       // If you add a controller for Patient ID, update it here

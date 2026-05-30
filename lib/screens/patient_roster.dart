@@ -164,7 +164,7 @@ class PatientRosterState extends State<PatientRoster> {
               // Added top padding for breathing room
               itemCount: _patients.length,
               itemBuilder: (context, index) {
-                final Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
+                Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
                 return FlippableCardController(
                   height: 408,
                   front: PatientMedicalCard(

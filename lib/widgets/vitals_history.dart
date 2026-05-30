@@ -9,8 +9,8 @@ import '../screens/vitals_capture_screen.dart';
 class VitalsHistoryView extends StatefulWidget{
   final String patientUuid;
   final CurrentVitalsRecord vitals;
-
-  const VitalsHistoryView({super.key, required this.patientUuid, required this.vitals});
+  final VoidCallback onAddedVitals;
+  const VitalsHistoryView({super.key, required this.patientUuid, required this.vitals, required this.onAddedVitals});
 
 
   @override
@@ -121,6 +121,8 @@ class VitalsHistoryViewState extends State<VitalsHistoryView> {
     setState(() {
       history = getVitals();
     });
+
+    widget.onAddedVitals.call();
   }
   
   @override

@@ -14,11 +14,11 @@ import 'countdown_timer.dart';
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
-  final Map<String, dynamic> patient;
+  Map<String, dynamic> patient ={};
   final VoidCallback onTimeLineTap;
   final void Function(Acuity) onAcuityTap;
 
-  const PatientMedicalCard({
+  PatientMedicalCard({
     super.key,
     required this.patient,
     required this.onTimeLineTap,
@@ -50,14 +50,15 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   }
 
   // A completely separate, clean async routine to fetch fresh row data
-  Future<void> _refreshPatientData() async {
+  Future<void> refreshPatientData() async {
     final dynamic result = await DatabaseManager().getPatientWithVitals(patientUuid: patient["patient_uuid"]);
     final Map<String, dynamic> updatedPatient = result[0];
+
     if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
+        patient = updatedPatient;
         vitals = CurrentVitalsRecord.fromPatientJson(patient);
-        patient["phase_step_id"] = updatedPatient["phase_step_id"];
       });
     }
   }
@@ -68,7 +69,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       isScrollControlled: true,
       backgroundColor: AppTheme.clinicalWhite,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (context) => VitalsHistoryView(patientUuid: patientUuid, vitals: vitals,),
+      builder: (context) => VitalsHistoryView(patientUuid: patientUuid, vitals: vitals, onAddedVitals: refreshPatientData,),
     );
   }
 
@@ -233,7 +234,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 child: ProcessTreeOverlay(
                   patientUuid: uuid,
                   processStepId: stepId,
-                  onProcessStepTapped: _refreshPatientData,
+                  onProcessStepTapped: refreshPatientData,
                 ),
               ),
             ],
