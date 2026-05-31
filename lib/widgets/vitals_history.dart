@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:triage/widgets/vitals_trend_gaph.dart';
 import '../classes/database_manager.dart';
 import '../classes/vitals.dart';
 import '../screens/vitals_capture_screen.dart';
 
-
-class VitalsHistoryView extends StatefulWidget{
+class VitalsHistoryView extends StatefulWidget {
   final String patientUuid;
   final CurrentVitalsRecord vitals;
   final VoidCallback onAddedVitals;
   const VitalsHistoryView({super.key, required this.patientUuid, required this.vitals, required this.onAddedVitals});
 
-
   @override
   State<StatefulWidget> createState() => VitalsHistoryViewState();
-
 }
 
 class VitalsHistoryViewState extends State<VitalsHistoryView> {
-
   late Future<List<VitalsRecord>> history;
-
+  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
   @override
   void initState() {
     super.initState();
@@ -97,13 +94,11 @@ class VitalsHistoryViewState extends State<VitalsHistoryView> {
     double? temperature,
   }) async {
     if (patientUuid == null) return;
-
     int newSystolic = systolic ?? 0;
     int newDiastolic = diastolic ?? 0;
     int newPulse = pulse ?? 0;
     double newSpo2 = spo2 ?? 0;
     double newTemperature = temperature ?? 0;
-
     // Strict Machine Guard
     bool isBatchComplete = newSystolic > 0 && newDiastolic > 0 && newPulse > 0 && newSpo2 > 0 && newTemperature > 0;
     if (!isBatchComplete) return;
@@ -124,7 +119,7 @@ class VitalsHistoryViewState extends State<VitalsHistoryView> {
 
     widget.onAddedVitals.call();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final double notchPadding = MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : 47.0;
@@ -153,8 +148,9 @@ class VitalsHistoryViewState extends State<VitalsHistoryView> {
                 return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
               }
               final history = snapshot.data!;
-              return Expanded(
-                child: Padding(padding: EdgeInsets.all(24), child: Column(
+              return Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 12),
@@ -183,19 +179,21 @@ class VitalsHistoryViewState extends State<VitalsHistoryView> {
                             DataColumn(label: Text('Temp')),
                           ],
                           rows: history.map((vital) {
-                            return DataRow(cells: [
-                              DataCell(Text(vital.recordedAt.toString().substring(0, 16))),
-                              DataCell(Text("${vital.sys?.value.toInt()}/${vital.dia?.value.toInt()}")),
-                              DataCell(Text("${vital.pulse?.value.toInt()}")),
-                              DataCell(Text("${vital.o2?.value.toInt()}%")),
-                              DataCell(Text("${vital.temp?.value.toStringAsFixed(1)}°C")),
-                            ]);
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(formatter.format(vital.recordedAt ?? DateTime.now()))),
+                                DataCell(Text("${vital.sys?.value.toInt()}/${vital.dia?.value.toInt()}")),
+                                DataCell(Text("${vital.pulse?.value.toInt()}")),
+                                DataCell(Text("${vital.o2?.value.toInt()}%")),
+                                DataCell(Text("${vital.temp?.value.toStringAsFixed(1)}°C")),
+                              ],
+                            );
                           }).toList(),
                         ),
                       ),
                     ),
                   ],
-                ),)
+                ),
               );
             },
           ),

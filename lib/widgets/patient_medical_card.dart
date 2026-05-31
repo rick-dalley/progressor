@@ -14,11 +14,11 @@ import 'countdown_timer.dart';
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
-  Map<String, dynamic> patient ={};
+  final Map<String, dynamic> patient;
   final VoidCallback onTimeLineTap;
   final void Function(Acuity) onAcuityTap;
 
-  PatientMedicalCard({
+  const PatientMedicalCard({
     super.key,
     required this.patient,
     required this.onTimeLineTap,

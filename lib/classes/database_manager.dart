@@ -96,13 +96,33 @@ class DatabaseManager {
       path,
       version: 1,
       onCreate: (db, version) async {
-        await _createTablesFromConfig(db);
+        // 4. Ensure Foreign Keys are enabled for the session
+        await db.execute('PRAGMA foreign_keys = ON;');
+        await createSqlObjects(db);
         await DataSeeder.seed(db);
       },
     );
 
     return db;
   }
+
+  Future<void> createSqlObjects(Database db) async {
+    if (sqlConfig == null) return;
+    // 2. Extract the CREATE array
+    final List<dynamic> createScripts = sqlConfig?['CREATE'];
+
+    // 3. Execute each query in the order provided in the JSON
+    for (var entry in createScripts) {
+      final String query = entry['query'];
+      if (query.isNotEmpty) {
+        await db.execute(query);
+      }
+    }
+
+
+  }
+
+
 
   // Inside your classes/database_manager.dart file
   Future<bool> updatePatientProcessStep({required String uuid, required int targetStepId}) async {
@@ -170,26 +190,8 @@ class DatabaseManager {
     FROM patient p
     LEFT JOIN patient_metrics m ON p.patient_uuid = m.patient_uuid
     WHERE p.patient_uuid = ?
-    ORDER BY m.recorded_at, m.metric_type
+    ORDER BY m.reading_id, m.metric_type
   ''',[patientUuid]);
-  }
-
-
-  Future<void> _createTablesFromConfig(Database db) async {
-    if (sqlConfig == null) return;
-    // 2. Extract the CREATE array
-    final List<dynamic> createScripts = sqlConfig?['CREATE'];
-
-    // 3. Execute each query in the order provided in the JSON
-    for (var entry in createScripts) {
-      final String query = entry['query'];
-      if (query.isNotEmpty) {
-        await db.execute(query);
-      }
-    }
-
-    // 4. Ensure Foreign Keys are enabled for the session
-    await db.execute('PRAGMA foreign_keys = ON;');
   }
 
   // Helper to avoid deadlocks during the open/create cycle
@@ -244,6 +246,14 @@ class DatabaseManager {
 
   // If you are using the standard 'uuid' package, import it at the top of your database file:
   // import 'package:uuid/uuid.dart';
+  Future<int> getNextReadingId(Database db, String patientUuid) async {
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+        'SELECT COALESCE(MAX(reading_id), 0) + 1 as next_id FROM patient_metrics WHERE patient_uuid = ?',
+        [patientUuid]
+    );
+
+    return result.first['next_id'] as int;
+  }
 
   Future<void> insertVitalsBatch({
     required String patientUuid,
@@ -255,6 +265,7 @@ class DatabaseManager {
   }) async {
     final db = await database;
 
+    final int nextReadingId = await getNextReadingId(db, patientUuid);
     // 1. Initialize a highly optimized atomic write batch
     final batch = db.batch();
     final String timestamp = DateTime.now().toIso8601String();
@@ -278,6 +289,7 @@ class DatabaseManager {
 
         batch.insert('patient_metrics', {
           'id': rowId, // <-- Supply the required primary key GUID here!
+          'reading_id' : nextReadingId,
           'patient_uuid': patientUuid,
           'metric_type': metricType,
           'metric_value': value,

@@ -48,8 +48,10 @@ class VitalMetric {
   final String label;
   final double value;
   final DateTime recorded;
+  final int readingId;
 
   VitalMetric({
+    required this.readingId,
     required this.label,
     required this.value,
     DateTime? recorded
@@ -57,20 +59,23 @@ class VitalMetric {
         recorded = recorded ?? DateTime.timestamp();
 
   factory VitalMetric.fromJson(Map<String, dynamic> json) {
+      String? rawDate = json["recorded_at"];
     return VitalMetric(
+      readingId: json["reading_id"],
       label: json["metric_type"] ?? "unknown",
       value: json["metric_value"] != null ? (json["metric_value"] as num).toDouble(): 0.0,
-      recorded: DateTime.tryParse(json["recorded_at"] ?? "") ?? DateTime.timestamp(),
+      recorded: DateTime.tryParse( rawDate ?? "") ?? DateTime.timestamp(),
     );
   }
 }
 
 class VitalsRecord {
   // Use nullable types to simplify completion checks
+  final int thisReading;
   VitalMetric? temp, o2, sys, dia, pulse;
-  final DateTime recordedAt;
+  DateTime? recordedAt;
 
-  VitalsRecord(this.recordedAt);
+  VitalsRecord({required this.thisReading, required this.recordedAt});
 
   void addMetric(VitalMetric metric) {
     switch (metric.type) {
@@ -93,26 +98,25 @@ class VitalsHistoryBuilder {
 
   VitalsHistoryBuilder({required dynamic json}){
     DateTime recordedAt;
-    String? currentRecordedAt;
+    int currentReading = 0;
     VitalsRecord? activeVitalsRecord;
     for (dynamic item in json){
-      String? rawRecordedAt = item['recorded_at'];
-      if (item == null || rawRecordedAt == null){
+      int thisReading = item['reading_id'];
+      if (item == null){
         continue;
       }
       VitalMetric metric = VitalMetric.fromJson(item);
-      if(currentRecordedAt == null || (currentRecordedAt != rawRecordedAt)){
-        if (activeVitalsRecord != null){
-          if(activeVitalsRecord.isComplete){
-            history.add(activeVitalsRecord);
-          }
-        }
-        recordedAt = DateTime.parse(rawRecordedAt);
-        activeVitalsRecord = VitalsRecord(recordedAt);
-        currentRecordedAt = rawRecordedAt;
+      if((currentReading != thisReading)){
+        activeVitalsRecord = VitalsRecord(thisReading: thisReading, recordedAt: metric.recorded);
+        currentReading = thisReading;
       }
       activeVitalsRecord?.addMetric(metric);
-
+      if (activeVitalsRecord != null){
+        if(activeVitalsRecord.isComplete){
+          history.add(activeVitalsRecord);
+          activeVitalsRecord = null;
+        }
+      }
     }
   }
 }

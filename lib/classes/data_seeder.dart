@@ -143,21 +143,7 @@ class DataSeeder {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
-
-        await txn.update(
-          'patient_current_metrics',
-          {
-            'current_pulse': item['current_pulse'],
-            'current_systolic': item['current_systolic'],
-            'current_diastolic': item['current_diastolic'],
-            'current_temperature': item['current_temp'], // Verify column name matches schema
-            'current_spo2': item['current_spo2'],
-          },
-          where: 'patient_uuid = ?',
-          whereArgs: [patientUuid],
-        );
-
-        // 2. Extract and Seed the Nested Medications ('prescription' array)
+        // Extract and Seed the Nested Medications ('prescription' array)
         if (item['prescription'] != null && item['prescription'] is List) {
           final List<dynamic> prescriptions = item['prescription'];
           for (var med in prescriptions) {
@@ -187,33 +173,33 @@ class DataSeeder {
           final List<dynamic> vitalsList = item['vitals'];
 
           for (var vital in vitalsList) {
+
             // Define the map of metrics to insert
-            double convTemp =(vital['temp'] as num?)?.toDouble() ?? 0.0;
-            if (convTemp > 50){
-              convTemp = (convTemp - 32) * 0.55555555555;
-            }
+            int vitalId = vital['id'] ?? 1;
+
             final Map<String, double> metrics = {
               'pulse': (vital['pulse'] as num?)?.toDouble() ?? 0.0,
               'systolic': (vital['systolic'] as num?)?.toDouble() ?? 0.0,
               'diastolic': (vital['diastolic'] as num?)?.toDouble() ?? 0.0,
               'spo2': (vital['spo2'] as num?)?.toDouble() ?? 0.0,
-              'temp': convTemp,
+              'temp': (vital['temp'] as num?)?.toDouble() ?? 0.0,
             };
+
             // Insert each metric as its own row
             for (var entry in metrics.entries) {
-              final String normalizedTime = normalize(vital['recorded_at']);
               await txn.insert(
                 'patient_metrics',
                 {
-                  'id': '${item['patient_uuid']}_${vital['recorded_at']}_${entry.key}',
-                  'patient_uuid': item['patient_uuid'],
+                  'id': '${item['patient_uuid']}_${entry.key}_$vitalId',
+                  'reading_id' : vitalId,
+                  'patient_uuid': patientUuid,
                   'metric_type': entry.key,
                   'metric_value': entry.value,
-                  'recorded_at': normalizedTime,
                 },
                 conflictAlgorithm: ConflictAlgorithm.replace,
               );
             }
+
           }
         }
       }

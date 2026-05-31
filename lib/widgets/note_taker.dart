@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+// import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../app_theme.dart';
 import '../screens/observation.dart';
@@ -17,7 +17,7 @@ class NoteTaker extends StatefulWidget {
 class NoteTakerState extends State<NoteTaker> {
   // This guarantees text persistence across reactive UI rebuild frames.
   late final TextEditingController _localController;
-  late stt.SpeechToText _speech;
+  // _localControllerlate stt.SpeechToText _speech;
   bool _isListening = false;
   final String _listeningError = "";
 
@@ -25,7 +25,7 @@ class NoteTakerState extends State<NoteTaker> {
   void initState() {
     super.initState();
     _localController = TextEditingController(text: widget.currentNote?.content ?? "");
-    _speech = stt.SpeechToText();
+    // _speech = stt.SpeechToText();
 
     // 🟢 If user tapped the footer mic icon, immediately trigger initialization loop
     if (widget.useMicrophone) {
@@ -66,7 +66,7 @@ class NoteTakerState extends State<NoteTaker> {
     } else {
       // Explicit toggle off
       setState(() => _isListening = false);
-      _speech.stop();
+      // _speech.stop();
     }
   }
 

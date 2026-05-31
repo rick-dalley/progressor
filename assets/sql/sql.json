@@ -1,267 +1,243 @@
 {
-  "CREATE": [
-    {
-      "table": "patient",
-      "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
-    },
-    {
-      "table": "patient_current_metrics",
-      "query": "CREATE TABLE IF NOT EXISTS patient_current_metrics (uuid TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, current_weight REAL DEFAULT 0.0, min_weight REAL DEFAULT 0.0, max_weight REAL DEFAULT 0.0, current_height REAL DEFAULT 0.0, min_height REAL DEFAULT 0.0, max_height REAL DEFAULT 0.0, current_systolic INTEGER DEFAULT 0, min_systolic INTEGER DEFAULT 0, max_systolic INTEGER DEFAULT 0, current_diastolic INTEGER DEFAULT 0, min_diastolic INTEGER DEFAULT 0, max_diastolic INTEGER DEFAULT 0, current_temperature REAL DEFAULT 0.0, min_temperature REAL DEFAULT 0.0, max_temperature REAL DEFAULT 0.0, current_spo2 REAL DEFAULT 0.0, min_spo2 REAL DEFAULT 0.0, max_spo2 REAL DEFAULT 0.0, current_pulse INTEGER DEFAULT 0, min_pulse INTEGER DEFAULT 0, max_pulse INTEGER DEFAULT 0, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
-    },
-    {
-      "table": "patient_metrics",
-      "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL,  metric_value REAL NOT NULL, recorded_at TEXT NOT NULL,  FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
-    },
-    {
-      "table": "patient",
-      "query": "CREATE TRIGGER IF NOT EXISTS create_patient_metrics_row AFTER INSERT ON patient BEGIN INSERT INTO patient_current_metrics (uuid, patient_uuid) VALUES (hex(randomblob(16)), NEW.patient_uuid); END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_systolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'systolic' BEGIN UPDATE patient_current_metrics SET current_systolic = NEW.metric_value,  min_systolic = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'systolic'),  max_systolic = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'systolic') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_diastolic_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'diastolic' BEGIN UPDATE patient_current_metrics SET current_diastolic = NEW.metric_value,  min_diastolic = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'diastolic'),  max_diastolic = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'diastolic') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_temperature_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'temp' BEGIN UPDATE patient_current_metrics SET current_temperature = NEW.metric_value,  min_temperature = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temp'),  max_temperature = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'temp') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_spo2_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'spo2' BEGIN UPDATE patient_current_metrics SET current_spo2 = NEW.metric_value,  min_spo2 = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'spo2'),  max_spo2 = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'spo2') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_pulse_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'pulse' BEGIN UPDATE patient_current_metrics SET current_pulse = NEW.metric_value,  min_pulse = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'pulse'),  max_pulse = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'pulse') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_weight_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'weight' BEGIN UPDATE patient_current_metrics SET current_weight = NEW.metric_value,  min_weight = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'weight'),  max_weight = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'weight') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "patient_metrics",
-      "query":"CREATE TRIGGER IF NOT EXISTS sync_metrics_height_to_patient AFTER INSERT ON patient_metrics WHEN NEW.metric_type = 'height' BEGIN UPDATE patient_current_metrics SET current_height = NEW.metric_value,  min_height = (SELECT MIN(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'height'),  max_height = (SELECT MAX(metric_value) FROM patient_metrics WHERE patient_uuid = NEW.patient_uuid AND metric_type = 'height') WHERE patient_uuid = NEW.patient_uuid; END;"
-    },
-    {
-      "table": "datasheet",
-      "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, classes TEXT, raw_json_blob TEXT, last_synced_at TEXT);"
-    },
-    {
-      "table": "assessment",
-      "query": "CREATE TABLE IF NOT EXISTS assessment (id TEXT PRIMARY KEY, title TEXT NOT NULL, column_headers TEXT,instructions TEXT, timeframe TEXT );"
-    },
-    {
-      "table": "question",
-      "query": "CREATE TABLE IF NOT EXISTS question (id TEXT PRIMARY KEY, assessment_id TEXT NOT NULL, cluster TEXT, cluster_name TEXT, question_text TEXT, description TEXT, question_type TEXT, max_score INTEGER, depends_on TEXT, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE CASCADE);"
-    },
-    {
-      "table": "medication",
-      "query": "CREATE TABLE IF NOT EXISTS medication (id TEXT PRIMARY KEY, patient_uuid TEXT, name TEXT, set_id TEXT, dose TEXT, freq TEXT, has_local_datasheet int NOT NULL, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid), FOREIGN KEY (set_id) REFERENCES datasheet(set_id) ON DELETE RESTRICT);"
-    },
-    {
-      "table": "condition",
-      "query": "CREATE TABLE IF NOT EXISTS condition (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, category TEXT);"
-    },
-    {
-      "table": "completed_assessment",
-      "query": "CREATE TABLE IF NOT EXISTS completed_assessment ( id TEXT PRIMARY KEY, assessment_id TEXT NOT NULL, patient_id TEXT NOT NULL, date_started DATETIME DEFAULT CURRENT_TIMESTAMP, complete INTEGER DEFAULT 0, date_completed DATETIME, last_modified DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE RESTRICT, FOREIGN KEY (patient_id) REFERENCES patient(patient_uuid) ON DELETE RESTRICT);"
-    },
-    {
-      "table": "completed_question",
-      "query": "CREATE TABLE IF NOT EXISTS completed_question ( completed_assessment_id TEXT NOT NULL, question_id TEXT NOT NULL, answer TEXT, PRIMARY KEY (completed_assessment_id, question_id), FOREIGN KEY (completed_assessment_id) REFERENCES completed_assessment(id) ON DELETE CASCADE, FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE RESTRICT);"
-    },
-    {
-      "table": "vitals",
-      "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 REAL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
-    },
-    {
-      "table": "patient_condition",
-      "query": "CREATE TABLE patient_condition (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id int, treatment_notes TEXT, is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
-    },
-    {
-      "table": "observations",
-      "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT, content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
-    },
-    {
-      "table": "phase_step",
-      "query": "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
-    }
-  ],
-  "INSERT": [
-    {
-      "table": "patient",
-      "query": "INSERT INTO patient (patient_uuid,first_name,last_name,phn,dob,current_acuity,status,path,narrative_hint) VALUES (? ? ? ? ? ? ? ? ?);"
-    },
-    {
-      "table": "medication",
-      "query": ""
-    },
-    {
-      "table": "datasheet",
-      "query": "INSERT INTO datasheet (set_id, id, effective_time, version, spl_product_data_elements, boxed_warning, indications_and_usage, dosage_and_administration, dosage_forms_and_strengths, contraindications, warnings_and_cautions, adverse_reactions, drug_interactions, interaction_data, use_in_specific_populations, pregnancy, nursing_mothers, pediatric_use, geriatric_use, overdosage, description, clinical_pharmacology, mechanism_of_action, pharmacodynamics, pharmacokinetics, nonclinical_toxicology, carcinogenesis_and_mutagenesis_and_impairment_of_fertility, clinical_studies, clinical_studies_table, how_supplied, information_for_patients, package_label_principal_display_panel, application_number, brand_name, generic_name, manufacturer_name, product_ndc, product_type, route, substance_name, rxcui, spl_id, spl_set_id, package_ndc, is_original_packager, unii, openfda_raw, xxx) SELECT json_extract(?, '$.set_id'), json_extract(?, '$.id'), json_extract(?, '$.effective_time'), json_extract(?, '$.version'), json_extract(?, '$.spl_product_data_elements[0]'), json_extract(?, '$.boxed_warning[0]'), json_extract(?, '$.indications_and_usage[0]'), json_extract(?, '$.dosage_and_administration[0]'), json_extract(?, '$.dosage_forms_and_strengths[0]'), json_extract(?, '$.contraindications[0]'), json_extract(?, '$.warnings_and_cautions[0]'), json_extract(?, '$.adverse_reactions[0]'), json_extract(?, '$.drug_interactions[0]'), json_extract(?, '$.drug_interactions[0]'), json_extract(?, '$.use_in_specific_populations[0]'), json_extract(?, '$.pregnancy[0]'), json_extract(?, '$.nursing_mothers[0]'), json_extract(?, '$.pediatric_use[0]'), json_extract(?, '$.geriatric_use[0]'), json_extract(?, '$.overdosage[0]'), json_extract(?, '$.description[0]'), json_extract(?, '$.clinical_pharmacology[0]'), json_extract(?, '$.mechanism_of_action[0]'), json_extract(?, '$.pharmacodynamics[0]'), json_extract(?, '$.pharmacokinetics[0]'), json_extract(?, '$.nonclinical_toxicology[0]'), json_extract(?, '$.carcinogenesis_and_mutagenesis_and_impairment_of_fertility[0]'), json_extract(?, '$.clinical_studies[0]'), json_extract(?, '$.clinical_studies_table[0]'), json_extract(?, '$.how_supplied[0]'), json_extract(?, '$.information_for_patients[0]'), json_extract(?, '$.package_label_principal_display_panel[0]'), json_extract(?, '$.openfda.application_number[0]'), json_extract(?, '$.openfda.brand_name[0]'), json_extract(?, '$.openfda.generic_name[0]'), json_extract(?, '$.openfda.manufacturer_name[0]'), json_extract(?, '$.openfda.product_ndc[0]'), json_extract(?, '$.openfda.product_type[0]'), json_extract(?, '$.openfda.route[0]'), json_extract(?, '$.openfda.substance_name[0]'), json_extract(?, '$.openfda.rxcui[0]'), json_extract(?, '$.openfda.spl_id[0]'), json_extract(?, '$.openfda.spl_set_id[0]'), json_extract(?, '$.openfda.package_ndc[0]'), json_extract(?, '$.openfda.is_original_packager[0]'), json_extract(?, '$.openfda.unii[0]'), json_extract(?, '$.openfda'), json_extract(?, '$.xxx');"
-    },
-    {
-      "table": "condition",
-      "query": " "
-    },
-    {
-      "table": "assessment",
-      "query": " "
-    }
-  ],
-  "UPDATE": [
-    {
-      "table": "patient",
-      "query": "UPDATE patient SET first_name=?,last_name=?,phn=?,dob=?,current_acuity=?,status=?,path=?,narrative_hint=? WHERE patient_uuid = ?"
-    },
-    {
-      "table": "medication",
-      "query": ""
-    },
-    {
-      "table": "condition",
-      "query": ""
-    }
-  ],
-  "DELETE": [
-    {
-      "table": "completed_assessment",
-      "query": "DELETE FROM completed_assessment;"
-    },
-    {
-      "table": "completed_question",
-      "query": "DELETE FROM completed_question;"
-    },
-    {
-      "table": "vitals",
-      "query": "DELETE FROM vitals;"
-    },
-    {
-      "table": "assessment",
-      "query": "DELETE FROM assessment;"
-    },
-    {
-      "table": "question",
-      "query": "DELETE FROM question;"
-    },
-    {
-      "table": "patient",
-      "query": "DELETE FROM patient WHERE patient_uuid=?"
-    },
-    {
-      "table": "medication",
-      "query": "DELETE FROM medication WHERE patient_uuid=? "
-    },
-    {
-      "table": "datasheet",
-      "query": "DELETE FROM datasheet WHERE set_id=? "
-    },
-    {
-      "table": "condition",
-      "query": "DELETE FROM condition WHERE patient_id = ? "
-    }
-  ],
-  "SELECT": [
-    {
-      "name": "patients_all",
-      "table": "patient",
-      "query": "SELECT * FROM patient;"
-    },
-    {
-      "name": "patients_single",
-      "table": "patient",
-      "query": "SELECT * FROM patient WHERE patient_uuid = ?;"
-    },
-    {
-      "name": "patient_medications",
-      "table": "medication",
-      "query": "SELECT * FROM medication WHERE patient_uuid = ?;"
-    },
-    {
-      "name": "patient_metrics",
-      "table": "patient_metrics",
-      "query": "SELECT metric_type, metric_value, uom, MAX(recorded_at) as last_recorded FROM patient_metrics WHERE patient_uuid = ? GROUP BY metric_type;"
-    },
-    {
-      "name": "patient_datasheets",
-      "table": "datasheet",
-      "query": "SELECT d.* FROM datasheet d INNER JOIN medications m ON d.set_id = m.set_id WHERE m.patient_uuid = ?;"
-    },
-    {
-      "name": "datasheet",
-      "table": "datasheet",
-      "query": "SELECT * FROM datasheet WHERE set_id = ?;"
-    },
-    {
-      "name": "patient_conditions",
-      "table": "condition",
-      "query": "SELECT * FROM condition WHERE patient_uuid = ?;"
-    },
-    {
-      "name": "patient_allergies",
-      "table": "condition",
-      "query": "SELECT * FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active';"
-    },
-    {
-      "name": "patient_vitals",
-      "table": "vitals",
-      "query": "SELECT * FROM vitals WHERE patient_uuid = ? ORDER BY recorded_at DESC LIMIT 1;"
-    },
-    {
-      "name": "assessment_template",
-      "table": "assessment",
-      "query": "SELECT a.*, q.id as question_id, q.question_text, q.question_type, q.cluster, q.cluster_name, q.description, q.depends_on, q.max_score FROM assessment a INNER JOIN question q ON q.assessment_id = a.id WHERE a.id = ? ORDER BY q.cluster, q.id;"
-    },
-    {
-      "name": "patient_completed_sessions",
-      "table": "completed_assessment",
-      "query": "SELECT c.*, a.title FROM completed_assessment c INNER JOIN assessments a ON c.assessment_id = a.id WHERE c.patient_id = ?;"
-    },
-    {
-      "name": "patient_completed_answers",
-      "table": "completed_question",
-      "query": "SELECT q.question_text, cq.answer, q.cluster_name FROM completed_question cq INNER JOIN question q ON cq.question_id = q.id WHERE cq.completed_assessment_id = ? ORDER BY q.cluster, q.id;"
-    }
-  ],
-  "DROP": [
-    {
-      "table": "completed_assessment",
-      "query": "DROP TABLE IF EXISTS completed_assessment;"
-    },
-    {
-      "table": "completed_question",
-      "query": "DROP TABLE IF EXISTS completed_question;"
-    },
-    {
-      "table": "medication",
-      "query": "DROP TABLE IF EXISTS medication;"
-    },
-    {
-      "table": "datasheet",
-      "query": "DROP TABLE IF EXISTS datasheet;"
-    },
-    {
-      "table": "condition",
-      "query": "DROP TABLE IF EXISTS condition;"
-    },
-    {
-      "table": "vitals",
-      "query": "DROP TABLE IF EXISTS vitals;"
-    },
-    {
-      "table": "assessment",
-      "query": "DROP TABLE IF EXISTS assessment;"
-    },
-    {
-      "table": "question",
-      "query": "DROP TABLE IF EXISTS question;"
-    },
-    {
-      "table": "patient",
-      "query": "DROP TABLE IF EXISTS patient;"
-    }
-  ]
+ "CREATE": [
+  {
+   "table": "patient",
+   "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+  },
+  {
+   "table": "patient_current_metrics",
+   "query": "CREATE TABLE IF NOT EXISTS patient_current_metrics (patient_uuid TEXT PRIMARY KEY, current_weight REAL DEFAULT 0.0 DEFAULT 0.0, min_weight REAL DEFAULT 0.0, max_weight REAL DEFAULT 0.0, current_height REAL DEFAULT 0.0, min_height REAL DEFAULT 0.0, max_height REAL DEFAULT 0.0, current_systolic REAL DEFAULT 0.0, min_systolic REAL DEFAULT 0.0, max_systolic REAL DEFAULT 0.0, current_diastolic REAL DEFAULT 0.0, min_diastolic REAL DEFAULT 0.0, max_diastolic REAL DEFAULT 0.0, current_temperature REAL DEFAULT 0.0, min_temperature REAL DEFAULT 0.0, max_temperature REAL DEFAULT 0.0, current_spo2 REAL DEFAULT 0.0, min_spo2 REAL DEFAULT 0.0, max_spo2 REAL DEFAULT 0.0, current_pulse REAL DEFAULT 0.0, min_pulse REAL DEFAULT 0.0, max_pulse REAL DEFAULT 0.0, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+  },
+  {
+   "table": "patient_metrics",
+   "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL, metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, reading_id INTEGER NOT NULL, FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
+  },
+  {
+   "table": "patient",
+   "query": "CREATE TRIGGER IF NOT EXISTS init_patient_metrics_after_insert AFTER INSERT ON patient BEGIN INSERT INTO patient_current_metrics (patient_uuid) VALUES (NEW.patient_uuid); END;"
+  },
+  {
+   "table": "patient_metric",
+   "query": "CREATE TRIGGER IF NOT EXISTS update_current_metrics_after_insert  AFTER INSERT ON patient_metrics  FOR EACH ROW BEGIN     UPDATE patient_current_metrics      SET          current_systolic = CASE WHEN NEW.metric_type = 'systolic' THEN NEW.metric_value ELSE current_systolic END,         min_systolic = CASE WHEN NEW.metric_type = 'systolic' THEN (CASE WHEN min_systolic = 0 THEN NEW.metric_value ELSE MIN(min_systolic, NEW.metric_value) END) ELSE min_systolic END,         max_systolic = CASE WHEN NEW.metric_type = 'systolic' THEN MAX(max_systolic, NEW.metric_value) ELSE max_systolic END,  current_diastolic = CASE WHEN NEW.metric_type = 'diastolic' THEN NEW.metric_value ELSE current_diastolic END,         min_diastolic = CASE WHEN NEW.metric_type = 'diastolic' THEN (CASE WHEN min_diastolic = 0 THEN NEW.metric_value ELSE MIN(min_diastolic, NEW.metric_value) END) ELSE min_diastolic END,         max_diastolic = CASE WHEN NEW.metric_type = 'diastolic' THEN MAX(max_diastolic, NEW.metric_value) ELSE max_diastolic END,   current_pulse = CASE WHEN NEW.metric_type = 'pulse' THEN NEW.metric_value ELSE current_pulse END,         min_pulse = CASE WHEN NEW.metric_type = 'pulse' THEN (CASE WHEN min_pulse = 0 THEN NEW.metric_value ELSE MIN(min_pulse, NEW.metric_value) END) ELSE min_pulse END,         max_pulse = CASE WHEN NEW.metric_type = 'pulse' THEN MAX(max_pulse, NEW.metric_value) ELSE max_pulse END,      current_spo2 = CASE WHEN NEW.metric_type = 'spo2' THEN NEW.metric_value ELSE current_spo2 END,         min_spo2 = CASE WHEN NEW.metric_type = 'spo2' THEN (CASE WHEN min_spo2 = 0 THEN NEW.metric_value ELSE MIN(min_spo2, NEW.metric_value) END) ELSE min_spo2 END,         max_spo2 = CASE WHEN NEW.metric_type = 'spo2' THEN MAX(max_spo2, NEW.metric_value) ELSE max_spo2 END,  current_temperature = CASE WHEN NEW.metric_type = 'temp' THEN NEW.metric_value ELSE current_temperature END,         min_temperature = CASE WHEN NEW.metric_type = 'temp' THEN (CASE WHEN min_temperature = 0 THEN NEW.metric_value ELSE MIN(min_temperature, NEW.metric_value) END) ELSE min_temperature END,         max_temperature = CASE WHEN NEW.metric_type = 'temp' THEN MAX(max_temperature, NEW.metric_value) ELSE max_temperature END     WHERE patient_uuid = NEW.patient_uuid; END;"
+  },
+  {
+   "table": "datasheet",
+   "query": "CREATE TABLE IF NOT EXISTS datasheet (set_id TEXT PRIMARY KEY, version TEXT, rxcui TEXT, brand_name TEXT, generic_name TEXT, classes TEXT, raw_json_blob TEXT, last_synced_at TEXT);"
+  },
+  {
+   "table": "assessment",
+   "query": "CREATE TABLE IF NOT EXISTS assessment (id TEXT PRIMARY KEY, title TEXT NOT NULL, column_headers TEXT,instructions TEXT, timeframe TEXT );"
+  },
+  {
+   "table": "question",
+   "query": "CREATE TABLE IF NOT EXISTS question (id TEXT PRIMARY KEY, assessment_id TEXT NOT NULL, cluster TEXT, cluster_name TEXT, question_text TEXT, description TEXT, question_type TEXT, max_score INTEGER, depends_on TEXT, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE CASCADE);"
+  },
+  {
+   "table": "medication",
+   "query": "CREATE TABLE IF NOT EXISTS medication (id TEXT PRIMARY KEY, patient_uuid TEXT, name TEXT, set_id TEXT, dose TEXT, freq TEXT, has_local_datasheet int NOT NULL, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid), FOREIGN KEY (set_id) REFERENCES datasheet(set_id) ON DELETE RESTRICT);"
+  },
+  {
+   "table": "condition",
+   "query": "CREATE TABLE IF NOT EXISTS condition (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, category TEXT);"
+  },
+  {
+   "table": "completed_assessment",
+   "query": "CREATE TABLE IF NOT EXISTS completed_assessment ( id TEXT PRIMARY KEY, assessment_id TEXT NOT NULL, patient_id TEXT NOT NULL, date_started DATETIME DEFAULT CURRENT_TIMESTAMP, complete INTEGER DEFAULT 0, date_completed DATETIME, last_modified DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (assessment_id) REFERENCES assessment(id) ON DELETE RESTRICT, FOREIGN KEY (patient_id) REFERENCES patient(patient_uuid) ON DELETE RESTRICT);"
+  },
+  {
+   "table": "completed_question",
+   "query": "CREATE TABLE IF NOT EXISTS completed_question ( completed_assessment_id TEXT NOT NULL, question_id TEXT NOT NULL, answer TEXT, PRIMARY KEY (completed_assessment_id, question_id), FOREIGN KEY (completed_assessment_id) REFERENCES completed_assessment(id) ON DELETE CASCADE, FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE RESTRICT);"
+  },
+  {
+   "table": "vitals",
+   "query": "CREATE TABLE IF NOT EXISTS vitals (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, pulse INTEGER, systolic INTEGER, diastolic INTEGER, temperature REAL, o2 REAL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+  },
+  {
+   "table": "patient_condition",
+   "query": "CREATE TABLE patient_condition (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, condition_id int, treatment_notes TEXT, is_active INTEGER DEFAULT 1, onset DATETIME, recovery DATETIME, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE, FOREIGN KEY (condition_id) REFERENCES condition (id) ON DELETE RESTRICT );"
+  },
+  {
+   "table": "observations",
+   "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT, content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
+  },
+  {
+   "table": "phase_step",
+   "query": "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
+  }
+ ],
+ "INSERT": [
+  {
+   "table": "patient",
+   "query": "INSERT INTO patient (patient_uuid,first_name,last_name,phn,dob,current_acuity,status,path,narrative_hint) VALUES (? ? ? ? ? ? ? ? ?);"
+  },
+  {
+   "table": "medication",
+   "query": ""
+  },
+  {
+   "table": "datasheet",
+   "query": "INSERT INTO datasheet (set_id, id, effective_time, version, spl_product_data_elements, boxed_warning, indications_and_usage, dosage_and_administration, dosage_forms_and_strengths, contraindications, warnings_and_cautions, adverse_reactions, drug_interactions, interaction_data, use_in_specific_populations, pregnancy, nursing_mothers, pediatric_use, geriatric_use, overdosage, description, clinical_pharmacology, mechanism_of_action, pharmacodynamics, pharmacokinetics, nonclinical_toxicology, carcinogenesis_and_mutagenesis_and_impairment_of_fertility, clinical_studies, clinical_studies_table, how_supplied, information_for_patients, package_label_principal_display_panel, application_number, brand_name, generic_name, manufacturer_name, product_ndc, product_type, route, substance_name, rxcui, spl_id, spl_set_id, package_ndc, is_original_packager, unii, openfda_raw, xxx) SELECT json_extract(?, '$.set_id'), json_extract(?, '$.id'), json_extract(?, '$.effective_time'), json_extract(?, '$.version'), json_extract(?, '$.spl_product_data_elements[0]'), json_extract(?, '$.boxed_warning[0]'), json_extract(?, '$.indications_and_usage[0]'), json_extract(?, '$.dosage_and_administration[0]'), json_extract(?, '$.dosage_forms_and_strengths[0]'), json_extract(?, '$.contraindications[0]'), json_extract(?, '$.warnings_and_cautions[0]'), json_extract(?, '$.adverse_reactions[0]'), json_extract(?, '$.drug_interactions[0]'), json_extract(?, '$.drug_interactions[0]'), json_extract(?, '$.use_in_specific_populations[0]'), json_extract(?, '$.pregnancy[0]'), json_extract(?, '$.nursing_mothers[0]'), json_extract(?, '$.pediatric_use[0]'), json_extract(?, '$.geriatric_use[0]'), json_extract(?, '$.overdosage[0]'), json_extract(?, '$.description[0]'), json_extract(?, '$.clinical_pharmacology[0]'), json_extract(?, '$.mechanism_of_action[0]'), json_extract(?, '$.pharmacodynamics[0]'), json_extract(?, '$.pharmacokinetics[0]'), json_extract(?, '$.nonclinical_toxicology[0]'), json_extract(?, '$.carcinogenesis_and_mutagenesis_and_impairment_of_fertility[0]'), json_extract(?, '$.clinical_studies[0]'), json_extract(?, '$.clinical_studies_table[0]'), json_extract(?, '$.how_supplied[0]'), json_extract(?, '$.information_for_patients[0]'), json_extract(?, '$.package_label_principal_display_panel[0]'), json_extract(?, '$.openfda.application_number[0]'), json_extract(?, '$.openfda.brand_name[0]'), json_extract(?, '$.openfda.generic_name[0]'), json_extract(?, '$.openfda.manufacturer_name[0]'), json_extract(?, '$.openfda.product_ndc[0]'), json_extract(?, '$.openfda.product_type[0]'), json_extract(?, '$.openfda.route[0]'), json_extract(?, '$.openfda.substance_name[0]'), json_extract(?, '$.openfda.rxcui[0]'), json_extract(?, '$.openfda.spl_id[0]'), json_extract(?, '$.openfda.spl_set_id[0]'), json_extract(?, '$.openfda.package_ndc[0]'), json_extract(?, '$.openfda.is_original_packager[0]'), json_extract(?, '$.openfda.unii[0]'), json_extract(?, '$.openfda'), json_extract(?, '$.xxx');"
+  },
+  {
+   "table": "condition",
+   "query": " "
+  },
+  {
+   "table": "assessment",
+   "query": " "
+  }
+ ],
+ "UPDATE": [
+  {
+   "table": "patient",
+   "query": "UPDATE patient SET first_name=?,last_name=?,phn=?,dob=?,current_acuity=?,status=?,path=?,narrative_hint=? WHERE patient_uuid = ?"
+  },
+  {
+   "table": "medication",
+   "query": ""
+  },
+  {
+   "table": "condition",
+   "query": ""
+  }
+ ],
+ "DELETE": [
+  {
+   "table": "completed_assessment",
+   "query": "DELETE FROM completed_assessment;"
+  },
+  {
+   "table": "completed_question",
+   "query": "DELETE FROM completed_question;"
+  },
+  {
+   "table": "vitals",
+   "query": "DELETE FROM vitals;"
+  },
+  {
+   "table": "assessment",
+   "query": "DELETE FROM assessment;"
+  },
+  {
+   "table": "question",
+   "query": "DELETE FROM question;"
+  },
+  {
+   "table": "patient",
+   "query": "DELETE FROM patient WHERE patient_uuid=?"
+  },
+  {
+   "table": "medication",
+   "query": "DELETE FROM medication WHERE patient_uuid=? "
+  },
+  {
+   "table": "datasheet",
+   "query": "DELETE FROM datasheet WHERE set_id=? "
+  },
+  {
+   "table": "condition",
+   "query": "DELETE FROM condition WHERE patient_id = ? "
+  }
+ ],
+ "SELECT": [
+  {
+   "name": "patients_all",
+   "table": "patient",
+   "query": "SELECT * FROM patient;"
+  },
+  {
+   "name": "patients_single",
+   "table": "patient",
+   "query": "SELECT * FROM patient WHERE patient_uuid = ?;"
+  },
+  {
+   "name": "patient_medications",
+   "table": "medication",
+   "query": "SELECT * FROM medication WHERE patient_uuid = ?;"
+  },
+  {
+   "name": "patient_metrics",
+   "table": "patient_metrics",
+   "query": "SELECT metric_type, metric_value, uom, MAX(recorded_at) as last_recorded FROM patient_metrics WHERE patient_uuid = ? GROUP BY metric_type;"
+  },
+  {
+   "name": "patient_datasheets",
+   "table": "datasheet",
+   "query": "SELECT d.* FROM datasheet d INNER JOIN medications m ON d.set_id = m.set_id WHERE m.patient_uuid = ?;"
+  },
+  {
+   "name": "datasheet",
+   "table": "datasheet",
+   "query": "SELECT * FROM datasheet WHERE set_id = ?;"
+  },
+  {
+   "name": "patient_conditions",
+   "table": "condition",
+   "query": "SELECT * FROM condition WHERE patient_uuid = ?;"
+  },
+  {
+   "name": "patient_allergies",
+   "table": "condition",
+   "query": "SELECT * FROM condition WHERE patient_uuid = ? AND category = 'Allergy' AND status = 'Active';"
+  },
+  {
+   "name": "patient_vitals",
+   "table": "vitals",
+   "query": "SELECT * FROM vitals WHERE patient_uuid = ? ORDER BY recorded_at DESC LIMIT 1;"
+  },
+  {
+   "name": "assessment_template",
+   "table": "assessment",
+   "query": "SELECT a.*, q.id as question_id, q.question_text, q.question_type, q.cluster, q.cluster_name, q.description, q.depends_on, q.max_score FROM assessment a INNER JOIN question q ON q.assessment_id = a.id WHERE a.id = ? ORDER BY q.cluster, q.id;"
+  },
+  {
+   "name": "patient_completed_sessions",
+   "table": "completed_assessment",
+   "query": "SELECT c.*, a.title FROM completed_assessment c INNER JOIN assessments a ON c.assessment_id = a.id WHERE c.patient_id = ?;"
+  },
+  {
+   "name": "patient_completed_answers",
+   "table": "completed_question",
+   "query": "SELECT q.question_text, cq.answer, q.cluster_name FROM completed_question cq INNER JOIN question q ON cq.question_id = q.id WHERE cq.completed_assessment_id = ? ORDER BY q.cluster, q.id;"
+  }
+ ],
+ "DROP": [
+  {
+   "table": "completed_assessment",
+   "query": "DROP TABLE IF EXISTS completed_assessment;"
+  },
+  {
+   "table": "completed_question",
+   "query": "DROP TABLE IF EXISTS completed_question;"
+  },
+  {
+   "table": "medication",
+   "query": "DROP TABLE IF EXISTS medication;"
+  },
+  {
+   "table": "datasheet",
+   "query": "DROP TABLE IF EXISTS datasheet;"
+  },
+  {
+   "table": "condition",
+   "query": "DROP TABLE IF EXISTS condition;"
+  },
+  {
+   "table": "vitals",
+   "query": "DROP TABLE IF EXISTS vitals;"
+  },
+  {
+   "table": "assessment",
+   "query": "DROP TABLE IF EXISTS assessment;"
+  },
+  {
+   "table": "question",
+   "query": "DROP TABLE IF EXISTS question;"
+  },
+  {
+   "table": "patient",
+   "query": "DROP TABLE IF EXISTS patient;"
+  }
+ ]
 }
 
