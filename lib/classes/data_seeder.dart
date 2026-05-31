@@ -177,14 +177,13 @@ class DataSeeder {
             // Define the map of metrics to insert
             int vitalId = vital['id'] ?? 1;
 
-            final Map<String, double> metrics = {
-              'pulse': (vital['pulse'] as num?)?.toDouble() ?? 0.0,
-              'systolic': (vital['systolic'] as num?)?.toDouble() ?? 0.0,
-              'diastolic': (vital['diastolic'] as num?)?.toDouble() ?? 0.0,
+            final Map<String, dynamic> metrics = {
+              'pulse': (vital['pulse'] as num?)?.toInt() ?? 0.0,
+              'systolic': (vital['systolic'] as num?)?.toInt() ?? 0.0,
+              'diastolic': (vital['diastolic'] as num?)?.toInt() ?? 0.0,
               'spo2': (vital['spo2'] as num?)?.toDouble() ?? 0.0,
               'temp': (vital['temp'] as num?)?.toDouble() ?? 0.0,
             };
-
             // Insert each metric as its own row
             for (var entry in metrics.entries) {
               await txn.insert(
@@ -199,7 +198,6 @@ class DataSeeder {
                 conflictAlgorithm: ConflictAlgorithm.replace,
               );
             }
-
           }
         }
       }

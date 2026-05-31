@@ -97,7 +97,7 @@ class VitalsHistoryBuilder {
   List<VitalsRecord> history = [];
 
   VitalsHistoryBuilder({required dynamic json}){
-    DateTime recordedAt;
+
     int currentReading = 0;
     VitalsRecord? activeVitalsRecord;
     for (dynamic item in json){

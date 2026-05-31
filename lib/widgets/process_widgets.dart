@@ -13,7 +13,7 @@ class ProcessPhaseRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // 👈 FIXED: Route through .values to map the data models directly into your Widgets
+      //Route through .values to map the data models directly into your Widgets
       children: phases.values.map<Widget>((phase) {
         // Now direct dot-notation property lookups work perfectly
         final isCompleted = phase.id < currentPhaseId;

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/vitals.dart';
+import 'package:triage/widgets/patient_state.dart';
 import 'package:triage/widgets/process_tree_widget.dart';
-import 'package:triage/widgets/process_widgets.dart';
 import 'package:triage/widgets/pulsing_chip.dart';
 import 'package:triage/widgets/vertical_bar_mini.dart';
 import 'package:triage/widgets/vitals_history.dart';
@@ -9,8 +10,29 @@ import '../app_theme.dart';
 import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
-import '../classes/process_step.dart';
 import 'countdown_timer.dart';
+
+enum SentimentScale {
+  calm, content, neutral, dissatisfied, stressed
+}
+
+class PatientSentiment {
+  final IconData iconData;
+  final double diameter;
+  final Color color;
+  const PatientSentiment({required this.iconData, required this.diameter, required this.color});
+  Icon getIcon() {
+    return Icon(iconData, size: diameter, color: color,);
+  }
+}
+
+Map<SentimentScale, PatientSentiment>patientSentiments = {
+  SentimentScale.calm :PatientSentiment(iconData: Symbols.sentiment_calm, color:Color(0xFF0EBA00), diameter: 32,),
+  SentimentScale.content :PatientSentiment(iconData: Symbols.sentiment_content, color: Colors.blue, diameter: 32),
+  SentimentScale.neutral :PatientSentiment(iconData: Symbols.sentiment_neutral, color: Colors.blueGrey, diameter: 32),
+  SentimentScale.dissatisfied :PatientSentiment(iconData: Symbols.sentiment_dissatisfied, color: Colors.purpleAccent, diameter: 32),
+  SentimentScale.stressed :PatientSentiment(iconData: Symbols.sentiment_stressed, color: Colors.red.shade900, diameter: 32),
+};
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
@@ -82,10 +104,6 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     final String patientUuid = patient['patient_uuid'] ?? "";
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
     final int thisStepId = patient['phase_step_id'] ?? 101;
-    final int thisPhaseId = thisStepId ~/ 100;
-    final Map<int, ProcessStep>? siblings = DatabaseManager().processBlueprint[thisPhaseId]?.children;
-    final ProcessStep? thisStep = siblings?[thisStepId];
-    final ProcessStep? previousStep = siblings?[thisStepId - 1];
 
     return Card(
       elevation: 4,
@@ -117,6 +135,9 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   const Spacer(),
                   // Replace the old monitor_heart button with this:
                   CountdownTimer(admittedAt: admittedDate, onTap: widget.onTimeLineTap),
+                  SizedBox(width: 4,),
+                  ? patientSentiments[SentimentScale.calm]?.getIcon(),
+
                 ],
               ),
             ),
@@ -194,18 +215,8 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // The Macro Linear Rail — tracks active phase block seamlessly
-                  ProcessPhaseRail(currentPhaseId: thisPhaseId, phases: DatabaseManager().processBlueprint),
+                  PatientStateWidget(prompts: ["Previous", "Current", "Next"], flags: [PatientStateFlag(label:"A", stateId:0, isComplete: false), PatientStateFlag(label:"B", stateId:1, isComplete: true)],),
 
-                  const SizedBox(height: 10),
-
-                  // The Micro Active Steps Row — displays current sibling tasks
-                  Builder(
-                    builder: (context) {
-                      // Generate the flat registry from our typed blueprint list
-
-                      return HorizontalStepViewer(thisStep: thisStep, previousStep: previousStep, siblings: siblings);
-                    },
-                  ),
                 ],
               ),
             ),
