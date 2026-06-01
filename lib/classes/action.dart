@@ -1,5 +1,11 @@
+import 'dart:convert';
 import 'dart:core';
+import 'package:flutter/services.dart';
 import 'package:triage/classes/phase_state_handlers.dart';
+
+//02039325-2425-4bf3-bf85-1ec81a797e25,1510cd96-c31f-49c8-a1d6-0e6e41e7252b,b12dd2d7-a557-4d8d-8bad-3fcf5f56a8c1,58c08abc-2f99-404c-8ff1-5aedd96d0f05, 913dcfaf-c5ff-4240-80a9-890dfe24447e,a8c58303-82bd-4ce5-860b-da1c777784b2,921717a9-d2f7-4887-9352-e1f06daab97c,33872e87-0cfb-40a5-b3ce-c6a208e98f9f,1172672f-a2f1-42f6-8dc4-e0bc2144d9b4
+//
+//
 
 abstract class TimelineItem {
   int get occurred;
@@ -99,7 +105,9 @@ class TransferRequest implements TimelineItem {
     int? rawDenialReason = json["denial"];
     int rawStatus = json["TransferRequestStatus"];
     TransferRequestStatus status = TransferRequestStatus.values[rawStatus];
-    TransferDenialType denial = rawDenialReason == null ? TransferDenialType.notDetermined : TransferDenialType.values[rawDenialReason];
+    TransferDenialType denial = rawDenialReason == null
+        ? TransferDenialType.notDetermined
+        : TransferDenialType.values[rawDenialReason];
     return TransferRequest(
       id: json["id"],
       status: status,
@@ -154,6 +162,38 @@ class PatientAction implements TimelineItem {
       notes: json["notes"],
     );
   }
+}
+
+class ActionFactory {
+  // 1. Private constructor
+  ActionFactory._();
+
+  // 2. The single instance
+  static final ActionFactory instance = ActionFactory._();
+
+  // 3. Private storage
+  Map<String, PatientAction> _actions = {};
+
+  // 4. Async initialization with path
+  Future<void> initialize(String jsonPath) async {
+    if (_actions.isNotEmpty) return;
+
+    final String jsonString = await rootBundle.loadString(jsonPath);
+    final List<dynamic> jsonList = json.decode(jsonString);
+
+    _actions = {
+      for (var item in jsonList)
+        item['id']: PatientAction.fromJson(item)
+    };
+  }
+
+  // 5. Accessors
+  PatientAction? getAction(String id) => _actions[id];
+
+  bool get isInitialized => _actions.isNotEmpty;
+
+  // Optional: Get everything
+  Map<String, PatientAction> get allActions => Map.unmodifiable(_actions);
 }
 
 //The Aggregate: The 'Timeline'

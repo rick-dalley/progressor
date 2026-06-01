@@ -71,15 +71,11 @@ class DatabaseManager {
   }
 
   Future<Database> init({bool overwrite = false}) async {
+    //accuity
     final String rawAcuityString = await rootBundle.loadString('assets/patients/acuity.json');
     final List<dynamic> acuityJson = json.decode(rawAcuityString);
     acuity = {for (var item in acuityJson) item['level'] as int: Acuity.fromJson(item)};
 
-    final factory = PhasesFactory(jsonPath: 'assets/process/phases.json');
-    phases = await factory.getPhases();
-    Event unknownEvent = Event(id:"UKNWN", label: "Unknown Event", description: "this event is not officially registered");
-    Map<String, Event> unknownEvents = { "UKNWN": unknownEvent };
-    phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, );
 
     // FLAGGED FOR REMOVAL: vvvvvvvvvvvvvv
     final String rawProcessString = await rootBundle.loadString('assets/process/process.json');

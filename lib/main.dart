@@ -3,14 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:triage/screens/start_up.dart';
+import 'classes/action.dart';
+import 'classes/phase_state_handlers.dart';
 import 'generated/l10n.dart';
 import 'screens/patient_roster.dart';
 import 'app_theme.dart';
 
-void main() {
+Future<void> main() async {
   // Ensure the binding is ready for the splash screen to render
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  await PhasesFactory.instance.initialize('assets/process/phases.json');
+  await ActionFactory.instance.initialize('assets/process/actions.json');
   runApp(const LuminescaApp());
 }
 

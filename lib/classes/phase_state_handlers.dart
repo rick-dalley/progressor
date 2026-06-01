@@ -64,31 +64,39 @@ class Phase {
   }
 }
 
-
 class PhasesFactory {
-  final String jsonPath;
-  PhasesFactory({required this.jsonPath});
+  // 1. Private constructor
+  PhasesFactory._();
 
-  Future<Map<PatientStatePhase, Phase>> getPhases() async {
-    // 1. Load the JSON string from assets
+  // 2. The single instance
+  static final PhasesFactory instance = PhasesFactory._();
+
+  // 3. Cached storage
+  Map<PatientStatePhase, Phase> _phases = {};
+
+  // 4. Initialization method (call this once at app startup)
+  Future<void> initialize(String jsonPath) async {
+    if (_phases.isNotEmpty) return; // Prevent re-parsing
+
     final String jsonString = await rootBundle.loadString(jsonPath);
-
-    // 2. Decode the string into a List (based on your previous JSON structure)
     final List<dynamic> jsonList = json.decode(jsonString);
 
-    // 3. Build the map
-    Map<PatientStatePhase, Phase> phasesMap = {};
+    _phases = {
+      for (var item in jsonList)
+        PatientStatePhase.values[item['phase_id']]: Phase.fromJson(item)
 
-    for (dynamic phaseJson in jsonList) {
-      Phase phase = Phase.fromJson(phaseJson);
-      phasesMap[phase.id] = phase;
-    }
+    };
+    Event unknownEvent = Event(id:"UKNWN", label: "Unknown Event", description: "this event is not officially registered");
+    Map<String, Event> unknownEvents = { "UKNWN": unknownEvent };
+    _phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, );
 
-    return phasesMap;
   }
+
+  // 5. Easy access
+  Phase? getPhase(PatientStatePhase phase) => _phases[phase];
+
+  Map<PatientStatePhase, Phase> get allPhases => Map.unmodifiable(_phases);
 }
-
-
 
 // "SELECT
 // e.event_timestamp,
