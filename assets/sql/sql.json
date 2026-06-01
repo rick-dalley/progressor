@@ -5,6 +5,18 @@
    "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
   },
   {
+   "table": "patient",
+   "query": "CREATE INDEX idx_patient_name ON patient(last_name, first_name);"
+  },
+  {
+   "table": "patient",
+   "query": "CREATE INDEX idx_patient_workflow ON patient(status, acuity, last_update);"
+  },
+  {
+   "table": "patient",
+   "query": "CREATE INDEX idx_patient_phn ON patient(phn);"
+  },
+  {
    "table": "patient_current_metrics",
    "query": "CREATE TABLE IF NOT EXISTS patient_current_metrics (patient_uuid TEXT PRIMARY KEY, current_weight REAL DEFAULT 0.0 DEFAULT 0.0, min_weight REAL DEFAULT 0.0, max_weight REAL DEFAULT 0.0, current_height REAL DEFAULT 0.0, min_height REAL DEFAULT 0.0, max_height REAL DEFAULT 0.0, current_systolic REAL DEFAULT 0.0, min_systolic REAL DEFAULT 0.0, max_systolic REAL DEFAULT 0.0, current_diastolic REAL DEFAULT 0.0, min_diastolic REAL DEFAULT 0.0, max_diastolic REAL DEFAULT 0.0, current_temperature REAL DEFAULT 0.0, min_temperature REAL DEFAULT 0.0, max_temperature REAL DEFAULT 0.0, current_spo2 REAL DEFAULT 0.0, min_spo2 REAL DEFAULT 0.0, max_spo2 REAL DEFAULT 0.0, current_pulse REAL DEFAULT 0.0, min_pulse REAL DEFAULT 0.0, max_pulse REAL DEFAULT 0.0, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
   },
@@ -15,10 +27,6 @@
   {
    "table": "patient",
    "query": "CREATE TRIGGER IF NOT EXISTS init_patient_metrics_after_insert AFTER INSERT ON patient BEGIN INSERT INTO patient_current_metrics (patient_uuid) VALUES (NEW.patient_uuid); END;"
-  },
-  {
-   "table": "current_metrics",
-   "query": "CREATE TRIGGER update_current_metrics \nAFTER INSERT ON patient_metrics\nFOR EACH ROW\nBEGIN\n    -- 1. Calculate the current global min/max for this patient/type\n    -- 2. Upsert the current state + the updated trends\n    INSERT INTO patient_current_metrics (\n        patient_uuid, metric_type, current_value, \n        min_value, max_value, recorded_at\n    )\n    SELECT \n        NEW.patient_uuid, \n        NEW.metric_type, \n        NEW.metric_value,\n        MIN(metric_value), \n        MAX(metric_value), \n        NEW.recorded_at\n    FROM patient_metrics\n    WHERE patient_uuid = NEW.patient_uuid \n    AND metric_type = NEW.metric_type\n    ON CONFLICT(patient_uuid, metric_type) DO UPDATE SET\n        current_value = excluded.current_value,\n        min_value = excluded.min_value,\n        max_value = excluded.max_value,\n        recorded_at = excluded.recorded_at;\nEND;"
   },
   {
    "table": "patient_metric",
@@ -67,7 +75,36 @@
   {
    "table": "phase_step",
    "query": "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
+  },
+  {
+   "table": "action",
+   "query": "CREATE TABLE action (  id TEXT PRIMARY KEY,  name TEXT NOT NULL,  action_type INTEGER NOT NULL  );"
+  },
+  {
+   "table": "patient_action",
+   "query": "CREATE TABLE patient_action (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  action_uuid TEXT NOT NULL,  actor_uuid TEXT NOT NULL,  witness_uuid TEXT,  occurred INTEGER NOT NULL,  action_type INTEGER, notes TEXT,  FOREIGN KEY (action_uuid) REFERENCES action(id)  );"
+  },
+  {
+   "table": "patient_action",
+   "query": "CREATE INDEX idx_patient_action_time ON patient_action(patient_uuid,  occurred);"
+  },
+  {
+   "table": "patient_event",
+   "query": "CREATE TABLE patient_event (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  event_id TEXT NOT NULL,  entered_by_uuid TEXT NOT NULL,  approved_by_uuid TEXT,  occurred INTEGER NOT NULL,  notes TEXT  );"
+  },
+  {
+   "table": "patient_event",
+   "query":"CREATE INDEX idx_patient_event_time ON patient_event(patient_uuid,  occurred);"
+  },
+  {
+   "table": "patient_transfer",
+   "query": "CREATE TABLE patient_transfer (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  requested_by_uuid TEXT NOT NULL,  requesting_team TEXT,  grantor_uuid TEXT,  from_ward TEXT,  to_ward TEXT,  requested INTEGER NOT NULL,  disposed_at INTEGER,  status INTEGER,  denial INTEGER, transferred_at INTEGER,  notes TEXT  );"
+  },
+  {
+   "table": "patient_transfer",
+   "query": "CREATE INDEX idx_patient_transfer_time ON patient_transfer(patient_uuid,  requested);"
   }
+  
  ],
  "INSERT": [
   {

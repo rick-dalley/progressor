@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/vitals.dart';
@@ -10,11 +12,8 @@ import '../app_theme.dart';
 import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
+import '../classes/phase_state_handlers.dart';
 import 'countdown_timer.dart';
-
-enum SentimentScale {
-  calm, content, neutral, dissatisfied, stressed
-}
 
 class PatientSentiment {
   final IconData iconData;
@@ -33,6 +32,7 @@ Map<SentimentScale, PatientSentiment>patientSentiments = {
   SentimentScale.dissatisfied :PatientSentiment(iconData: Symbols.sentiment_dissatisfied, color: Colors.purpleAccent, diameter: 32),
   SentimentScale.stressed :PatientSentiment(iconData: Symbols.sentiment_stressed, color: Colors.red.shade900, diameter: 32),
 };
+
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
@@ -103,8 +103,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String patientUuid = patient['patient_uuid'] ?? "";
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
-    final int thisStepId = patient['phase_step_id'] ?? 101;
-
+    int randomNumber = Random().nextInt(4);
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -136,8 +135,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   // Replace the old monitor_heart button with this:
                   CountdownTimer(admittedAt: admittedDate, onTap: widget.onTimeLineTap),
                   SizedBox(width: 4,),
-                  ? patientSentiments[SentimentScale.calm]?.getIcon(),
-
+                  ? patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
                 ],
               ),
             ),
@@ -167,11 +165,11 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 // 1. Header
                 Row(
                   children: [
-                    const Icon(Icons.monitor_heart, size: 32, color: AppTheme.deepLogicViolet),
+                    const Icon(Symbols.monitoring, size: 24, color: AppTheme.deepLogicViolet),
                     const SizedBox(width: 8),
                     const Text(
-                      "Vital Signs",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet),
+                      "Tracking",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet),
                     ),
                     Spacer(),
                     Icon(Icons.arrow_forward_ios, size: 20, color: AppTheme.lightTheme.disabledColor),
@@ -208,6 +206,12 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
             ),
 
             const SizedBox(height: 24),
+            Row(children: [
+              Icon(Symbols.news, size: 24, color: AppTheme.lightTheme.primaryColor,),
+              SizedBox(width: 8.0,),
+              Text("Patient Situation", style: TextStyle(fontSize:18, fontWeight: FontWeight.bold, color: AppTheme.lightTheme.primaryColor)),
+
+            ],),
             InkWell(
               onTap: () => _showProcessModal(context, patient['patient_uuid'], patient["phase_step_id"]),
               child: Column(
@@ -215,8 +219,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // The Macro Linear Rail — tracks active phase block seamlessly
-                  PatientStateWidget(prompts: ["Previous", "Current", "Next"], flags: [PatientStateFlag(label:"A", stateId:0, isComplete: false), PatientStateFlag(label:"B", stateId:1, isComplete: true)],),
-
+                  PatientStateWidget(prompts: ["Previous", "Current", "Next"]),
                 ],
               ),
             ),

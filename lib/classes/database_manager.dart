@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
+import 'package:triage/classes/phase_state_handlers.dart';
 import 'package:triage/classes/process_step.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:uuid/uuid.dart';
@@ -25,6 +26,7 @@ class DatabaseManager {
   // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
   Map<int, Acuity>? acuity;
+  Map<PatientStatePhase, Phase> phases = {};
 
   DatabaseManager._internal();
 
@@ -73,6 +75,13 @@ class DatabaseManager {
     final List<dynamic> acuityJson = json.decode(rawAcuityString);
     acuity = {for (var item in acuityJson) item['level'] as int: Acuity.fromJson(item)};
 
+    final factory = PhasesFactory(jsonPath: 'assets/process/phases.json');
+    phases = await factory.getPhases();
+    Event unknownEvent = Event(id:"UKNWN", label: "Unknown Event", description: "this event is not officially registered");
+    Map<String, Event> unknownEvents = { "UKNWN": unknownEvent };
+    phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, );
+
+    // FLAGGED FOR REMOVAL: vvvvvvvvvvvvvv
     final String rawProcessString = await rootBundle.loadString('assets/process/process.json');
     final Map<String, dynamic> processJson = json.decode(rawProcessString) as Map<String, dynamic>;
     // Use a map transformation to parse each raw item into a valid Step instance
@@ -80,6 +89,7 @@ class DatabaseManager {
     processBlueprint = {
       for (final phaseMap in rawPhases) (phaseMap['id'] as int): ProcessStep.fromJson(phaseMap as Map<String, dynamic>),
     };
+    // FLAGGED FOR REMOVAL:^^^^^^^^^^^^^^
 
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
@@ -118,8 +128,6 @@ class DatabaseManager {
         await db.execute(query);
       }
     }
-
-
   }
 
 
@@ -269,9 +277,6 @@ class DatabaseManager {
     // 1. Initialize a highly optimized atomic write batch
     final batch = db.batch();
     final String timestamp = DateTime.now().toIso8601String();
-
-    // Initialize your UUID generator instance if using the package
-    // final uuidGenerator = const Uuid();
 
     // A helper map to structure our loop properties cleanly
     final Map<String, double> vitalsMap = {
