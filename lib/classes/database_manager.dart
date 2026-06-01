@@ -6,11 +6,9 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
-import 'package:triage/classes/phase_state_handlers.dart';
 import 'package:triage/classes/process_step.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:uuid/uuid.dart';
-import 'acuity.dart';
 import 'data_seeder.dart';
 import 'metric.dart';
 
@@ -25,8 +23,6 @@ class DatabaseManager {
 
   // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
-  Map<int, Acuity>? acuity;
-  Map<PatientStatePhase, Phase> phases = {};
 
   DatabaseManager._internal();
 
@@ -71,21 +67,6 @@ class DatabaseManager {
   }
 
   Future<Database> init({bool overwrite = false}) async {
-    //accuity
-    final String rawAcuityString = await rootBundle.loadString('assets/patients/acuity.json');
-    final List<dynamic> acuityJson = json.decode(rawAcuityString);
-    acuity = {for (var item in acuityJson) item['level'] as int: Acuity.fromJson(item)};
-
-
-    // FLAGGED FOR REMOVAL: vvvvvvvvvvvvvv
-    final String rawProcessString = await rootBundle.loadString('assets/process/process.json');
-    final Map<String, dynamic> processJson = json.decode(rawProcessString) as Map<String, dynamic>;
-    // Use a map transformation to parse each raw item into a valid Step instance
-    final List<dynamic> rawPhases = processJson["phases"] as List<dynamic>? ?? const [];
-    processBlueprint = {
-      for (final phaseMap in rawPhases) (phaseMap['id'] as int): ProcessStep.fromJson(phaseMap as Map<String, dynamic>),
-    };
-    // FLAGGED FOR REMOVAL:^^^^^^^^^^^^^^
 
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);

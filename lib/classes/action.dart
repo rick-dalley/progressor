@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:core';
 import 'package:flutter/services.dart';
+import 'package:triage/classes/date_time.dart';
 import 'package:triage/classes/phase_state_handlers.dart';
 
+//patient uuids from mockaroo json
 //02039325-2425-4bf3-bf85-1ec81a797e25,1510cd96-c31f-49c8-a1d6-0e6e41e7252b,b12dd2d7-a557-4d8d-8bad-3fcf5f56a8c1,58c08abc-2f99-404c-8ff1-5aedd96d0f05, 913dcfaf-c5ff-4240-80a9-890dfe24447e,a8c58303-82bd-4ce5-860b-da1c777784b2,921717a9-d2f7-4887-9352-e1f06daab97c,33872e87-0cfb-40a5-b3ce-c6a208e98f9f,1172672f-a2f1-42f6-8dc4-e0bc2144d9b4
-//
-//
 
 abstract class TimelineItem {
   int get occurred;
@@ -33,6 +33,16 @@ enum ActionType {
   interviewPatient,
   changePrescription,
 }
+
+Map<ActionType, String> actionLabels = {
+  ActionType.administerMedicine: "Administered Medicine",
+  ActionType.performTest: "Performed a Test",
+  ActionType.answerQuestionnaire: "Answered a  Questionnaire",
+  ActionType.observeBehaviour: "Observed Behaviour",
+  ActionType.performEventStep: "Event Occurred",
+  ActionType.interviewPatient: "Interviewed Patient",
+  ActionType.changePrescription: "Changed Prescription",
+};
 
 class PatientEvent implements TimelineItem {
   final String patientUuid;
@@ -138,7 +148,11 @@ class PatientAction implements TimelineItem {
   final int occurred;
   final String notes;
 
-  const PatientAction({
+  String getName() {
+    return actionLabels[type] ?? "Unknown";
+  }
+
+  PatientAction({
     required this.type,
     required this.notes,
     required this.id,
@@ -150,26 +164,34 @@ class PatientAction implements TimelineItem {
   });
 
   factory PatientAction.fromJson(Map<String, dynamic> json) {
-    int rawType = json["action_type"];
+    int rawType = json["action"] ?? 0;
+    dynamic rawOccurred = json["occurred"];
+    // Convert to Unix timestamp (seconds)
+    int unixOccurred = DTUtilities.dateStringToUnixInt(rawOccurred.toString());
+
     return PatientAction(
       id: json["id"],
       patientUuid: json["patient_uuid"],
-      actionId: json["action_id"],
+      actionId: json["id"],
       type: ActionType.values[rawType],
-      occurred: json["occurred"],
-      actorUuid: json["actor_uuid"],
-      witnessUuid: json["witness_uuid"],
-      notes: json["notes"],
+      occurred: unixOccurred,
+      actorUuid: json["actor_uuid"] ?? "",
+      witnessUuid: json["witness_uuid"] ?? "",
+      notes: json["notes"] ?? "",
     );
+  }
+
+  DateTime getFormattedOccurred() {
+    return DateTime.fromMillisecondsSinceEpoch(occurred * 1000);
   }
 }
 
-class ActionFactory {
+class PatientActionFactory {
   // 1. Private constructor
-  ActionFactory._();
+  PatientActionFactory._();
 
   // 2. The single instance
-  static final ActionFactory instance = ActionFactory._();
+  static final PatientActionFactory instance = PatientActionFactory._();
 
   // 3. Private storage
   Map<String, PatientAction> _actions = {};
@@ -181,10 +203,7 @@ class ActionFactory {
     final String jsonString = await rootBundle.loadString(jsonPath);
     final List<dynamic> jsonList = json.decode(jsonString);
 
-    _actions = {
-      for (var item in jsonList)
-        item['id']: PatientAction.fromJson(item)
-    };
+    _actions = {for (var item in jsonList) item['id']: PatientAction.fromJson(item)};
   }
 
   // 5. Accessors
@@ -194,6 +213,13 @@ class ActionFactory {
 
   // Optional: Get everything
   Map<String, PatientAction> get allActions => Map.unmodifiable(_actions);
+
+  // Inside ActionFactory
+  List<PatientAction> getActionsForPatient(String patientUuid) {
+    // 1. Filter the values of the map
+    // 2. Convert the resulting Iterable back to a List
+    return _actions.values.where((action) => action.patientUuid == patientUuid).toList();
+  }
 }
 
 //The Aggregate: The 'Timeline'

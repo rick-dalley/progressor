@@ -19,16 +19,6 @@ enum PatientStatePhase{
   unknown,
 }
 
-
-class PatientEvent{
-  final PatientStatePhase phase;
-  String eventId;
-  DateTime occurred;
-  String practitioner;
-  String location;
-  PatientEvent({required this.phase,required this.eventId, required this.occurred, required this.practitioner, required this.location});
-}
-
 class Event {
   String id;
   String label;
@@ -48,7 +38,7 @@ class Phase {
   PatientStatePhase id;
   String description;
   Map<String, Event>? events;
-  Phase({required this.label, required this.id, required this.description, required this.events});
+  Phase({required this.label, required this.id, required this.description, required this.events, required String name});
   factory Phase.fromJson(dynamic phaseJson){
     Map<String, Event> eventsFromJson = {};
     for(dynamic eventJson in phaseJson['events']){
@@ -59,7 +49,7 @@ class Phase {
         label:phaseJson['phase'],
         id:PatientStatePhase.values[phaseJson['phase_id']],
         description:'',             //phaseJson[''],
-        events:eventsFromJson
+        events:eventsFromJson, name: ''
     );
   }
 }
@@ -70,7 +60,7 @@ class PhasesFactory {
 
   // 2. The single instance
   static final PhasesFactory instance = PhasesFactory._();
-
+  static final Phase _defaultPhase = Phase(id: PatientStatePhase.unknown, name: 'Unknown', label: '', description: '', events: {});
   // 3. Cached storage
   Map<PatientStatePhase, Phase> _phases = {};
 
@@ -88,12 +78,12 @@ class PhasesFactory {
     };
     Event unknownEvent = Event(id:"UKNWN", label: "Unknown Event", description: "this event is not officially registered");
     Map<String, Event> unknownEvents = { "UKNWN": unknownEvent };
-    _phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, );
+    _phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, name: '', );
 
   }
 
   // 5. Easy access
-  Phase? getPhase(PatientStatePhase phase) => _phases[phase];
+  Phase getPhase(PatientStatePhase phase) => _phases[phase] ?? _defaultPhase;
 
   Map<PatientStatePhase, Phase> get allPhases => Map.unmodifiable(_phases);
 }

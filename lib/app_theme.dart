@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:triage/classes/acuity.dart';
 
 class AppTheme {
   // Brand Colors
@@ -28,36 +30,36 @@ class AppTheme {
   static  Color lessUrgentBackground = lessUrgent.withAlpha(96);
   static  Color nonUrgentBackground = nonUrgent.withAlpha(96);
 
-  static const Map<int, Color> acuityColors = {
-    0: resuscitation,
-    1: emergent,
-    2: urgent,
-    3: lessUrgent,
-    4: nonUrgent,
+  static const Map<AcuityLevel, Color> acuityColors = {
+    AcuityLevel.resuscitation: resuscitation,
+    AcuityLevel.emergent: emergent,
+    AcuityLevel.urgent: urgent,
+    AcuityLevel.lessUrgent: lessUrgent,
+    AcuityLevel.notUrgent: nonUrgent,
   };
 
-  static const Map<int, Color> acuityFontColors = {
-    0: resuscitation,
-    1: emergent,
-    2: Color(0xFF000000),
-    3: lessUrgent,
-    4: Color(0xFF080808),
+  static const Map<AcuityLevel, Color> acuityFontColors = {
+    AcuityLevel.resuscitation: resuscitation,
+    AcuityLevel.emergent: emergent,
+    AcuityLevel.urgent: Color(0xFF000000),
+    AcuityLevel.lessUrgent: lessUrgent,
+    AcuityLevel.notUrgent: Color(0xFF080808),
   };
 
-  static  Map<int, Color> acuityBackgroundColors = {
-    0: resuscitationBackground,
-    1: emergentBackground,
-    2: urgentBackground,
-    3: lessUrgentBackground,
-    4: nonUrgentBackground,
+  static  Map<AcuityLevel, Color> acuityBackgroundColors = {
+    AcuityLevel.resuscitation: resuscitationBackground,
+    AcuityLevel.emergent: emergentBackground,
+    AcuityLevel.urgent: urgentBackground,
+    AcuityLevel.lessUrgent: lessUrgentBackground,
+    AcuityLevel.notUrgent: nonUrgentBackground,
   };
 
-  static const Map<int, IconData> acuityIcons = {
-    0: Icons.emergency,
-    1: Icons.circle_rounded,
-    2: Icons.circle_rounded,
-    3: Icons.circle_rounded,
-    4: Icons.circle_rounded,
+  static const Map<AcuityLevel, IconData> acuityIcons = {
+    AcuityLevel.resuscitation: Icons.emergency,
+    AcuityLevel.emergent: Icons.circle_rounded,
+    AcuityLevel.urgent: Icons.circle_rounded,
+    AcuityLevel.lessUrgent: Icons.circle_rounded,
+    AcuityLevel.notUrgent: Icons.circle_rounded,
   };
 
   // Background colors
@@ -171,4 +173,64 @@ class AppTheme {
       ),
     );
   }
+
+
+  static Map<String, IconData> eventIcons = {
+    "ED_ARRIV" : Symbols.check_in_out,
+    "ED_AMBUL": Symbols.ambulance,
+    "ED_POLIC": Symbols.local_police,
+    "ED_INTAK": Symbols.medical_information,
+    "ID_ANONY": Symbols.person_off,
+    "ID_MERGE": Symbols.person_check,
+    "TR_START": Symbols.stethoscope,
+    "TR_COMPL": Symbols.stethoscope_check,
+    "TR_REASS": Symbols.stethoscope_arrow,
+    "DC_LWBS": Symbols.run_circle,
+    "ED_ALLOC": Symbols.short_stay,
+    "MD_ASSES": Symbols.medical_mask,
+    "VT_LOGGD": Symbols.vital_signs,
+    "CL_NOTES": Symbols.clinical_notes,
+    "ED_RELOC": Symbols.moving_beds,
+    "LB_ORDER": Symbols.fluid_balance,
+    "LB_DRAWN": Symbols.labs,
+    "LB_HEMOL": Symbols.hematology,
+    "LB_RESUL": Symbols.lab_profile,
+    "IM_ORDER": Symbols.skeleton,
+    "IM_START": Symbols.radiology,
+    "IM_REJCT": Symbols.radiology, //add an xbadge
+    "IM_INTER": Symbols.radiology, //add a magnifying glass
+    "MD_ADMIN": Symbols.admin_meds,
+    "PR_PERFM": Symbols.procedure,
+    "BL_TRANS": Symbols.fluid,
+    "MH_DETAIN":Symbols.psychiatry_sharp,
+    "RE_START": Symbols.shield_lock,
+    "RE_TERMN": Symbols.shield,
+    "IS_OLATN": Symbols.safety_divider,
+    "PO_POWER": Symbols.balance,
+    "SEC_INCI": Symbols.admin_panel_settings,
+    "CS_REQU": Symbols.person_add,
+    "CS_ARRIV": Symbols.person,
+    "CS_DECIS": Symbols.person_check,
+    "DP_DECIS": Symbols.arrow_split,
+    "WD_REQU": Symbols.contact_support,
+    "WD_ALLOC": Symbols.ward,
+    "WD_REPOR": Symbols.assignment,
+    "ED_BOARD": Symbols.short_stay,
+    "ED_DEPAR": Symbols.moving_beds,
+    "OR_TRANS": Symbols.surgical,
+    "IC_TRANS": Symbols.diversity_1,
+    "WD_ARRIV": Symbols.inpatient,
+    "DC_INSTR": Symbols.developer_guide,
+    "DC_CLEAR": Symbols.door_open,
+    "DC_COMPL": Symbols.home,
+    "DC_AMA": Symbols.person_cancel,
+    "DC_ELOPD": Symbols.luggage,
+    "DC_SHEL": Symbols.night_shelter,
+    "DC_EXTRN": Symbols.local_police,
+    "HSP_TRNS": Symbols.local_hospital,
+    "DC_PASTR": Symbols.family_home,
+    "PT_DECEAS": Symbols.deceased,
+    "DC_CORON": Symbols.deceased
+  };
+
 }

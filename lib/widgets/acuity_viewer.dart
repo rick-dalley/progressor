@@ -36,7 +36,7 @@ class AcuityViewer extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    acuity.level == 0
+                    acuity.level == AcuityLevel.notUrgent
                     ? PulsingIcon(icon: AppTheme.acuityIcons[acuity.level]!, color: AppTheme.acuityColors[acuity.level]!, size: 32,)
                     :Icon(
                       AppTheme.acuityIcons[acuity.level],

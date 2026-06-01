@@ -11,10 +11,10 @@ class PatientTimelineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Mocking the "Unified Stream"
     final List<Map<String, dynamic>> events = [
-      {"type": "assessment", "time": "10:30 AM", "label": "PHQ-9 Score", "value": "18 (Severe)", "color": Colors.orange},
-      {"type": "med", "time": "09:15 AM", "label": "Sertraline", "value": "Increased: 50mg -> 100mg", "color": Colors.blue},
-      {"type": "vitals", "time": "08:00 AM", "label": "Vitals Taken", "value": "BP: 145/92 (High), HR: 88", "color": Colors.redAccent},
-      {"type": "assessment", "time": "Yesterday", "label": "GAD-7 Score", "value": "12 (Moderate)", "color": Colors.green},
+      {"type": "ED_ARRIV", "time": "10:30 AM", "label": "PHQ-9 Score", "value": "18 (Severe)", "color": Colors.orange},
+      {"type": "LB_RESUL", "time": "09:15 AM", "label": "Sertraline", "value": "Increased: 50mg -> 100mg", "color": Colors.blue},
+      {"type": "IM_START", "time": "08:00 AM", "label": "Vitals Taken", "value": "BP: 145/92 (High), HR: 88", "color": Colors.redAccent},
+      {"type": "ED_BOARD", "time": "Yesterday", "label": "GAD-7 Score", "value": "12 (Moderate)", "color": Colors.green},
     ];
 
     return Scaffold(
@@ -36,7 +36,7 @@ class PatientTimelineScreen extends StatelessWidget {
                   width: 50,
                   child: Column(
                     children: [
-                      Icon(_getIcon(event['type']), color: event['color']),
+                      Icon(AppTheme.eventIcons[event['type']], color: event['color']),
                       Expanded(
                         child: Container(width: 2, color: Colors.grey.shade300),
                       ),
@@ -77,12 +77,5 @@ class PatientTimelineScreen extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'med': return Icons.medication;
-      case 'vitals': return Icons.favorite;
-      case 'assessment': return Icons.psychology;
-      default: return Icons.event;
-    }
-  }
+
 }

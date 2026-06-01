@@ -2,13 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:triage/classes/date_time.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:triage/widgets/patient_state.dart';
-import 'package:triage/widgets/process_tree_widget.dart';
 import 'package:triage/widgets/pulsing_chip.dart';
+import 'package:triage/widgets/timeline_widget.dart';
 import 'package:triage/widgets/vertical_bar_mini.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
+import '../classes/action.dart';
 import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
@@ -97,8 +99,8 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
 
   @override
   Widget build(BuildContext context) {
-    final int acuityId = patient['acuity'];
-    Acuity? acuity = DatabaseManager().acuity?[acuityId];
+    final AcuityLevel acuityId = AcuityLevel.values[patient['acuity']];
+    Acuity? acuity = AcuityFactory.instance.getAcuity(acuityId);
     final String lastName = (patient['first_name'] ?? 'Patient').toString();
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String patientUuid = patient['patient_uuid'] ?? "";
@@ -142,7 +144,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
             Row(
               children: [
                 GestureDetector(
-                  onTap: () => widget.onAcuityTap(acuity!),
+                  onTap: () => widget.onAcuityTap(acuity),
                   child: PulsingChip(
                     iconData: AppTheme.acuityIcons[acuityId]!,
                     text: "Acuity: ${acuity?.statusName}",
@@ -152,7 +154,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                     onTap: () {
                       showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
                     },
-                    pulse: acuityId == 0,
+                    pulse: acuityId == AcuityLevel.resuscitation,
                     shadowText: false,
                   ),
                 ),
@@ -213,7 +215,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
 
             ],),
             InkWell(
-              onTap: () => _showProcessModal(context, patient['patient_uuid'], patient["phase_step_id"]),
+              onTap: () => showTimeLineScreen(context, patient['patient_uuid']),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -229,7 +231,8 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     );
   }
 
-  Future<void> _showProcessModal(BuildContext context, String uuid, int stepId) async {
+  Future<void> showTimeLineScreen(BuildContext context, String uuid) async {
+    List<PatientAction>? actions = PatientActionFactory.instance.getActionsForPatient(uuid);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -245,11 +248,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
             children: [
               _buildModalHandle(),
               Expanded(
-                child: ProcessTreeOverlay(
-                  patientUuid: uuid,
-                  processStepId: stepId,
-                  onProcessStepTapped: refreshPatientData,
-                ),
+                child: TimeLineWidget(actions:actions, endTime: DTUtilities.aYearAgo(), startTime: DateTime.timestamp(),),
               ),
             ],
           ),

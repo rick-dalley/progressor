@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
-import 'package:triage/screens/timeline.dart';
+import 'package:triage/screens/timeline_screen.dart';
 import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
