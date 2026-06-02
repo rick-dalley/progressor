@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
-import 'package:triage/screens/timeline_screen.dart';
 import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
@@ -60,51 +59,6 @@ class PatientRosterState extends State<PatientRoster> {
     );
   }
 
-  void _launchTimelineModal(BuildContext context, Map<String, dynamic> patient) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Essential for large/tall content
-      backgroundColor: Colors.transparent, // Allows for rounded top corners
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        // Opens almost full screen
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                // The "Drag Handle" - Essential for UX
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
-                ),
-
-                // The Header
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    "TIMELINE: ${patient['first_name']} ${patient['last_name'].toString().toUpperCase()}",
-                    style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
-                  ),
-                ),
-
-                // The actual Timeline Content
-                Expanded(child: PatientTimelineScreen(patient: patient)),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   void _launchInterviewModal(BuildContext context, int index) async {
     // 1. Trigger the modal
@@ -169,7 +123,6 @@ class PatientRosterState extends State<PatientRoster> {
                   front: PatientMedicalCard(
                     patient: patient,
                     onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
-                    onTimeLineTap: () => _launchTimelineModal(context, _patients[index]),
                   ),
                   back: PatientInformationCard(
                     patient: patient,

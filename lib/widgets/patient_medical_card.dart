@@ -2,11 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:triage/classes/date_time.dart';
 import 'package:triage/classes/vitals.dart';
+import 'package:triage/screens/patient_timeline_screen.dart';
 import 'package:triage/widgets/patient_state.dart';
 import 'package:triage/widgets/pulsing_chip.dart';
-import 'package:triage/widgets/timeline_widget.dart';
 import 'package:triage/widgets/vertical_bar_mini.dart';
 import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
@@ -21,33 +20,36 @@ class PatientSentiment {
   final IconData iconData;
   final double diameter;
   final Color color;
+
   const PatientSentiment({required this.iconData, required this.diameter, required this.color});
+
   Icon getIcon() {
-    return Icon(iconData, size: diameter, color: color,);
+    return Icon(iconData, size: diameter, color: color);
   }
 }
 
-Map<SentimentScale, PatientSentiment>patientSentiments = {
-  SentimentScale.calm :PatientSentiment(iconData: Symbols.sentiment_calm, color:Color(0xFF0EBA00), diameter: 32,),
-  SentimentScale.content :PatientSentiment(iconData: Symbols.sentiment_content, color: Colors.blue, diameter: 32),
-  SentimentScale.neutral :PatientSentiment(iconData: Symbols.sentiment_neutral, color: Colors.blueGrey, diameter: 32),
-  SentimentScale.dissatisfied :PatientSentiment(iconData: Symbols.sentiment_dissatisfied, color: Colors.purpleAccent, diameter: 32),
-  SentimentScale.stressed :PatientSentiment(iconData: Symbols.sentiment_stressed, color: Colors.red.shade900, diameter: 32),
+Map<SentimentScale, PatientSentiment> patientSentiments = {
+  SentimentScale.calm: PatientSentiment(iconData: Symbols.sentiment_calm, color: Color(0xFF0EBA00), diameter: 32),
+  SentimentScale.content: PatientSentiment(iconData: Symbols.sentiment_content, color: Colors.blue, diameter: 32),
+  SentimentScale.neutral: PatientSentiment(iconData: Symbols.sentiment_neutral, color: Colors.blueGrey, diameter: 32),
+  SentimentScale.dissatisfied: PatientSentiment(
+    iconData: Symbols.sentiment_dissatisfied,
+    color: Colors.purpleAccent,
+    diameter: 32,
+  ),
+  SentimentScale.stressed: PatientSentiment(
+    iconData: Symbols.sentiment_stressed,
+    color: Colors.red.shade900,
+    diameter: 32,
+  ),
 };
-
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
   final Map<String, dynamic> patient;
-  final VoidCallback onTimeLineTap;
   final void Function(Acuity) onAcuityTap;
 
-  const PatientMedicalCard({
-    super.key,
-    required this.patient,
-    required this.onTimeLineTap,
-    required this.onAcuityTap,
-  });
+  const PatientMedicalCard({super.key, required this.patient, required this.onAcuityTap});
 
   @override
   State<PatientMedicalCard> createState() => PatientMedicalCardState();
@@ -87,13 +89,18 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     }
   }
 
-  void showVitalsHistory({required BuildContext context, required String patientUuid, required CurrentVitalsRecord vitals}) {
+  void showVitalsHistory({
+    required BuildContext context,
+    required String patientUuid,
+    required CurrentVitalsRecord vitals,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppTheme.clinicalWhite,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (context) => VitalsHistoryView(patientUuid: patientUuid, vitals: vitals, onAddedVitals: refreshPatientData,),
+      builder: (context) =>
+          VitalsHistoryView(patientUuid: patientUuid, vitals: vitals, onAddedVitals: refreshPatientData),
     );
   }
 
@@ -103,6 +110,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     Acuity? acuity = AcuityFactory.instance.getAcuity(acuityId);
     final String lastName = (patient['first_name'] ?? 'Patient').toString();
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
+    final String fullName = '$firstName $lastName';
     final String patientUuid = patient['patient_uuid'] ?? "";
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
     int randomNumber = Random().nextInt(4);
@@ -130,14 +138,14 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
               child: Row(
                 children: [
                   Text(
-                    "$lastName, $firstName",
+                    fullName,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
                   ),
                   const Spacer(),
                   // Replace the old monitor_heart button with this:
-                  CountdownTimer(admittedAt: admittedDate, onTap: widget.onTimeLineTap),
-                  SizedBox(width: 4,),
-                  ? patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
+                  CountdownTimer(admittedAt: admittedDate),
+                  SizedBox(width: 4),
+                  ?patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
                 ],
               ),
             ),
@@ -147,7 +155,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   onTap: () => widget.onAcuityTap(acuity),
                   child: PulsingChip(
                     iconData: AppTheme.acuityIcons[acuityId]!,
-                    text: "Acuity: ${acuity?.statusName}",
+                    text: "Acuity: ${acuity.statusName}",
                     textColor: AppTheme.lightTheme.disabledColor,
                     iconColor: AppTheme.acuityColors[acuityId],
                     backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
@@ -184,23 +192,24 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                   height: 100, // Increased height to comfortably fit stacked icon buttons
                   child: Row(
                     children: [
-                      Text("blah de blah"),
-                      SizedBox(width:24.0),
+                      //Text(""),
+                      SizedBox(width: 64.0),
                       // Graph: Expanded to fill remaining width
-                      Expanded(child:
-                      InkWell(
+                      Expanded(
+                        child: InkWell(
                           child: VitalTrendContainerSmall(vitals: vitals, height: 56),
                           onTap: () {
                             showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
-                          }
-                      ),
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Align(
-                  alignment: Alignment.centerRight ,
-                  child:                 Text("as of: 26/08/2026 12:35 pm",
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "as of: 26/08/2026 12:35 pm",
                     style: TextStyle(fontSize: 12, color: AppTheme.deepLogicViolet),
                   ),
                 ),
@@ -208,14 +217,18 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
             ),
 
             const SizedBox(height: 24),
-            Row(children: [
-              Icon(Symbols.news, size: 24, color: AppTheme.lightTheme.primaryColor,),
-              SizedBox(width: 8.0,),
-              Text("Patient Situation", style: TextStyle(fontSize:18, fontWeight: FontWeight.bold, color: AppTheme.lightTheme.primaryColor)),
-
-            ],),
+            Row(
+              children: [
+                Icon(Symbols.news, size: 24, color: AppTheme.lightTheme.primaryColor),
+                SizedBox(width: 8.0),
+                Text(
+                  "Patient Situation",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.lightTheme.primaryColor),
+                ),
+              ],
+            ),
             InkWell(
-              onTap: () => showTimeLineScreen(context, patient['patient_uuid']),
+              onTap: () => showTimeLineScreen(context, patientUuid, fullName),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -231,38 +244,19 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     );
   }
 
-  Future<void> showTimeLineScreen(BuildContext context, String uuid) async {
-    List<PatientAction>? actions = PatientActionFactory.instance.getActionsForPatient(uuid);
+  Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
+    // Assuming this returns a List or an empty list
+    final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Allows for rounded corners
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.75,
-          decoration: const BoxDecoration(
-            color: AppTheme.clinicalWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              _buildModalHandle(),
-              Expanded(
-                child: TimeLineWidget(actions:actions, endTime: DTUtilities.aYearAgo(), startTime: DateTime.timestamp(),),
-              ),
-            ],
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 1.0, // Near full screen
+        child: PatientTimelineScreen(actions: actions, patientName: patientName),
+      ),
     );
   }
 
-  Widget _buildModalHandle() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      height: 4,
-      width: 40,
-      decoration: BoxDecoration(color: Colors.grey.shade800, borderRadius: BorderRadius.circular(2)),
-    );
-  }
 }
