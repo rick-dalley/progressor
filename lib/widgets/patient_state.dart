@@ -6,14 +6,13 @@ import 'package:triage/classes/phase_state_handlers.dart';
 
 import '../app_theme.dart';
 
-Map<PatientStatePhase, IconData> patientStateIcons = {
-  PatientStatePhase.preHospitalAndIntake: Symbols.emergency,
-  PatientStatePhase.assessmentAndBedTracking: Symbols.conditions,
-  PatientStatePhase.diagnosticsAndInterventions: Symbols.diagnosis,
-  PatientStatePhase.safetyAndLegalInterventions: Symbols.security,
-  PatientStatePhase.consultationsAndDecisions: Symbols.stethoscope,
-  PatientStatePhase.inpatientAdmissionPathway: Symbols.bed,
-  PatientStatePhase.dischargePathway: Symbols.airport_shuttle,
+Map<PhaseIdentifier, IconData> patientStateIcons = {
+  PhaseIdentifier.arrival: Symbols.emergency,
+  PhaseIdentifier.registration: Symbols.conditions,
+  PhaseIdentifier.triage: Symbols.diagnosis,
+  PhaseIdentifier.intervention: Symbols.stethoscope,
+  PhaseIdentifier.holding: Symbols.bed,
+  PhaseIdentifier.disposition: Symbols.arrow_split,
 };
 
 
@@ -37,7 +36,7 @@ class _PatientStateWidgetState extends State<PatientStateWidget> {
     super.initState();
     // Start on index 1 (the 'current' prompt)
     int randomNumber = Random().nextInt(6);
-    PatientStatePhase activeStatePhase = PatientStatePhase.values[randomNumber];
+    PhaseIdentifier activeStatePhase = PhaseIdentifier.values[randomNumber];
     activeIcon = patientStateIcons[activeStatePhase] ?? Symbols.local_police;
     activePhase = PhasesFactory.instance.getPhase(activeStatePhase);
     prompts[1] = activePhase.label;

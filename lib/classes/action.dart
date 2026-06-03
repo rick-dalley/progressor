@@ -24,6 +24,7 @@ enum TransferDenialType {
   notDetermined,
 }
 
+
 enum ActionType {
   administerMedicine,
   performTest,
@@ -46,7 +47,7 @@ Map<ActionType, String> actionLabels = {
 
 class PatientEvent implements TimelineItem {
   final String patientUuid;
-  final PatientStatePhase phase;
+  final PhaseIdentifier phase;
   final String eventId;
   @override
   final int occurred;
@@ -69,7 +70,7 @@ class PatientEvent implements TimelineItem {
     // Return the result of the standard constructor
     return PatientEvent(
       patientUuid: json["patient_uuid"],
-      phase: PatientStatePhase.values[rawPhase],
+      phase: PhaseIdentifier.values[rawPhase],
       eventId: json["event_id"],
       occurred: json["occurred"],
       notes: json["notes"],

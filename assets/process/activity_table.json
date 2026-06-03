@@ -1,0 +1,49 @@
+{
+  "care_dimensions": [
+    {
+      "dimension": "Personality Disorder (e.g., BPD)",
+      "primary_clinical_goal": "Distress tolerance, emotional regulation, and rapid crisis containment.",
+      "core_nursing_activity": "Enforcing firm relational boundaries and validating emotional pain.",
+      "primary_medication_role": "Sparingly used; short-acting sedatives for extreme agitation or insomnia only.",
+      "environmental_setup": "Structured, predictable, and interactive spaces to prevent feelings of abandonment.",
+      "therapeutic_activities": "Active DBT coaching, using ice packs, journaling, or sensory distress toys.",
+      "forty_eight_hour_outcome_path": "Highly likely to discharge rapidly to outpatient or community support teams."
+    },
+    {
+      "dimension": "Psychosis / Mania",
+      "primary_clinical_goal": "Neurological stabilization, fear reduction, and behavioral safety.",
+      "core_nursing_activity": "Minimizing sensory stimuli and monitoring response to internal stimuli.",
+      "primary_medication_role": "High-potency scheduled antipsychotics and acute chemical sedation if required.",
+      "environmental_setup": "High-security, low-stimulus, dim seclusion or quiet rooms free of triggers.",
+      "therapeutic_activities": "Passive, non-demanding activities like listening to soft music or resting.",
+      "forty_eight_hour_outcome_path": "High probability of formal involuntary certification to an inpatient ward."
+    },
+    {
+      "dimension": "Drug Overdose / Toxicity",
+      "primary_clinical_goal": "Physiological clearing, organ protection, and withdrawal tracking.",
+      "core_nursing_activity": "Tracking vital signs, pupil reactivity, and levels of consciousness.",
+      "primary_medication_role": "Immediate toxicological reversal agents (e.g., Naloxone) and withdrawal protocols.",
+      "environmental_setup": "High-dependency medical or clinical observation beds with medical monitors.",
+      "therapeutic_activities": "Strictly rest and physiological recovery until cognitive clarity returns.",
+      "forty_eight_hour_outcome_path": "Transition to a medical unit, community detox, or rapid addiction medicine clinic."
+    },
+    {
+      "dimension": "Acute Major Depression / Suicidality",
+      "primary_clinical_goal": "Intensive safety monitoring, instilling hope, and risk mitigation.",
+      "core_nursing_activity": "Continuous 1:1 line-of-sight safety watches or 15-minute close checks.",
+      "primary_medication_role": "Initiating or adjusting oral antidepressants; rapid-acting anxiolytics if frantic.",
+      "environmental_setup": "Stark, completely hazard-free environment with all potential self-harm items removed.",
+      "therapeutic_activities": "Brief, supportive listening sessions and introducing basic safety planning.",
+      "forty_eight_hour_outcome_path": "Involuntary certification if the immediate self-harm intent remains high."
+    },
+    {
+      "dimension": "Anxiety / Severe Panic",
+      "primary_clinical_goal": "Autonomic down-regulation and somatic symptom interruption.",
+      "core_nursing_activity": "Teaching paced breathing, box breathing, and physical grounding skills.",
+      "primary_medication_role": "Fast-acting scheduled or PRN (as-needed) anxiolytics or beta-blockers.",
+      "environmental_setup": "Quiet, comfortable, dimly lit space with weighted blankets or white noise.",
+      "therapeutic_activities": "Progressive muscle relaxation, guided imagery, and gentle stretching.",
+      "forty_eight_hour_outcome_path": "Discharge with short-term crisis clinic referrals and primary care follow-up."
+    }
+  ]
+}

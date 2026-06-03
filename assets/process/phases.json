@@ -1,318 +1,500 @@
 [
   {
-    "phase": "Phase 1: Pre-Hospital & Intake",
     "phase_id": 0,
+    "label": "Arrival",
+    "description": "The patient enters the facility (e.g., Emergency Department or specialized Psychiatric Crisis Service).",
     "events": [
       {
         "event_id": "ED_ARRIV",
-        "label": "Walk In",
-        "description": "Arrival / Presentation: Patient physically checks in at the front desk."
-      },
-      {
-        "event_id": "ED_AMBUL",
-        "label": "Ambulance",
-        "description": "Ambulance Offload: Paramedics transfer care to ED triage staff."
-      },
-      {
-        "event_id": "ED_POLIC",
-        "label": "Police",
-        "description": "Police Drop-Off: Patient brought in by law enforcement for evaluation or custody."
-      },
-      {
-        "event_id": "ED_INTAK",
-        "label": "Intake",
-        "description": "Administrative Registration: Demographic, insurance, and emergency contact collection."
-      },
-      {
-        "event_id": "ID_ANONY",
-        "label": "Anonymous",
-        "description": "Anonymous Registration: Patient arrives unconscious/unidentified; logged under temporary alias."
-      },
-      {
-        "event_id": "ID_MERGE",
-        "label": "Identified",
-        "description": "Identity Merge: Temporary anonymous record reconciled with verified patient identity."
-      },
-      {
-        "event_id": "TR_START",
-        "label": "Triage Start",
-        "description": "Triage Commencement: Nursing clinical assessment begins."
-      },
-      {
-        "event_id": "TR_COMPL",
-        "label": "Triage Complete",
-        "description": "Triage Completed: Acuity score assigned (e.g., CTAS or ESI level 1-5)."
-      },
-      {
-        "event_id": "TR_REASS",
-        "label": "Triage Re-assessment",
-        "description": "Triage Re-assessment: Waiting room check confirms patient condition deteriorated/improved."
+        "label": "Arrival",
+        "description": "Patient arrived at the emergency department",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0,
+        "pre_arrival_acuity": 0
       },
       {
         "event_id": "DC_LWBS",
         "label": "Disappeared (LWBS)",
-        "description": "Left Without Being Seen (LWBS): Patient registered but walked out during waiting phase."
-      }
-    ]
-  },
-  {
-    "phase": "Phase 2: Assessment & Bed Tracking",
-    "phase_id": 1,
-    "events": [
-      {
-        "event_id": "ED_ALLOC",
-        "label": "Bed Allocated",
-        "description": "Bed Allocation: Patient moved from waiting room to an active ED treatment bay."
+        "description": "Left Without Being Seen (LWBS): Patient registered but walked out during waiting phase.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
-      {
-        "event_id": "MD_ASSES",
-        "label": "MD Initial Assessment",
-        "description": "Physician Initial Assessment: First face-to-face evaluation by an ED doctor."
-      },
-      {
-        "event_id": "VT_LOGGD",
-        "label": "Vitals",
-        "description": "Vital Signs Recorded: Routine logging of BP, HR, O2 saturation, temperature."
-      },
-      {
-        "event_id": "CL_NOTES",
-        "label": "Clinical NOtes",
-        "description": "Clinical Note Added: Nursing, physician, or allied health progress notes updated."
-      },
-      {
-        "event_id": "ED_RELOC",
-        "label": "Relocation",
-        "description": "Intra-ED Relocation: Patient moved to a different ED zone (e.g., Resus to Fast Track)."
-      }
-    ]
-  },
-  {
-    "phase": "Phase 3: Diagnostics & Interventions",
-    "phase_id": 2,
-    "events": [
-      {
-        "event_id": "LB_ORDER",
-        "label": "Lab: work ordered",
-        "description": "Laboratory Ordered: Blood, urine, or cultures requested in the system."
-      },
-      {
-        "event_id": "LB_DRAWN",
-        "label": "Lab: Blood Drawn",
-        "description": "Phlebotomy Completed: Blood sample drawn from patient and sent to lab."
-      },
-      {
-        "event_id": "LB_HEMOL",
-        "label": "Lab: Hemolyzed",
-        "description": "Lab Specimen Hemolyzed: Sample rejected by lab due to degradation; redraw required."
-      },
-      {
-        "event_id": "LB_RESUL",
-        "label": "Lab: Results",
-        "description": "Laboratory Results Released: Data flows back from the lab system into EHR."
-      },
-      {
-        "event_id": "IM_ORDER",
-        "label": "Imaging Ordered",
-        "description": "Imaging Ordered: X-Ray, CT, Ultrasound, or MRI requested."
-      },
-      {
-        "event_id": "IM_START",
-        "label": "Imaging  Started",
-        "description": "Imaging Commenced: Patient arrives at the radiology suite or portable scan starts."
-      },
-      {
-        "event_id": "IM_REJCT",
-        "label": "Imaging Rejected",
-        "description": "Imaging Rejected: Radiology rejects scan request due to instability or technical contraindication."
-      },
-      {
-        "event_id": "IM_INTER",
-        "label": "Imaging Interpreted",
-        "description": "Imaging Interpretation: Radiologist pushes provisional or final diagnostic report."
-      },
-      {
-        "event_id": "MD_ADMIN",
-        "label": "Medication Administered",
-        "description": "Medication Administered: IV fluids, pain relief, antibiotics, or critical drugs given."
-      },
-      {
-        "event_id": "PR_PERFM",
-        "label": "Procedure Performed",
-        "description": "Procedure Performed: Suturing, splinting, intubation, cardioversion, etc."
-      },
-      {
-        "event_id": "BL_TRANS",
-        "label": "Blood Transfusion",
-        "description": "Blood Product Transfusion: Administration of packed red cells, plasma, or platelets."
-      }
-    ]
-  },
-  {
-    "phase": "Phase 4: Safety & Legal Interventions",
-    "phase_id": 3,
-    "events": [
       {
         "event_id": "MH_DETAIN",
-        "label": "Inv. Mental Health",
-        "description": "Involuntary Mental Health Detainment: Patient placed on formal psychiatric hold/section."
+        "label": "Involuntary Detainment",
+        "description": "Involuntary Mental Health Detainment: Patient placed on formal psychiatric hold/section.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "RE_START",
+        "event_id": "RE_APPL",
         "label": "Restrained",
-        "description": "Restraints Applied: Physical, mechanical, or chemical restraints implemented for safety."
+        "description": "Restraints Applied: Physical, mechanical, or chemical restraints implemented for safety.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "RE_TERMN",
         "label": "Unrestrained",
-        "description": "Restraints Terminated: Restraints safely discontinued."
+        "description": "Restraints Terminated: Restraints safely discontinued.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "IS_OLATN",
         "label": "Isolated",
-        "description": "Isolation Initiated: Infection control isolation activated (e.g., Airborne, Droplet, Contact)."
+        "description": "Isolation Initiated: Infection control isolation activated (e.g., Airborne, Droplet, Contact).",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "PO_POWER",
         "label": "Power of Att.",
-        "description": "Power of Attorney Verified: Legal designation log for substitute decision-maker."
+        "description": "Power of Attorney Verified: Legal designation log for substitute decision-maker.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "SEC_INCI",
         "label": "Security",
-        "description": "Security Intervention: Code White called; security staff actively manage safety threat."
+        "description": "Security Intervention: Code White called; security staff actively manage safety threat.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       }
     ]
   },
   {
-    "phase": "Phase 5: Consults & Decisions",
-    "phase_id": 4,
+    "phase_id": 1,
+    "label": "Registration",
+    "description": "Collection of administrative, demographic, and health card details.",
     "events": [
       {
-        "event_id": "CS_REQU",
-        "label": "Specialist Requested",
-        "description": "Specialist Consultation Requested: ED requests consult from inpatient specialties."
+        "event_id": "ED_IDEN",
+        "label": "Identification",
+        "description": "Obtain patients basic information",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "CS_ARRIV",
-        "label": "Specialist Arrived",
-        "description": "Consultant Arrival: Specialist evaluates patient physically in the ED."
+        "event_id": "ID_ANONY",
+        "label": "Anonymous",
+        "description": "Anonymous Registration: Patient arrives unconscious/unidentified; logged under temporary alias.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "CS_DECIS",
-        "label": "Specialist Decision",
-        "description": "Consultant Decision: Specialist formally recommends admission or discharge."
+        "event_id": "ID_MERGE",
+        "label": "Identified",
+        "description": "Identity Merge: Temporary anonymous record reconciled with verified patient identity.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "DP_DECIS",
-        "label": "Disposition",
-        "description": "Disposition Decision: Attending ED physician signs off on final 'Admit' or 'Discharge' order."
+        "event_id": "ED_INFO",
+        "label": "Information",
+        "description": "Obtain patients secondary information",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "ED_PAYM",
+        "label": "Payment",
+        "description": "Obtain patients insurance, payment method",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "ED_BRAC",
+        "label": "Bracelet",
+        "description": "Patient issued OCR paper bracelet",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       }
     ]
   },
   {
-    "phase": "Phase 6A: Inpatient Admission Pathway",
-    "phase_id": 5,
+    "phase_id": 2,
+    "label": "Triage",
+    "description": "Assignment of a severity score (e.g., using the Canadian Triage and Acuity Scale) to dictate how quickly the patient needs to be seen.",
     "events": [
       {
-        "event_id": "WD_REQU",
-        "label": "Ward Bed Requested",
-        "description": "Ward Bed Requested: Electronic request sent to central hospital bed booking."
+        "event_id": "TR_START",
+        "label": "Triage Start",
+        "description": "Triage Commencement: Nursing clinical assessment begins.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "WD_ALLOC",
-        "label": "Ward Bed Allocated",
-        "description": "Ward Bed Allocated: Specific room and bed assigned by central tracking."
+        "event_id": "TR_COMPL",
+        "label": "Triage Complete",
+        "description": "Triage Completed: Acuity score assigned (e.g., CTAS or ESI level 1-5).",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "WD_REPOR",
-        "label": "Ward Report",
-        "description": "Nursing Report Given: ED nurse completes clinical handoff to receiving Ward nurse."
+        "event_id": "TR_REASS",
+        "label": "Triage Re-assessment",
+        "description": "Triage Re-assessment: Waiting room check confirms patient condition deteriorated/improved.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      }
+    ]
+  },
+  {
+    "phase_id": 3,
+    "label": "Intervention",
+    "description": "Acute crisis stabilization, medical clearance, and psychiatric evaluations.",
+    "events": [
+      {
+        "event_id": "LB_ORDER",
+        "label": "Lab: work ordered",
+        "description": "Laboratory Ordered: Blood, urine, or cultures requested in the system.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "ED_BOARD",
-        "label": "ED Hold",
-        "description": "Patient Boarding: Admitted patient held in ED bed due to lack of open inpatient beds."
+        "event_id": "LB_DRAWN",
+        "label": "Lab: Blood Drawn",
+        "description": "Phlebotomy Completed: Blood sample drawn from patient and sent to lab.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
-        "event_id": "ED_DEPAR",
-        "label": "ED Departire",
-        "description": "ED Departure: Patient physically leaves the emergency department footprint."
+        "event_id": "LB_HEMOL",
+        "label": "Lab: Hemolyzed",
+        "description": "Lab Specimen Hemolyzed: Sample rejected by lab due to degradation; redraw required.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "LB_RESUL",
+        "label": "Lab: Results",
+        "description": "Laboratory Results Released: Data flows back from the lab system into EHR.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "IM_ORDER",
+        "label": "Imaging Ordered",
+        "description": "Imaging Ordered: X-Ray, CT, Ultrasound, or MRI requested.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "IM_START",
+        "label": "Imaging  Started",
+        "description": "Imaging Commenced: Patient arrives at the radiology suite or portable scan starts.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "IM_REJCT",
+        "label": "Imaging Rejected",
+        "description": "Imaging Rejected: Radiology rejects scan request due to instability or technical contraindication.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "IM_INTER",
+        "label": "Imaging Interpreted",
+        "description": "Imaging Interpretation: Radiologist pushes provisional or final diagnostic report.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "MD_ADMIN",
+        "label": "Medication Administered",
+        "description": "Medication Administered: IV fluids, pain relief, antibiotics, or critical drugs given.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "PR_PERFM",
+        "label": "Procedure Performed",
+        "description": "Procedure Performed: Suturing, splinting, intubation, cardioversion, etc.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "BL_TRANS",
+        "label": "Blood Transfusion",
+        "description": "Blood Product Transfusion: Administration of packed red cells, plasma, or platelets.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "OR_TRANS",
         "label": "OR Transfer",
-        "description": "Transfer to Operating Room: Emergency bypass directly from ED to surgery suite."
-      },
-      {
-        "event_id": "IC_TRANS",
-        "label": "IC Transfer",
-        "description": "Intensive Care Transfer: Immediate escalation and transfer to ICU bed."
-      },
-      {
-        "event_id": "WD_ARRIV",
-        "label": "Ward Arrival",
-        "description": "Ward Arrival: Patient physically checks into and occupies the inpatient ward bed."
+        "description": "Transfer to Operating Room: Emergency bypass directly from ED to surgery suite.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       }
     ]
   },
   {
-    "phase": "Phase 6B: Discharge Pathways",
-    "phase_id": 6,
+    "phase_id": 4,
+    "label": "Holding",
+    "description": "Holding pending psychiatric evaluations and disposition",
     "events": [
+      {
+        "event_id": "ED_ALLOC",
+        "label": "Bed Allocated",
+        "description": "Bed Allocation: Patient moved from waiting room to an active ED treatment bay.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "MD_ASSES",
+        "label": "MD Initial Assessment",
+        "description": "Physician Initial Assessment: First face-to-face evaluation by an ED doctor.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "VT_LOGGD",
+        "label": "Vitals",
+        "description": "Vital Signs Recorded: Routine logging of BP, HR, O2 saturation, temperature.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "CL_NOTES",
+        "label": "Clinical NOtes",
+        "description": "Clinical Note Added: Nursing, physician, or allied health progress notes updated.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "ED_RELOC",
+        "label": "Relocation",
+        "description": "Intra-ED Relocation: Patient moved to a different ED zone (e.g., Resus to Fast Track).",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      }
+    ]
+  },
+  {
+    "phase_id": 5,
+    "label": "Disposition",
+    "description": "The final care outcome, such as direct admission, transfer, or discharge with community referrals.",
+    "events": [
+      {
+        "event_id": "CS_REQU",
+        "label": "Specialist Requested",
+        "description": "Specialist Consultation Requested: ED requests consult from inpatient specialties.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "CS_ARRIV",
+        "label": "Specialist Arrived",
+        "description": "Consultant Arrival: Specialist evaluates patient physically in the ED.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "CS_DECIS",
+        "label": "Specialist Decision",
+        "description": "Consultant Decision: Specialist formally recommends admission or discharge.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "DP_DECIS",
+        "label": "Disposition",
+        "description": "Disposition Decision: Attending ED physician signs off on final 'Admit' or 'Discharge' order.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "CS_CERT",
+        "label": "Certification",
+        "description": "Legal documentation completed by physicians/nurse practitioners under the Mental Health Act for involuntary psychiatric holds or detainment.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "WD_REQU",
+        "label": "Ward Bed Requested",
+        "description": "Ward Bed Requested: Electronic request sent to central hospital bed booking.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "WD_ALLOC",
+        "label": "Ward Bed Allocated",
+        "description": "Ward Bed Allocated: Specific room and bed assigned by central tracking.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "WD_REPOR",
+        "label": "Ward Report",
+        "description": "Nursing Report Given: ED nurse completes clinical handoff to receiving Ward nurse.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "ED_BOARD",
+        "label": "ED Hold",
+        "description": "Patient Boarding: Admitted patient held in ED bed due to lack of open inpatient beds.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "ED_DEPAR",
+        "label": "ED Departire",
+        "description": "ED Departure: Patient physically leaves the emergency department footprint.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "IC_TRANS",
+        "label": "IC Transfer",
+        "description": "Intensive Care Transfer: Immediate escalation and transfer to ICU bed.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
+      {
+        "event_id": "WD_ARRIV",
+        "label": "Ward Arrival",
+        "description": "Ward Arrival: Patient physically checks into and occupies the inpatient ward bed.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
+      },
       {
         "event_id": "DC_INSTR",
         "label": "Discharge Instructions",
-        "description": "Discharge Instructions Given: Prescriptions printed, outpatient follow-ups booked."
+        "description": "Discharge Instructions Given: Prescriptions printed, outpatient follow-ups booked.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_CLEAR",
         "label": "Discharge Clear",
-        "description": "Clinical Discharge: IV lines pulled; patient cleared physically by nursing staff."
+        "description": "Clinical Discharge: IV lines pulled; patient cleared physically by nursing staff.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_COMPL",
         "label": "Discharged",
-        "description": "Physical Exit: Patient leaves building under normal circumstances (Self, Family, Taxi)."
+        "description": "Physical Exit: Patient leaves building under normal circumstances (Self, Family, Taxi).",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_AMA",
         "label": "Left Against Advice",
-        "description": "Left Against Medical Advice (AMA): Patient signs out or leaves against formal advice."
+        "description": "Left Against Medical Advice (AMA): Patient signs out or leaves against formal advice.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_ELOPD",
         "label": "Eloped",
-        "description": "Elopement: Patient leaves secretly without notification during active care."
+        "description": "Elopement: Patient leaves secretly without notification during active care.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_SHEL",
         "label": "Discharged Shelter",
-        "description": "Discharge to Shelter: Vulnerable patient discharged to shelter or social services housing."
+        "description": "Discharge to Shelter: Vulnerable patient discharged to shelter or social services housing.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_EXTRN",
         "label": "Discharge Custody",
-        "description": "External Escort Exit: Patient discharged into custody of police or corrections staff."
+        "description": "External Escort Exit: Patient discharged into custody of police or corrections staff.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "HSP_TRNS",
         "label": "Hospital Transfer",
-        "description": "Inter-Facility Transfer: Patient transferred via ambulance to another hospital site."
+        "description": "Inter-Facility Transfer: Patient transferred via ambulance to another hospital site.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_PASTR",
         "label": "Compassionate Care",
-        "description": "Compassionate Care Transfer: Patient transferred to an off-site hospice facility."
+        "description": "Compassionate Care Transfer: Patient transferred to an off-site hospice facility.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "PT_DECEAS",
         "label": "Patient Deceased",
-        "description": "Patient Deceased: Resuscitation terminated or death pronounced in ED."
+        "description": "Patient Deceased: Resuscitation terminated or death pronounced in ED.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       },
       {
         "event_id": "DC_CORON",
         "label": "Discharge Coroner",
-        "description": "Coroner Case Release: Deceased body legally transferred to medical examiner."
+        "description": "Coroner Case Release: Deceased body legally transferred to medical examiner.",
+        "requirement": 0,
+        "requirement_type": 0,
+        "impetus": 0
       }
     ]
   }

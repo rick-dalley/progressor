@@ -1,55 +1,83 @@
-
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
-enum SentimentScale {
-  calm, content, neutral, dissatisfied, stressed
-}
+enum SentimentScale { calm, content, neutral, dissatisfied, stressed }
 
+enum EventRequirement { mandatory, advised, discretionary, none }
 
-enum PatientStatePhase{
-  preHospitalAndIntake,
-  assessmentAndBedTracking,
-  diagnosticsAndInterventions,
-  safetyAndLegalInterventions,
-  consultationsAndDecisions,
-  inpatientAdmissionPathway,
-  dischargePathway,
-  unknown,
-}
+enum EventRequirementType { medical, administrative, legal, none }
+
+enum Impetus { voluntary, involuntary, unknown }
+
+enum PhaseIdentifier { arrival, identification, registration, triage, intervention, holding, disposition, unknown }
+
+enum PhaseState {started, pending, completed, aborted, unknown}
 
 class Event {
   String id;
   String label;
   String description;
-  Event({required this.id, required this.label, required this.description});
-  factory Event.fromJson(dynamic eventJson){
+  Impetus impetus;
+  EventRequirementType requirementType;
+  EventRequirement requirement;
+
+  Event({
+    required this.id,
+    required this.label,
+    required this.description,
+    required this.impetus,
+    required this.requirement,
+    required this.requirementType,
+  });
+
+  factory Event.fromJson(dynamic json) {
     return Event(
-        id: eventJson['event_id'],
-        label: eventJson['label'],
-        description: eventJson['description']
+      id: json['event_id'],
+      label: json['label'],
+      impetus: json['impetus'] != null ? Impetus.values[json['impetus']] : Impetus.unknown,
+      requirement: json['requirement'] != null ? EventRequirement.values[json['requirement']] : EventRequirement.none,
+      requirementType: json['requirement_type'] != null
+          ? EventRequirementType.values[json['requirement_type']]
+          : EventRequirementType.none,
+      description: json['description'],
+    );
+  }
+
+  factory Event.unknownEvent(){
+    return Event(
+      id: "UKNWN",
+      label: "Unknown Event",
+      description: "this event is not officially registered",
+      impetus: Impetus.unknown,
+      requirement: EventRequirement.none,
+      requirementType: EventRequirementType.none,
     );
   }
 }
 
 class Phase {
   String label;
-  PatientStatePhase id;
+  PhaseIdentifier id;
   String description;
   Map<String, Event>? events;
-  Phase({required this.label, required this.id, required this.description, required this.events, required String name});
-  factory Phase.fromJson(dynamic phaseJson){
+  DateTime? started;
+  DateTime? ended;
+  PhaseState? state = PhaseState.unknown;
+  Phase({required this.label, required this.id, required this.description, required this.events, this.ended, this.started, this.state});
+
+  factory Phase.fromJson(dynamic json) {
     Map<String, Event> eventsFromJson = {};
-    for(dynamic eventJson in phaseJson['events']){
+    for (dynamic eventJson in json['events']) {
       Event event = Event.fromJson(eventJson);
       eventsFromJson[event.id] = event;
     }
+    eventsFromJson["UNKNWN"] = Event.unknownEvent();
     return Phase(
-        label:phaseJson['phase'],
-        id:PatientStatePhase.values[phaseJson['phase_id']],
-        description:'',             //phaseJson[''],
-        events:eventsFromJson, name: ''
+      label: json['label'],
+      id: PhaseIdentifier.values[json['phase_id']],
+      description: json['description'],
+      events: eventsFromJson,
     );
   }
 }
@@ -60,9 +88,15 @@ class PhasesFactory {
 
   // 2. The single instance
   static final PhasesFactory instance = PhasesFactory._();
-  static final Phase _defaultPhase = Phase(id: PatientStatePhase.unknown, name: 'Unknown', label: '', description: '', events: {});
+  static final Phase _defaultPhase = Phase(
+    id: PhaseIdentifier.unknown,
+    label: '',
+    description: '',
+    events: {"UNKNWN":Event.unknownEvent()},
+  );
+
   // 3. Cached storage
-  Map<PatientStatePhase, Phase> _phases = {};
+  Map<PhaseIdentifier, Phase> _phases = {};
 
   // 4. Initialization method (call this once at app startup)
   Future<void> initialize(String jsonPath) async {
@@ -71,21 +105,13 @@ class PhasesFactory {
     final String jsonString = await rootBundle.loadString(jsonPath);
     final List<dynamic> jsonList = json.decode(jsonString);
 
-    _phases = {
-      for (var item in jsonList)
-        PatientStatePhase.values[item['phase_id']]: Phase.fromJson(item)
-
-    };
-    Event unknownEvent = Event(id:"UKNWN", label: "Unknown Event", description: "this event is not officially registered");
-    Map<String, Event> unknownEvents = { "UKNWN": unknownEvent };
-    _phases[PatientStatePhase.unknown] = Phase(id: PatientStatePhase.unknown, description:"unknown phase", label:"unknown", events: unknownEvents, name: '', );
-
+    _phases = {for (var item in jsonList) PhaseIdentifier.values[item['phase_id']]: Phase.fromJson(item)};
   }
 
   // 5. Easy access
-  Phase getPhase(PatientStatePhase phase) => _phases[phase] ?? _defaultPhase;
+  Phase getPhase(PhaseIdentifier phase) => _phases[phase] ?? _defaultPhase;
 
-  Map<PatientStatePhase, Phase> get allPhases => Map.unmodifiable(_phases);
+  Map<PhaseIdentifier, Phase> get allPhases => Map.unmodifiable(_phases);
 }
 
 // "SELECT
@@ -98,4 +124,3 @@ class PhasesFactory {
 // WHERE e.encounter_id = 'ENC-908112'
 // ORDER BY e.event_timestamp ASC;
 // "
-

@@ -230,7 +230,8 @@ class AppTheme {
     "HSP_TRNS": Symbols.local_hospital,
     "DC_PASTR": Symbols.family_home,
     "PT_DECEAS": Symbols.deceased,
-    "DC_CORON": Symbols.deceased
+    "DC_CORON": Symbols.deceased,
+    "UNKNWN":Symbols.unknown_document
   };
 
 }
