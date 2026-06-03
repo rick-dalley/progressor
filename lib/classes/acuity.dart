@@ -86,7 +86,14 @@ _acuities = {
   }
 
   // 5. Easy access
-  Acuity? getAcuity(AcuityLevel level) => _acuities[level];
+  Acuity? getAcuity({required AcuityLevel level}) => _acuities[level];
 
   Map<AcuityLevel, Acuity> get allAcuities => Map.unmodifiable(_acuities);
+
+  List<Acuity> getAllAcuitiesExcept(AcuityLevel currentLevel) {
+    // We access .values to get the list of Acuity objects
+    return _acuities.values
+        .where((acuity) => acuity.level != currentLevel)
+        .toList();
+  }
 }

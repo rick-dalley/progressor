@@ -14,7 +14,7 @@ import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
 import '../classes/phase_state_handlers.dart';
-import 'acuity_viewer.dart';
+import '../screens/acuity_viewer_screen.dart';
 import 'countdown_timer.dart';
 
 class PatientSentiment {
@@ -137,7 +137,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   @override
   Widget build(BuildContext context) {
     final AcuityLevel acuityId = AcuityLevel.values[patient['acuity']];
-    Acuity? acuity = AcuityFactory.instance.getAcuity(acuityId);
+    Acuity? acuity = AcuityFactory.instance.getAcuity(level:acuityId);
     final String lastName = (patient['first_name'] ?? 'Patient').toString();
     final String firstName = (patient['last_name'] ?? 'Unknown').toString();
     final String fullName = '$firstName $lastName';

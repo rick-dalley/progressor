@@ -106,7 +106,11 @@
   },
   {
    "table" : "staff",
-   "query" : "CREATE TABLE staff (id TEXT PRIMARY KEY,     first_name TEXT NOT NULL,     last_name TEXT NOT NULL,     email TEXT UNIQUE,     gender TEXT,     position TEXT,     is_specialist INTEGER DEFAULT 0,  on_call INTEGER DEFAULT 0, pager TEXT,     phone TEXT );"
+   "query" : "CREATE TABLE staff (id TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT UNIQUE, gender TEXT, position TEXT, is_specialist INTEGER DEFAULT 0, on_call INTEGER DEFAULT 0, pager TEXT,     phone TEXT );"
+  },
+  {
+   "table": "acuity_log",
+   "query": "CREATE TABLE acuity_log (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL,acuity_level INTEGER NOT NULL, encounter_id TEXT, rationale TEXT,set_bu TEXT NOT NULL, set_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE);"
   }
  ],
  "INSERT": [

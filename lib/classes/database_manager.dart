@@ -9,6 +9,7 @@ import 'package:triage/classes/patient_condition.dart';
 import 'package:triage/classes/process_step.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:uuid/uuid.dart';
+import 'acuity.dart';
 import 'data_seeder.dart';
 import 'metric.dart';
 
@@ -183,6 +184,11 @@ class DatabaseManager {
   Future<void> rawInsertVitals(Database db, Map<String, dynamic> data) async {
     await db.insert('vitals', data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
+
+  Future<void> insertAcuity({required Acuity acuity, required String rationale}) async {
+    // await db.insert('acuity_log', data, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
 
   // Inside your DatabaseManager class:
   Future<Map<String, List<ConditionReference>>> getConditionsCatalog() async {
