@@ -1,0 +1,71 @@
+{
+  "title": "Drug Abuse Screening Test (DAST-10)",
+  "timeframe": "Past 12 months",
+  "instructions": "The following questions concern your involvement with drugs, not including alcoholic beverages. 'Drug abuse' refers to the use of prescribed or over-the-counter drugs in excess of directions, or any nonmedical use of drugs.",
+  "column_headers": [
+    "In the past 12 months...", "No",  "Yes"
+    ],
+      "questions_score": [
+        {
+          "id": "dast_q1",
+          "text": "1. Have you used drugs other than those required for medical reasons?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q2",
+          "text": "2. Do you abuse more than one drug at a time?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q3",
+          "text": "3. Are you unable to stop abusing drugs when you want to?",
+          "type": "boolean",
+          "max_score": 1
+        },
+        {
+          "id": "dast_q4",
+          "text": "4. Have you ever had blackouts or flashbacks as a result of drug use?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q5",
+          "text": "5. Do you ever feel bad or guilty about your drug use?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q6",
+          "text": "6. Does your spouse (or parents) ever complain about your involvement with drugs?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q7",
+          "text": "7. Have you neglected your family because of your use of drugs?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q8",
+          "text": "8. Have you engaged in illegal activities in order to obtain drugs?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q9",
+          "text": "9. Have you ever experienced withdrawal symptoms (felt sick) when you stopped taking drugs?",
+          "max_score": 1,
+          "type": "boolean"
+        },
+        {
+          "id": "dast_q10",
+          "text": "10. Have you had medical problems as a result of your drug use (e.g. memory loss, hepatitis, convulsions, bleeding)?",
+          "max_score": 1,
+          "type": "boolean"
+        }
+      ],
+      "attribution": "Drug Abuse Screening Test (DAST-10).  Copyright 1982 by the Addiction Research Foundation.  For use outside of IT MATTTRs Colorado, please contact"
+}

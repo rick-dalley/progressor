@@ -1,0 +1,53 @@
+ {
+"title": "Generalized Anxiety Disorder 7 Item Scale (GAD-7)",
+"column_headers": [
+"Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+"Not at all",
+"Several days",
+"More than half the days",
+"Nearly every day"],
+"questions_score": [
+{
+"id": "q1",
+"text": "1. Feeling nervous, anxious or on edge",
+"max_score": 3
+},
+{
+"id": "q2",
+"text": "2. Not being able to stop or control worrying",
+"max_score": 3
+},
+{
+"id": "q3",
+"text": "3. Worrying too much about different things?",
+"max_score": 3
+},
+{
+"id": "q4",
+"text": "4. Trouble relaxing",
+"max_score": 3
+},
+{"id": "q5", "text": "5. Being so restless that it is hard to sit still", "max_score": 3},
+{
+"id": "q6",
+"text": "6. Becoming annoyed or irritable",
+"max_score": 3
+},
+{
+"id": "q7",
+"text": "7. Feeling afraid as if something awful might happen",
+"max_score": 3
+},
+  {
+    "id": "q8",
+    "text": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+    "type": "choice",
+    "options": [
+      {"value": 0, "label": "Not difficult at all"},
+      {"value": 1, "label": "Somewhat difficult"},
+      {"value": 2, "label": "Very difficult"},
+      {"value": 3, "label": "Extremely difficult"}
+    ]
+  }
+]
+}

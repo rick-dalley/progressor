@@ -1,0 +1,37 @@
+{
+  "name" : "PCL-5",
+  "title": "PTSD Checklist for DSM-5 (PCL-5)",
+  "timeframe": "Past month",
+  "instructions": "Below is a list of problems that people sometimes have in response to a very stressful experience. ",
+  "column_headers": [
+    "Keeping your worst event in mind, indicate how much you have been bothered by each problem.",
+    "Not at all",
+    "A little bit",
+    "Moderately",
+    "Quite a bit",
+    "Extremely"
+  ],
+  "questions_score": [
+        {"id": "pcl_q1", "cluster": "B","cluster_name":"Intrusion Symptoms", "max_score": 4, "text": "1. Repeated, disturbing, and unwanted memories of the stressful experience?"},
+        {"id": "pcl_q2", "cluster": "B","cluster_name":"Intrusion Symptoms", "max_score": 4, "text": "2. Repeated, disturbing dreams of the stressful experience?"},
+        {"id": "pcl_q3", "cluster": "B","cluster_name":"Intrusion Symptoms", "max_score": 4, "text": "3. Suddenly feeling or acting as if the stressful experience were actually happening again?"},
+        {"id": "pcl_q4", "cluster": "B","cluster_name":"Intrusion Symptoms", "max_score": 4, "text": "4. Feeling very upset when something reminded you of the stressful experience?"},
+        {"id": "pcl_q5", "cluster": "B","cluster_name":"Intrusion Symptoms", "max_score": 4, "text": "5. Having strong physical reactions when something reminded you of the stressful experience?"},
+        {"id": "pcl_q6", "cluster": "C","cluster_name":"Avoidance", "max_score": 4, "text": "6. Avoiding memories, thoughts, or feelings related to the stressful experience?"},
+        {"id": "pcl_q7", "cluster": "C","cluster_name":"Avoidance", "max_score": 4, "text": "7. Avoiding external reminders of the stressful experience?"},
+        {"id": "pcl_q8", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "8. Trouble remembering important parts of the stressful experience?"},
+        {"id": "pcl_q9", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "9. Having strong negative beliefs about yourself, other people, or the world?"},
+        {"id": "pcl_q10", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "10. Blaming yourself or someone else for the stressful experience?"},
+        {"id": "pcl_q11", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "11. Having strong negative feelings such as fear, horror, anger, guilt, or shame?"},
+        {"id": "pcl_q12", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "12. Loss of interest in activities that you used to enjoy?"},
+        {"id": "pcl_q13", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "13. Feeling distant or cut off from other people?"},
+        {"id": "pcl_q14", "cluster": "D","cluster_name":"Negative Alterations in Cognitions and Mood", "max_score": 4, "text": "14. Trouble experiencing positive feelings?"},
+        {"id": "pcl_q15", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "15. Irritable behavior, angry outbursts, or acting aggressively?"},
+        {"id": "pcl_q16", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "16. Taking too many risks or doing things that could cause you harm?"},
+        {"id": "pcl_q17", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "17. Being 'superalert' or watchful or on guard?"},
+        {"id": "pcl_q18", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "18. Feeling jumpy or easily startled?"},
+        {"id": "pcl_q19", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "19. Having difficulty concentrating?"},
+        {"id": "pcl_q20", "cluster": "E","cluster_name":"Alterations in Arousal and Reactivity", "max_score": 4, "text": "20. Trouble falling or staying asleep?"}
+      ],
+  "attribution": "PCL-5 (18 August 2023) National Center for PTSD"
+}

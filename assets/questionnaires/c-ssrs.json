@@ -1,0 +1,214 @@
+{
+  "title": "Columbia-Suicide Severity Rating Scale (C-SSRS)",
+  "instructions": "Ask questions 1 and 2. If both are negative, proceed to 'Suicidal Behavior'. If 2 is 'yes', ask 3-5. If 1 or 2 is 'yes', complete 'Intensity'.",
+  "column_headers": [
+    "Since Last Visit ",
+    "Yes",
+    "No"
+  ],
+  "questions_score": [
+    {
+      "id": "q1",
+      "cluster": "A",
+      "cluster_name": "Suicidal Ideation",
+      "text": "1. Wish to be Dead",
+      "description": "Have you thought about being dead or what it would be like to be dead? Have you wished you were dead or wished you could go to sleep and never wake up? Do you wish you weren’t alive anymore?",
+      "type": "boolean, text",
+      "max_score": 1
+    },
+    {
+      "id": "q2",
+      "cluster": "A",
+      "cluster_name": "Suicidal Ideation",
+      "text": "2. Non-Specific Active Suicidal Thoughts",
+      "description": "Have you thought about doing something to make yourself not alive anymore? Have you had any thoughts about killing yourself?",
+      "type": "boolean, text",
+      "max_score": 1
+    },
+    {
+      "id": "q3",
+      "cluster": "A",
+      "cluster_name": "Suicidal Ideation",
+      "text": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
+      "description": "Have you thought about how you would do that or how you would make yourself not alive anymore (kill yourself)? What did you think about?",
+      "type": "boolean, text",
+      "depends_on": [
+        "q1",
+        "q2"
+      ],
+      "logic": "any_yes",
+      "max_score": 1
+    },
+    {
+      "id": "q4",
+      "cluster": "A",
+      "cluster_name": "Suicidal Ideation",
+      "text": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
+      "description": "When you thought about making yourself not alive anymore, did you think that this was something you might actually do?",
+      "type": "boolean, text",
+      "depends_on": [
+        "q1",
+        "q2"
+      ],
+      "logic": "any_yes",
+      "max_score": 1
+    },
+    {
+      "id": "q5",
+      "cluster": "A",
+      "cluster_name": "Suicidal Ideation",
+      "text": "5. Active Suicidal Ideation with Specific Plan and Intent",
+      "description": "Have you decided how or when you would make yourself not alive anymore? Have you planned out the details?",
+      "type": "boolean, text",
+      "depends_on": [
+        "q1",
+        "q2"
+      ],
+      "logic": "any_yes",
+      "max_score": 1
+    },
+    {
+      "id": "intensity_freq",
+      "cluster": "B",
+      "cluster_name": "Intensity of Ideation",
+      "text": "Most Severe Frequency",
+      "description": "How many times have you had these thoughts?",
+      "type": "choice",
+      "options": [
+        {
+          "label": "Don’t know/Not applicable",
+          "value": 0
+        },
+        {
+          "label": "Only one time",
+          "value": 1
+        },
+        {
+          "label": "A few times",
+          "value": 2
+        },
+        {
+          "label": "A lot",
+          "value": 3
+        },
+        {
+          "label": "All the time",
+          "value": 4
+        }
+      ],
+      "max_score": 5
+    },
+    {
+      "id": "b1",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Actual Attempt",
+      "description": "A potentially self-injurious act committed with at least some wish to die, as a result of act. Behavior was in part thought of as method to kill oneself. Intent does not have to be 100%.  If there is any intent/desire to die associated with the act, then it can be considered an actual suicide attempt. There does not have to be any injury or harm, just the potential for injury or harm. If person pulls trigger while gun is in mouth but gun is broken so no injury results, this is considered an attempt.   \nInferring Intent: Even if an individual denies intent/wish to die, it may be inferred clinically from the behavior or circumstances. For example, a highly lethal act that is clearly not an accident so no other intent but suicide can be inferred (e.g., gunshot to head, jumping from window of a high floor/story). Also, if someone denies intent to die, but they thought that what they did could be lethal, intent may be inferred.  \nDid you do anything to try to kill yourself or make yourself not alive anymore? What did you do? \nDid you hurt yourself on purpose? Why did you do that? \nDid you______ as a way to end your life?  \nDid you want to die (even a little) when you_____?  \nWere you trying to make yourself not alive anymore when you _____? \nOr did you think it was possible you could have died from_____? \nOr did you do it purely for other reasons, not at all to end your life or kill yourself (like to make yourself feel better, or get something else to happen)? (Self-Injurious Behavior without suicidal intent) ",
+      "type": "boolean, text",
+      "max_score": 1
+    },
+    {
+      "id": "b1a",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Has subject engaged Non-Suicidal Self-Injurious Behaviour?",
+      "type": "boolean",
+      "max_score": 1
+    },
+    {
+      "id": "b1b",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Has subject engaged in Self-Injurious Behaviour, intent unknown",
+      "type": "boolean",
+      "max_score": 1
+    },
+    {
+      "id": "b2",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Interrupted Attempt",
+      "description": "When the person is interrupted (by an outside circumstance) from starting the potentially self-injurious act (if not for that, actual attempt would have occurred). \nOverdose: Person has pills in hand but is stopped from ingesting.  Once they ingest any pills, this becomes an attempt rather than an interrupted attempt. \nShooting: Person has gun pointed toward self, gun is taken away by someone else, or is somehow prevented from pulling trigger. Once they pull the trigger, even if the gun fails to fire, it is an attempt. \nJumping: Person is poised to jump, is grabbed and taken down from ledge. \nHanging: Person has noose around neck but has not yet started to hang - is stopped from doing so. \nHas there been a time when you started to do something to make yourself not alive anymore (end your life or kill yourself) but someone or something stopped you before you actually did anything? What did you do? ",
+      "type": "boolean, text",
+      "max_score": 1
+    },
+    {
+      "id": "b3",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Aborted Attempt",
+      "description": "When person begins to take steps toward making a suicide attempt, but stops themselves before they actually have engaged in any self-destructive behavior. Examples are similar to interrupted attempts, except that the individual stops him/herself, instead of being stopped by something else. Has there been a time when you started to do something to make yourself not alive anymore (end your life or kill yourself) but you changed your mind (stopped yourself) before you actually did anything? What did you do? ",
+      "type": "boolean",
+      "max_score": 1
+    },
+    {
+      "id": "b4",
+      "cluster": "C",
+      "cluster_name": "Suicidal Behaviour",
+      "text": "Preparatory Acts",
+      "description": "Acts or preparation towards imminently making a suicide attempt. This can include anything beyond a verbalization or thought, such as assembling a specific method (e.g., buying pills, purchasing a gun) or preparing for one’s death by suicide (e.g., giving things away, writing a suicide note).  Have you done anything to get ready to make yourself not alive anymore (to end your life or kill yourself)- like giving things away, writing a goodbye note, getting things you need to kill yourself? ",
+      "type": "boolean",
+      "max_score": 1
+    },
+    {
+      "id": "actual_lethality",
+      "cluster": "D",
+      "cluster_name": "",
+      "text": "Actual Lethality/Medical Damage",
+      "type": "choice",
+      "options": [
+        {
+          "label": "0: No/minor damage",
+          "value": 0
+        },
+        {
+          "label": "1: Minor (lethargic, first-degree burns)",
+          "value": 1
+        },
+        {
+          "label": "2: Moderate (conscious but sleepy)",
+          "value": 2
+        },
+        {
+          "label": "3: Moderately Severe (hospitalization required)",
+          "value": 3
+        },
+        {
+          "label": "4: Severe (ICU required)",
+          "value": 4
+        },
+        {
+          "label": "5: Death",
+          "value": 5
+        }
+      ],
+      "max_score": 5
+    },
+    {
+      "id": "potential_lethality",
+      "cluster": "D",
+      "cluster_name": "",
+      "text": "Potential Lethality (Only if Actual=0)",
+      "type": "choice",
+      "depends_on": [
+        "actual_lethality"
+      ],
+      "visible_if_value": 0,
+      "options": [
+        {
+          "label": "0: Not likely result in injury",
+          "value": 0
+        },
+        {
+          "label": "1: Likely injury, not death",
+          "value": 1
+        },
+        {
+          "label": "2: Likely death despite medical care",
+          "value": 2
+        }
+      ],
+      "max_score": 2
+    }
+  ]
+}

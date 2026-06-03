@@ -1,0 +1,91 @@
+COLUMBIA-SUICIDE SEVERITY RATING SCALE (C-SSRS)
+SUICIDAL IDEATION
+Ask questions 1 and 2.
+If both are negative, proceed to “Suicidal Behavior” section.
+If the answer to question 2 is “yes”, ask questions 3, 4 and 5.
+If the answer to question 1 and/or 2 is “yes”, complete “Intensity of Ideation” section below.
+
+Since Last Visit
+
+1.  Wish to be Dead  Subject endorses thoughts about a wish to be dead or not alive anymore, or wish to fall asleep and not wake up.  Have you thought about being dead or what it would be like to be dead? Have you wished you were dead or wished you could go to sleep and never wake up? Do you wish you weren’t alive anymore?   If yes, describe:   Yes       No □    □
+2.  Non-Specific Active Suicidal Thoughts General, non-specific thoughts of wanting to end one’s life/commit suicide (e.g., “I’ve thought about killing myself”) without thoughts of ways to kill oneself/associated methods, intent, or plan during the assessment period. Have you thought about doing something to make yourself not alive anymore? Have you had any thoughts about killing yourself?  If yes, describe:   Yes       No  □    □
+3.  Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act Subject endorses thoughts of suicide and has thought of at least one method during the assessment period. This is different than a specific plan with time, place or method details worked out (e.g., thought of method to kill self but not a specific plan).  Includes person who would say, “I thought about taking an overdose but I never made a specific plan as to when, where or how I would actually do it…and I would never go through with it.” Have you thought about how you would do that or how you would make yourself not alive anymore (kill yourself)? What did you think about?  If yes, describe:   Yes       No  □    □
+4.  Active Suicidal Ideation with Some Intent to Act, without Specific Plan Active suicidal thoughts of killing oneself and subject reports having some intent to act on such thoughts, as opposed to “I have the thoughts but I definitely will not do anything about them.” When you thought about making yourself not alive anymore (or killing yourself), did you think that this was something you might actually do? This is different from (as opposed to) having the thoughts but knowing you wouldn’t do anything about it.  If yes, describe:   Yes       No  □    □
+5.  Active Suicidal Ideation with Specific Plan and Intent Thoughts of killing oneself with details of plan fully or partially worked out and subject has some intent to carry it out. Have you decided how or when you would make yourself not alive anymore/kill yourself? Have you planned out (worked out the details of) how you would do it?  What was your plan?  When you made this plan (or worked out these details), was any part of you thinking about actually doing it?                                                                        If yes, describe:   Yes       No  □    □
+INTENSITY OF IDEATION
+The following feature should be rated with respect to the most severe type of ideation (i.e., 1-5 from above, with 1 being the least severe and 5 being the most severe).
+Most Severe Ideation:         ___________              _________________________________________________
+                              Type # (1-5)             Description of  Ideation
+
+Most Severe Frequency How many times have you had these thoughts?
+
+Write response___________________________________
+(1) Only one time    (2) A few times   (3)  A lot    (4) All the time    (0) Don’t know/Not applicable  ____
+
+SUICIDAL BEHAVIOR (Check all that apply, so long as these are separate events; must ask about all types)
+Since Last Visit Actual Attempt:
+A potentially self-injurious act committed with at least some wish to die, as a result of act. Behavior was in part thought of as method to kill oneself. Intent does not have to be 100%.  If there is any intent/desire to die associated with the act, then it can be considered an actual suicide attempt. There does not have to be any injury or harm, just the potential for injury or harm. If person pulls trigger while gun is in mouth but gun is broken so no injury results, this is considered an attempt.
+Inferring Intent: Even if an individual denies intent/wish to die, it may be inferred clinically from the behavior or circumstances. For example, a highly lethal act that is clearly not an accident so no other intent but suicide can be inferred (e.g., gunshot to head, jumping from window of a high floor/story). Also, if someone denies intent to die, but they thought that what they did could be lethal, intent may be inferred.
+Did you do anything to try to kill yourself or make yourself not alive anymore? What did you do?
+Did you hurt yourself on purpose? Why did you do that?
+Did you______ as a way to end your life?
+Did you want to die (even a little) when you_____?
+Were you trying to make yourself not alive anymore when you _____?
+Or did you think it was possible you could have died from_____?
+Or did you do it purely for other reasons, not at all to end your life or kill yourself (like to make yourself feel better, or get something else to happen)? (Self-Injurious Behavior without suicidal intent)
+If yes, describe:
+
+Has subject engaged in Non-Suicidal Self-Injurious Behavior?
+
+Has subject engaged in Self-Injurious Behavior, intent unknown?
+Yes      No □   □
+Total # of Attempts  ______
+Yes    No □   □
+Yes    No  □   □
+
+Interrupted Attempt:
+When the person is interrupted (by an outside circumstance) from starting the potentially self-injurious act (if not for that, actual attempt would have occurred).
+Overdose: Person has pills in hand but is stopped from ingesting.  Once they ingest any pills, this becomes an attempt rather than an interrupted attempt.
+Shooting: Person has gun pointed toward self, gun is taken away by someone else, or is somehow prevented from pulling trigger. Once they pull the trigger, even if the gun fails to fire, it is an attempt.
+Jumping: Person is poised to jump, is grabbed and taken down from ledge.
+Hanging: Person has noose around neck but has not yet started to hang - is stopped from doing so.
+Has there been a time when you started to do something to make yourself not alive anymore (end your life or kill yourself) but someone or something stopped you before you actually did anything? What did you do?
+If yes, describe:
+Yes      No □   □
+Total # of interrupted ______
+
+Aborted Attempt or Self-Interrupted Attempt:
+When person begins to take steps toward making a suicide attempt, but stops themselves before they actually have engaged in any self-destructive behavior. Examples are similar to interrupted attempts, except that the individual stops him/herself, instead of being stopped by something else.
+Has there been a time when you started to do something to make yourself not alive anymore (end your life or kill yourself) but you changed your mind (stopped yourself) before you actually did anything? What did you do?
+If yes, describe:
+Yes      No □   □
+Total # of aborted  or self-interrupted  ______
+
+Preparatory Acts or Behavior:
+Acts or preparation towards imminently making a suicide attempt. This can include anything beyond a verbalization or thought, such as assembling a specific method (e.g., buying pills, purchasing a gun) or preparing for one’s death by suicide (e.g., giving things away, writing a suicide note).
+Have you done anything to get ready to make yourself not alive anymore (to end your life or kill yourself)- like giving things away, writing a goodbye note, getting things you need to kill yourself?
+If yes, describe:
+Yes      No □   □
+Total # of preparatory acts ______
+
+Suicide: Death by suicide occurred since last assessment.
+Yes    No □   □
+
+Actual Lethality/Medical Damage:
+0.  No physical damage or very minor physical damage (e.g., surface scratches).
+1.  Minor physical damage (e.g., lethargic speech; first-degree burns; mild bleeding; sprains).
+2.  Moderate physical damage; medical attention needed (e.g., conscious but sleepy, somewhat responsive; second-degree burns; bleeding of major vessel).
+3.  Moderately severe physical damage; medical hospitalization and likely intensive care required (e.g., comatose with reflexes intact; third-degree burns less than 20% of body; extensive blood loss but can recover; major fractures).
+4.  Severe physical damage; medical hospitalization with intensive care required (e.g., comatose without reflexes; third-degree burns over 20% of body; extensive blood loss with unstable vital signs; major damage to a vital area).
+5.  Death
+
+Enter Code    ______
+
+Potential Lethality: Only Answer if Actual Lethality=0
+Likely lethality of actual attempt if no medical damage (the following examples, while having no actual medical damage, had potential for very serious lethality: put gun in mouth and pulled the trigger but gun fails to fire so no medical damage; laying on train tracks with oncoming train but pulled away before run over).
+
+0 = Behavior not likely to result in injury
+1 = Behavior likely to result in injury but not likely to cause death
+2 = Behavior likely to result in death despite available medical care
+
+Enter Code    ______

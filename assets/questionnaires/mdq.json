@@ -1,0 +1,57 @@
+{
+  "title": "Mood Disorder Questionnaire (MDQ)",
+  "instructions": "Please answer each question as best you can. This is a screening tool, not a diagnostic instrument.",
+  "sections": [
+    {
+      "id": "q1_symptoms",
+      "header": "1. Has there ever been a period of time when you were not your usual self and...",
+      "type": "boolean_list",
+      "questions": [
+        {"id": "mdq_1_1", "text": "You felt so good or so hyper that other people thought you were not your normal self or you were so hyper that you got into trouble?"},
+        {"id": "mdq_1_2", "text": "You were so irritable that you shouted at people or started fights or arguments?"},
+        {"id": "mdq_1_3", "text": "You felt much more self-confident than usual?"},
+        {"id": "mdq_1_4", "text": "You got much less sleep than usual and found you didn’t really miss it?"},
+        {"id": "mdq_1_5", "text": "You were much more talkative or spoke faster than usual?"},
+        {"id": "mdq_1_6", "text": "Thoughts raced through your head or you couldn’t slow your mind down?"},
+        {"id": "mdq_1_7", "text": "You were so easily distracted by things around you that you had trouble concentrating or staying on track?"},
+        {"id": "mdq_1_8", "text": "You had much more energy than usual?"},
+        {"id": "mdq_1_9", "text": "You were much more active or did many more things than usual?"},
+        {"id": "mdq_1_10", "text": "You were much more social or outgoing than usual (e.g., telephoned friends in the middle of the night)?"},
+        {"id": "mdq_1_11", "text": "You were much more interested in sex than usual?"},
+        {"id": "mdq_1_12", "text": "You did things that were unusual for you or that others might have thought were excessive, foolish, or risky?"},
+        {"id": "mdq_1_13", "text": "Spending money got you or your family in trouble?"}
+      ]
+    },
+    {
+      "id": "q2_timing",
+      "text": "2. If you checked YES to more than one of the above, have several of these ever happened during the same period of time?",
+      "type": "boolean"
+    },
+    {
+      "id": "q3_impairment",
+      "text": "3. How much of a problem did any of these cause you — like being able to work; having family, money, or legal troubles; getting into arguments or fights?",
+      "type": "choice",
+      "options": [
+        {"label": "No problem", "value": 0},
+        {"label": "Minor problem", "value": 1},
+        {"label": "Moderate problem", "value": 2},
+        {"label": "Serious problem", "value": 3}
+      ]
+    },
+    {
+      "id": "q4_history",
+      "text": "4. Have any of your blood relatives had manic-depressive illness or bipolar disorder?",
+      "type": "boolean"
+    },
+    {
+      "id": "q5_history",
+      "text": "5. Has a health professional ever told you that you have manic-depressive illness or bipolar disorder?",
+      "type": "boolean"
+    }
+  ],
+  "scoring_criteria": {
+    "q1_threshold": 7,
+    "q2_required": true,
+    "q3_min_level": 2
+  }
+}
