@@ -16,7 +16,7 @@ Future<void> main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await PhasesFactory.instance.initialize('assets/process/phases.json');
   await PatientActionFactory.instance.initialize('assets/patients/patient_actions.json');
-  await AcuityFactory.instance.initialize('assets/assessments/mental_health_acuity.json');
+  await AcuityFactory.instance.initialize('assets/assessment/mental_health_acuity.json');
   runApp(const LuminescaApp());
 }
 

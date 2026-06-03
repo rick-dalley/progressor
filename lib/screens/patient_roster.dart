@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:triage/screens/police_report.dart';
-import 'package:triage/widgets/acuity_viewer.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
-import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
@@ -88,18 +86,6 @@ class PatientRosterState extends State<PatientRoster> {
     }
   }
 
-  void _launchAcuityModal(BuildContext context, Acuity acuity) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).cardColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
-      builder: (BuildContext context) {
-        return AcuityViewer(acuity: acuity);
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
@@ -122,7 +108,6 @@ class PatientRosterState extends State<PatientRoster> {
                   height: 408,
                   front: PatientMedicalCard(
                     patient: patient,
-                    onAcuityTap: (acuity) => _launchAcuityModal(context, acuity),
                   ),
                   back: PatientInformationCard(
                     patient: patient,

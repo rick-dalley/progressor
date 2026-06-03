@@ -14,6 +14,7 @@ import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
 import '../classes/phase_state_handlers.dart';
+import 'acuity_viewer.dart';
 import 'countdown_timer.dart';
 
 class PatientSentiment {
@@ -47,9 +48,8 @@ Map<SentimentScale, PatientSentiment> patientSentiments = {
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
   final Map<String, dynamic> patient;
-  final void Function(Acuity) onAcuityTap;
 
-  const PatientMedicalCard({super.key, required this.patient, required this.onAcuityTap});
+  const PatientMedicalCard({super.key, required this.patient});
 
   @override
   State<PatientMedicalCard> createState() => PatientMedicalCardState();
@@ -89,6 +89,21 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     }
   }
 
+  void showAcuityModal(BuildContext context, Acuity? acuity) {
+    if (acuity == null) {
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+      builder: (BuildContext context) {
+        return AcuityViewer(acuity: acuity);
+      },
+    );
+  }
+
   void showVitalsHistory({
     required BuildContext context,
     required String patientUuid,
@@ -101,6 +116,21 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (context) =>
           VitalsHistoryView(patientUuid: patientUuid, vitals: vitals, onAddedVitals: refreshPatientData),
+    );
+  }
+
+  Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
+    // Assuming this returns a List or an empty list
+    final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 1.0, // Near full screen
+        child: PatientTimelineScreen(actions: actions, patientName: patientName),
+      ),
     );
   }
 
@@ -152,10 +182,12 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
             Row(
               children: [
                 GestureDetector(
-                  onTap: () => widget.onAcuityTap(acuity),
+                  onTap: () {
+                    showAcuityModal(context, acuity);
+                  },
                   child: PulsingChip(
                     iconData: AppTheme.acuityIcons[acuityId]!,
-                    text: "Acuity: ${acuity.statusName}",
+                    text: acuity != null ? "Acuity: ${acuity.statusName}" : "Acuity: pending",
                     textColor: AppTheme.lightTheme.disabledColor,
                     iconColor: AppTheme.acuityColors[acuityId],
                     backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
@@ -243,20 +275,4 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       ),
     );
   }
-
-  Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
-    // Assuming this returns a List or an empty list
-    final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 1.0, // Near full screen
-        child: PatientTimelineScreen(actions: actions, patientName: patientName),
-      ),
-    );
-  }
-
 }

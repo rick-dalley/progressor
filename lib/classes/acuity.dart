@@ -7,10 +7,26 @@ enum AcuityLevel {
   resuscitation, emergent, urgent, lessUrgent, notUrgent
 }
 
+class Descriptor{
+  final String name;
+  final String description;
+
+  const Descriptor({required this.description, required this.name});
+
+  factory Descriptor.fromJson(dynamic json){
+    return Descriptor(
+      name: json['name'] ?? "",
+      description: json['description'] ?? ""
+    );
+  }
+}
+
 class Acuity {
   final AcuityLevel level;
   final String statusName;
   final String clinicalPicture;
+  final List<Descriptor> presentingWith;
+  final List<Descriptor> secondaryModifiers;
   final int interventionWindow;
 
   Acuity({
@@ -18,14 +34,32 @@ class Acuity {
     required this.statusName,
     required this.clinicalPicture,
     required this.interventionWindow,
+    required this.presentingWith,
+    required this.secondaryModifiers
   });
 
   // Using an initializer list is best practice for final fields in Dart
-  Acuity.fromJson(dynamic item)
-      : level = AcuityLevel.values[item['level']],
-        statusName = item['status'],
-        clinicalPicture = item['clinical_picture'],
-        interventionWindow = item['intervention_window'];
+  factory Acuity.fromJson(dynamic json){
+    List<Descriptor> complaints = [];
+    List<Descriptor> modifiers = [];
+    dynamic rawComplaints = json["presenting_complaints"];
+    dynamic rawModifiers = json["secondary_modifiers"];
+    for (dynamic item in rawComplaints){
+      complaints.add(Descriptor.fromJson(item));
+    }
+    for (dynamic item in rawModifiers){
+      modifiers.add(Descriptor.fromJson(item));
+    }
+    return Acuity(
+        level : AcuityLevel.values[json['level']],
+        statusName : json['status'],
+        clinicalPicture : json['clinical_picture'],
+        interventionWindow : json['intervention_window'],
+      presentingWith: complaints,
+      secondaryModifiers: modifiers
+
+    );
+  }
 }
 
 class AcuityFactory {
@@ -34,7 +68,6 @@ class AcuityFactory {
 
   // 2. The single instance
   static final AcuityFactory instance = AcuityFactory._();
-  static final Acuity _defaultAcuity = Acuity(level: AcuityLevel.notUrgent, interventionWindow: 120,statusName: "Non-Urgent", clinicalPicture: "Minor, chronic issues; long-standing psychiatric conditions seeking routine evaluation or social support referrals.");
   // 3. Cached storage
   Map<AcuityLevel, Acuity> _acuities = {};
 
@@ -53,7 +86,7 @@ _acuities = {
   }
 
   // 5. Easy access
-  Acuity getAcuity(AcuityLevel level) => _acuities[level] ?? _defaultAcuity;
+  Acuity? getAcuity(AcuityLevel level) => _acuities[level];
 
   Map<AcuityLevel, Acuity> get allAcuities => Map.unmodifiable(_acuities);
 }
