@@ -16,44 +16,7 @@ class PatientTimelineScreen extends StatefulWidget {
 }
 
 class PatientTimelineScreenState extends State<PatientTimelineScreen> {
-  String _selectedRange = 'M';
 
-  Widget _buildRangeSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(value: 'D', label: Text('Day')),
-          ButtonSegment(value: 'W', label: Text('Week')),
-          ButtonSegment(value: 'M', label: Text('Month')),
-          ButtonSegment(value: 'Y', label: Text('Year')),
-        ],
-        selected: {_selectedRange},
-        onSelectionChanged: (newSelection) {
-          setState(() {
-            _selectedRange = newSelection.first;
-            // This triggers the TimeLineWidget to rebuild with new dates
-          });
-        },
-      ),
-    );
-  }
-
-  DateTime getStartTimeForRange(String range) {
-    final now = DateTime.now();
-    switch (range) {
-      case 'D':
-        return now.subtract(const Duration(days: 1));
-      case 'W':
-        return now.subtract(const Duration(days: 7));
-      case 'M':
-        return now.subtract(const Duration(days: 30));
-      case 'Y':
-        return now.subtract(const Duration(days: 365));
-      default:
-        return now.subtract(const Duration(days: 30));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +39,6 @@ class PatientTimelineScreenState extends State<PatientTimelineScreen> {
         ),
         body: Column(
           children: [
-            _buildRangeSelector(),
             Expanded(
               child: TimeLineWidget(
                 actions: widget.actions,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:triage/classes/database_manager.dart';
 import 'package:triage/widgets/acuity_widget.dart';
-import 'package:triage/widgets/pulsing_icon.dart';
 import '../app_theme.dart';
 import '../classes/acuity.dart';
 import '../widgets/acuity_change.dart';
@@ -134,16 +133,6 @@ class AcuityViewerState extends State<AcuityViewer> {
           ),
         ),
       ),
-    );
-  }
-
-  // Helper to keep the build method readable
-  Widget _buildHeader(Acuity acuity) {
-    return Container(
-      width: double.infinity,
-      color: AppTheme.acuityBackgroundColors[acuity.level],
-      padding: const EdgeInsets.fromLTRB(24.0, 12.0, 24.0, 16.0),
-      child: Text(acuity.statusName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
     );
   }
 
