@@ -8,7 +8,7 @@ class Templates {
   static Future<Map<String, dynamic>> getTemplate(String fileName) async {
     try {
       // Load the JSON string from the assets folder
-      final String response = await rootBundle.loadString('assets/assessments/$fileName');
+      final String response = await rootBundle.loadString('assets/questionnaires/$fileName');
 
       // Decode the string into a Map
       final data = await json.decode(response);

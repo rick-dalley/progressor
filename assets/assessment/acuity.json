@@ -1,0 +1,172 @@
+[
+  {
+    "level": 0,
+    "status": "Resuscitation",
+    "clinical_picture": "Active violent behavior; continuous seizure from substance withdrawal; unconsciousness from overdose; acute, severe self-harm requiring life-saving medical care.",
+    "intervention_window": 0,
+    "presenting_complaints": [
+      {
+        "name": "Violent/Homicidal Behaviour",
+        "description": "Severe, unmanageable aggression with explicit intent to kill or severely maim another person"
+      },
+      {
+        "name": "Bizarre Behaviour",
+        "description": "Completely uncontrolled, hyper-agitated, or chaotic actions that pose an immediate risk of physical devastation,"
+      }
+    ],
+    "secondary_modifiers": [
+      {
+        "name": "Imminent Safety Risk",
+        "description": "Active physical violence occurring at triage (e.g., brandishing a weapon, physically assaulting staff or bystanders)."
+      },
+      {
+        "name": "Severe Agitation",
+        "description": "Extreme psychomotor agitation, such as running blindly, screaming, or destroying property, making verbal de-escalation impossible."
+      },
+      {
+        "name": "Gross Cognitive/Perceptual Impairment",
+        "description": "Complete delirium or command hallucinations ordering immediate harm, completely overriding the patient's rationale."
+      }
+    ]
+  },
+  {
+    "level": 1,
+    "status": "Emergent",
+    "clinical_picture": "Expressing explicit intent to end their life with a lethal plan; acute, terrifying psychosis; severe, unpredictable agitation; high risk of flight.",
+    "intervention_window": 15,
+    "presenting_complaints": [
+      {
+        "name": "Depression / Suicidal / Deliberate Self-Harm",
+        "description": "Patient has made a lethal suicide attempt immediately prior to arrival or presents with an active, formulated suicide plan."
+      },
+      {
+        "name": "Anxiety / Situational Crisis",
+        "description": "Severe panic, frantic behavior, or state of total emotional collapse."
+      },
+      {
+        "name": "Hallucinations / Delusions",
+        "description": "Acute psychosis or highly distressing, terrifying unshared realities."
+      }
+    ],
+    "secondary_modifiers": [
+      {
+        "name": "Active Suicidal Intent",
+        "description": "Expressing a definitive desire to die with access to lethal means or a specific planned method."
+      },
+      {
+        "name": "Uncertain Flight or Safety Risk",
+        "description": "Expressing an intent to elope from care, combined with an unpredictable mental status that compromises safety"
+      },
+      {
+        "name": "Severe Anxiety/Agitation",
+        "description": "Pacing, extreme restlessness, hyperventilating, or demanding to leave because of intense inner panic"
+      },
+      {
+        "name": "Acute Psychosis",
+        "description": "New-onset hallucinations or delusions that are causing severe distress, paranoia, or highly erratic behavior"
+      }
+    ]
+  },
+  {
+    "level": 2,
+    "status": "Urgent",
+    "clinical_picture": "Suicidal ideation without immediate intent or plan; severe depression or anxiety; able to follow directions but in profound distress.",
+    "intervention_window": 30,
+    "presenting_complaints": [
+      {
+        "name": "Depression / Suicidal / Deliberate Self-Harm",
+        "description": "Suicidal thoughts are present, but there is no immediate plan, active intent, or recent attempt"
+      },
+      {
+        "name": "Anxiety / Situational Crisis",
+        "description": "Moderate anxiety or a profound social crisis, such as active physical/mental abuse or severe situational trauma."
+      },
+      {
+        "name": "Hallucinations / Delusions",
+        "description": "Auditory or visual hallucinations that are accompanied by distressing paranoia, but behavior remains cooperative and controlled."
+      }
+    ],
+    "secondary_modifiers": [
+      {
+        "name": "Suicidal Ideation",
+        "description": "No Plan: Passive suicidal ideation (e.g., \"I wish I wouldn't wake up\") without active plans or immediate intent."
+      },
+      {
+        "name": "Moderate Anxiety/Agitation",
+        "description": "Visible distress, weeping, or trembling, but the patient remains cooperative, communicative, and responsive to verbal reassurance."
+      },
+      {
+        "name": "Violent Ideation, No Plan",
+        "description": "Expressing thoughts of wanting to hurt someone else, but denying any intent, plan, or access to means to carry it out."
+      },
+      {
+        "name": "High Emotional Stress/Abuse",
+        "description": "Presentation following acute domestic violence or severe psychological trauma requiring urgent psychosocial intervention."
+      }
+    ]
+  },
+  {
+    "level": 3,
+    "status": "Less Urgent",
+    "clinical_picture": "Mild to moderate anxiety or situational distress; request for medication refills; chronic psychiatric symptoms with no acute changes or safety risks.",
+    "intervention_window": 60,
+    "presenting_complaints": [
+      {
+        "name": "Depression",
+        "description": "Depressive symptoms (e.g., sadness, lethargy, low mood) with an absolute and explicit absence of suicidal ideation."
+      },
+      {
+        "name": "Anxiety / Situational Crisis",
+        "description": "Mild, generalized anxiety or a situational problem where the patient feels temporarily unable to cope."
+      },
+      {
+        "name": "Insomnia",
+        "description": "Acute sleep deprivation causing distress but no cognitive decompensation."
+      }
+    ],
+    "secondary_modifiers": [
+      {
+        "name": "Mild Anxiety/Agitation",
+        "description": "Nervousness or worry over a specific life stressor; the patient can sit quietly and comfortably wait."
+      },
+      {
+        "name": "Stable Bizarre Behaviour",
+        "description": "Unusual or eccentric behaviors that are well-contained, harmless, and do not disrupt the environment."
+      },
+      {
+        "name": "Inability to Cope",
+        "description": "Situational exhaustion or burnout without any indicators of psychosis, self-harm, or aggression."
+      }
+    ]
+  },
+  {
+    "level": 4,
+    "status": "Non-Urgent",
+    "clinical_picture": "Minor, chronic issues; long-standing psychiatric conditions seeking routine evaluation or social support referrals.",
+    "intervention_window": 120,
+    "presenting_complaints": [
+      {
+        "name": "Chronic Mental Health Conditions",
+        "description": ": Long-standing psychiatric conditions seeking routine medical follow-up, prescription renewals, or minor adjustments."
+      },
+      {
+        "name": "Insomnia",
+        "description": "Chronic sleep difficulties with no acute changes in mental functioning."
+      }
+    ],
+    "secondary_modifiers": [
+      {
+        "name": "Chronic Hallucinations",
+        "description": "Experiencing regular, baseline voices or visions that are familiar to the patient, non-distressing, and unchanged in pattern."
+      },
+      {
+        "name": "Harmless/Stable Behaviour",
+        "description": "Baseline eccentricities associated with a known psychiatric history, presenting with no safety risks."
+      },
+      {
+        "name": "Chronic Social/Non-Urgent Problem",
+        "description": "Requests for long-term housing placement, social work assistance, or routine outpatient referrals without acute medical or psychiatric distress."
+      }
+    ]
+  }
+]

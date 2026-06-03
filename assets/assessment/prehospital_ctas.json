@@ -1,0 +1,102 @@
+[
+  {"field": "Cardiac", "presenting_complaints": [
+    {"id": "CP_01", "level": 1, "condition": "Cardia arrest"},
+    {"id": "CP_02", "level": 1, "condition": "Pre-arrest"},
+    {"id": "CP_03", "level": 1, "condition": "ROSC (Return Of Spontaneous Circulation)"},
+    {"id": "CP_04", "level": 1, "condition": "STEMI (ST-Elevation Myocardial Infarction)"},
+    {"id": "CP_05", "level": 1, "condition": "Chest pain with cardiac features with signs of shock"},
+    {"id": "CP_06", "level": 1, "condition": "Severe end organ dysfunction to pre-arrest"},
+    {"id": "CP_07", "level": 2, "condition": "Chest pain with cardia features, borderline perfusion"},
+    {"id": "CP_08", "level": 2, "condition": "Chest pain, non-cardiac features, ripping or tearing"},
+    {"id": "CP_09", "level": 2, "condition": "Syncope new dysrhythmia"},
+    {"id": "CP_10", "level": 3, "condition": "Chest pain, non-cardiac features, acute onset"}
+  ]},
+  {"field": "Environmental", "presenting_complaints": [
+    {"id": "EV_01", "level": 1, "condition": "Burn >= 25% BSA (body surface area)"},
+    {"id": "EV_02", "level": 1, "condition": "Chemical burn ≥ 25"},
+    {"id": "EV_03", "level": 2, "condition": "Hypothermia with severe symptoms"},
+    {"id": "EV_04", "level": 2, "condition": "Frostbite cold injury - cold pulseless limb"},
+    {"id": "EV_05", "level": 2, "condition": "Chemical exposure to eye(s)"},
+    {"id": "EV_06", "level": 2, "condition": "Major chemical burns to hand(s), feet, groin or face"},
+    {"id": "EV_07", "level": 2, "condition": "Allergic reaction - previous severe reaction"},
+    {"id": "EV_08", "level": 3, "condition": "Burn 5-25% BSA"},
+    {"id": "EV_09", "level": 3, "condition": "Hypothermia with moderate symptoms"},
+    {"id": "EV_10", "level": 3, "condition": "Frostbite or cold injury with blanching of skin"},
+    {"id": "EV_11", "level": 4, "condition": "Burn with < 5% BSA"},
+    {"id": "EV_12", "level": 4, "condition": "Hypothermia - mild with normal vital signs"},
+    {"id": "EV_13", "level": 4, "condition": "Laceration or puncture requiring sutures"},
+    {"id": "EV_14", "level": 4, "condition": "Upper extremity injury"},
+    {"id": "EV_15", "level": 5, "condition": "Minor bites (+/- mild pain < 4)"}
+  ]},
+  {"field": "Mental Health", "presenting_complaints": [
+    {"id": "MH_01", "level": 1, "condition": "Violent or homicidal behaviour, imminent harm to self or others, or specific plans"},
+    {"id": "MH_02", "level": 1, "condition": "Bizarre uncontrolled behaviour"},
+    {"id": "MH_03", "level": 2, "condition": "Depression, Suicidal, Violent behaviour, with attempte suicide, clear plan or flight risk"},
+    {"id": "MH_04", "level": 2, "condition": "Hallucinations with acute psychosis"},
+    {"id": "MH_05", "level": 2, "condition": "Sever anxiety or agitation"},
+    {"id": "MH_06", "level": 2, "condition": "Safety or flight risk"},
+    {"id": "MH_07", "level": 3, "condition": "Depression, Suicidal, Violent behaviour with no plan"},
+    {"id": "MH_08", "level": 3, "condition": "Moderate Anxiety"},
+    {"id": "MH_09", "level": 4, "condition": "Depression - no suicidal ideation"},
+    {"id": "MH_10", "level": 4, "condition": "Mild Anxiety"}
+  ]},
+  {"field": "Neurologic", "presenting_complaints": [
+    {"id": "NU_01", "level": 1, "condition": "Active seizure"},
+    {"id": "NU_02", "level": 1, "condition": "Unconscious GCS 3-9"},
+    {"id": "NU_03", "level": 2, "condition": "CVA onset < 6 hours"},
+    {"id": "NU_04", "level": 2, "condition": "Headache - sudden severe, worst ever, visual acuity disturbances"},
+    {"id": "NU_05", "level": 2, "condition": "Postictal - altered LOA"},
+    {"id": "NU_06", "level": 3, "condition": "Seizure - resolved, normal level of alertness"},
+    {"id": "NU_07", "level": 3, "condition": "CVA onset > 6 hours or resolved"},
+    {"id": "NU_08", "level": 4, "condition": "Chronic confusion - no change from usual state"}
+  ]},
+  {"field": "Obstetrics and Gynecology", "presenting_complaints": [
+    {"id": "OG_01", "level": 1, "condition": "Pregnancy ≥ 20 weeks, presenting fetal parts, prolapsed cord"},
+    {"id": "OG_02", "level": 1, "condition": "Vaginal bleeding in the 3rd trimester"},
+    {"id": "OG_03", "level": 2, "condition": "Pregnancy ≥ wo weeks with active labour (contractions < 2 min, complex hypertension +/- headache, edema or abdominal pain"},
+    {"id": "OG_04", "level": 3, "condition": "Post deliver Mother and infant"},
+    {"id": "OG_05", "level": 3, "condition": "Vaginal bleeding - heavy +/- pregnancy"},
+    {"id": "OG_06", "level": 3, "condition": "Pregnancy ≥ 20 weeks, active labour (contractions ≥ 2 minutes), leaking amniotic fluid  ≥ 24 hours"},
+    {"id": "OG_07", "level": 3, "condition": "Menorrhagia"},
+    {"id": "OG_08", "level": 4, "condition": "Non-pregnant vaginal bleeding - minor spotting"}
+  ]},
+  {"field": "Respiratory", "presenting_complaints": [
+    {"id": "RY_01", "level": 1, "condition": "Respiratory arrest"},
+    {"id": "RY_02", "level": 1, "condition": "Severe SOB - lethargic or confused, cyanosis,1-2 word speech, unable to speak"},
+    {"id": "RY_03", "level": 1, "condition": "Complete FBAO (Foreign Body Airway Obstruction)"},
+    {"id": "RY_04", "level": 2, "condition": "Moderate SOB (Shortness of breath), increased work of breathing, clipped sentences, significant stridor but A/W protectedsentences"},
+    {"id": "RY_05", "level": 2, "condition": "FBAO with drooling or stridor, hoarseness or dysphagia"},
+    {"id": "RY_06", "level": 3, "condition": "Mild to Moderate tachypnea, SOB on exertion, no obvious increases SOB, full sentences, mid stridor"},
+    {"id": "RY_07", "level": 3, "condition": "FBAO with no distress and difficulty swallowing"},
+    {"id": "RY_08", "level": 5, "condition": "Sore throat/URTI (Upper Respiratory Tract Infection) - no respiratory symptoms"}
+  ]},
+  {"field": "Trauma", "presenting_complaints": [
+    {"id": "TR_01", "level": 1, "condition": "Amputation of extremity"},
+    {"id": "TR_02", "level": 1, "condition": "Major trauma - severe hemodynamic compromise"},
+    {"id": "TR_03", "level": 1, "condition": "Neurovascular compromise of an extremity"},
+    {"id": "TR_04", "level": 2, "condition": "General trauma - MVC ejection, rollover, extrication time >= 20 minutes, significant intrusion, passenger fatality, unrestrained impact >= 40 kmh,or restrained impact >= 60 kmh"},
+    {"id": "TR_05", "level": 2, "condition": "Motorcycle collision impact >= 30 kmh"},
+    {"id": "TR_06", "level": 2, "condition": "Fall from >= 6 meters or 2 stories"},
+    {"id": "TR_07", "level": 2, "condition": "Penetrating injury proximal to elbow and knee"},
+    {"id": "TR_08", "level": 2, "condition": "Head or Neck trauma: MVC ejection (partial or complete), unrestrained striking of the head on the windshield; Motorcycle collision; Pedestrian struck; Fall >= 1 meter or 5 staris; Assault with a blunt object other than fist or feet; Axial load to head"},
+    {"id": "TR_09", "level": 5, "condition": "Minor contusions, abrasions or lacerations (not requiring closure by any means"}
+  ]},
+  {"field": "Other", "presenting_complaints": [
+    {"id": "OT_01", "level": 2, "condition": "Dental avulsion"},
+    {"id": "OT_02", "level": 2, "condition": "Uncontrolled Epistaxis"},
+    {"id": "OT_03", "level": 2, "condition": "Eye injury or acute vision loss"},
+    {"id": "OT_04", "level": 2, "condition": "Neck pain or stiffness, meningismus"},
+    {"id": "OT_05", "level": 2, "condition": "Sexual assault < 2 hours"},
+    {"id": "OT_06", "level": 2, "condition": "Sore throat with drooling, stridor, obvious edema, swelling of the oropharynx"},
+    {"id": "OT_07", "level": 4, "condition": "UTI symptoms (mild dysuria)"},
+    {"id": "OT_08", "level": 5, "condition": "Dressing change (plus normal vital signs +/- mild pain < 4)"}
+  ]},
+  {"field": "Gastrointestinal", "presenting_complaints": [
+    {"id": "GI_01", "level": 2, "condition": "Vomiting blood or rectal bleeding with an active or large amount"},
+    {"id": "GI_02", "level": 3, "condition": "Vomiting blood with 'coffee ground' emesis, small amount"},
+    {"id": "GI_03", "level": 3, "condition": "Rectal bleeding - melena, small amount"},
+    {"id": "GI_04", "level": 4, "condition": "Rectal bleeding - small amount"},
+    {"id": "GI_05", "level": 4, "condition": "Constipation (mild pain < 4)"},
+    {"id": "GI_06", "level": 5, "condition": "Diarrhea - mild or no dehydration"}
+  ]}
+]

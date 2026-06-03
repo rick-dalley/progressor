@@ -1,0 +1,46 @@
+[
+  {
+    "scale": "ESI",
+    "label": "Emergency Severity Index",
+    "levels": [
+      "Resuscitation",
+      "Emergent",
+      "Urgent",
+      "Less Urgent",
+      "Non-Urgent"
+    ]
+  },
+  {
+    "scale": "CTAS",
+    "label": "Canadian Triage and Acuity Scale",
+    "levels": [
+      "Resuscitation",
+      "Emergent",
+      "Urgent",
+      "Less Urgent",
+      "Non-Urgent"
+    ]
+  },
+  {
+    "scale": "MTS",
+    "label": "Manchester Triage Scale",
+    "levels": [
+      "Immediate",
+      "Very Urgent",
+      "Urgent",
+      "Standard",
+      "Non-Urgent"
+    ]
+  },
+  {
+    "scale": "ATS",
+    "label": "Australasian Triage Scale",
+    "levels": [
+      "Immediate",
+      "Emergency",
+      "Urgent",
+      "Semi-Urgent",
+      "Non-Urgent"
+    ]
+  }
+]

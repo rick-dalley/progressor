@@ -1,0 +1,125 @@
+[
+  {
+    "group": "Medical and Psychiatric Assessment",
+    "actions": [
+      {
+        "category": "Psychiatric Evaluations",
+        "description": "Examining professionals (e.g., psychiatrists, physicians, or nurse practitioners) evaluate the patient to document mental status and determine if they meet the clinical criteria for an involuntary stay. [1]"
+      },
+      {
+        "category": "Physical Examinations",
+        "description": "Comprehensive medical exams to rule out underlying organic medical issues, brain injuries, or substance toxicity."
+      },
+      {
+        "category": "Collateral Information Gathering",
+        "description": "Staff speak with family members, community mental health teams, and first responders to obtain past psychiatric records and historical behavioral context."
+      }
+    ]
+  },
+  {
+    "group": "Treatment and Stabilization",
+    "actions": [
+      {
+        "category": "Medication Management",
+        "description": "Initiating, adjusting, or reviewing medications (chemical restraints) to safely reduce acute distress or address substance use withdrawal."
+      },
+      {
+        "category": "Symptom Monitoring",
+        "description": "Regular, routine nursing checks to document changes in mood, thought processes, and responsiveness.,"
+      },
+      {
+        "category": "Basic Life Needs",
+        "description": "Ensuring the patient is eating, sleeping, and attending to personal hygiene, which is heavily emphasized as a foundational step of early crisis care."
+      },
+      {
+        "category": "Psychosis",
+        "description": "High-security, extreme low-stimulus environments. Patients are often placed in a safe room free of extraneous stimuli to reduce paranoia. Security or nursing staff closely track behavior to manage unpredictable agitation, pacing, or responses to internal stimuli (voices)."
+      },
+      {
+        "category": "Personality Disorder",
+        "description": "Relational boundary-setting. Individuals with severe personality disorders (such as Borderline Personality Disorder) experiencing suicidal crises often require a structured environment that prevents ',splitting' (pitting staff against one another). Staff avoid prolonged isolation, which can worsen symptoms, and instead focus on contracted, predictable checks."},
+      {
+        "category": "Drug Overdose",
+        "description": "Medical-surgical or high-dependency observation. The patient is usually confined to a standard hospital bed with continuous cardiac and pulse-oximetry monitoring until cleared by an emergency physician."
+      },
+      {
+        "category": "Safety & Risk Screenings",
+        "description": "Daily, continuous monitoring for self-harm risk, suicidal ideation, and the potential for violence."
+      },
+      {
+        "category": "Drug Overdose",
+        "description": "The focus is purely toxicological and physiological stabilization. Activities involve intensive medical monitoring (vital signs, toxicology screens, electrocardiograms), administering reversal agents (like Naloxone), managing acute withdrawal using clinical scales (like CIWA or COWS), and providing IV fluids."
+      },
+      {
+        "category": "Psychosis",
+        "description": "The focus is chemical containment of hallucinations and delusions. Activities shift toward establishing medication adherence with high-potency second-generation antipsychotics (e.g., olanzapine or risperidone) and checking for underlying physical causes of delirium (organic psychosis) through lab work."
+      },
+      {
+        "category": "Personality Disorder",
+        "description": "The focus is crisis de-escalation without over-medicating. Medication is used sparingly—usually low-dose short-acting sedatives strictly for acute anxiety or insomnia. The core activity is psychological containment rather than pharmacological stabilization."
+      }
+    ]
+  },
+  {
+    "group": "Patient Rights & Legal Advocacy",
+    "actions": [
+      {
+        "category": "Rights Notification",
+        "description": "The treatment team reviews the legal status of the patient (e.g., Form 4.1 in British Columbia), explaining exactly why they are being held and what their legal rights are."
+      },
+      {
+        "category": "Review Panel & Legal Access",
+        "description": "Informing patients on how to contact a lawyer, appeal their involuntary certification, and request a review panel hearing."
+      },
+      {
+        "category": "Second Medical Opinions",
+        "description": "Patients are informed of their right to request a second medical opinion regarding their ongoing certification or proposed treatment plan."
+      }
+    ]
+  },
+  {
+    "group": "Therapeutic and Recreational Interventions",
+    "actions": [
+      {
+        "category": "During periods of stabilization, staff and occupational therapists utilize low-stimulus activities to help patients regulate:"
+      },
+      {
+        "category": "Occupational Therapy",
+        "description": "Individualized activities such as journaling, adult coloring, or engaging in leisure skills."
+      },
+      {
+        "category": "Grounding Techniques",
+        "description": "Guided meditation, deep-breathing exercises, and simple mindfulness activities to manage anxiety."
+      },
+      {
+        "category": "Low-Agitation Socialization",
+        "description": "Simple board games, card games, or reading if the patient is well enough and capable of participating."
+      },
+      {
+        "category": "Personality Disorder",
+        "description": "Active crisis counseling and distress tolerance. Staff actively engage the patient in brief dialectical behavior therapy (DBT) skills, utilizing physical distress-tolerance tools (e.g., ice packs, weighted blankets, grounding sensory objects) to manage intense affective storms."
+      },
+      {
+        "category": "Psychosis",
+        "description": "Passive, reality-orienting communication. Staff minimize intense psychological discussions, as the patient lacks the cognitive organization to process them. Therapeutic activities are non-demanding and passive (e.g., listening to calm music) while staff focus on simple, clear, and unthreatening daily interactions to build trust."
+      },
+      {
+        "category": "Drug Overdose",
+        "description": "Substance use and harm-reduction counseling. Once the patient is medically conscious and clear-headed (usually in the latter 24 hours), activities transition into motivational interviewing, distributing take-home naloxone kits, and coordinating rapid access to addiction medicine or detox services."
+      }
+    ]
+  },
+  {
+    "group": "Discharge and Care Planning",
+    "actions": [
+      {
+        "category": "Discharge Planning",
+        "description": "Formulating an initial transition plan in case the patient is released at the 48-hour mark, which includes scheduling outpatient follow-up and linking to local mental health services."
+      },
+      {
+        "category": "Liaising with the 'Circle of Care'",
+        "description": "Sharing information with the patient's family members or support system about the care plan and how to support the patient safely upon release"
+      }
+    ]
+  }
+]

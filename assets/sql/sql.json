@@ -70,7 +70,7 @@
   },
   {
    "table": "observations",
-   "query": "CREATE TABLE observations ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT, content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
+   "query": "CREATE TABLE observations (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, author_name TEXT, author_role TEXT, content TEXT, time_stamp DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid));"
   },
   {
    "table": "phase_step",
@@ -78,11 +78,11 @@
   },
   {
    "table": "action",
-   "query": "CREATE TABLE action (  id TEXT PRIMARY KEY,  name TEXT NOT NULL,  action_type INTEGER NOT NULL  );"
+   "query": "CREATE TABLE action (id TEXT PRIMARY KEY,  name TEXT NOT NULL,  action_type INTEGER NOT NULL  );"
   },
   {
    "table": "patient_action",
-   "query": "CREATE TABLE patient_action (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  action_uuid TEXT NOT NULL,  actor_uuid TEXT NOT NULL,  witness_uuid TEXT,  occurred INTEGER NOT NULL,  action_type INTEGER, notes TEXT,  FOREIGN KEY (action_uuid) REFERENCES action(id)  );"
+   "query": "CREATE TABLE patient_action (id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  action_uuid TEXT NOT NULL,  actor_uuid TEXT NOT NULL,  witness_uuid TEXT,  occurred INTEGER NOT NULL,  action_type INTEGER, notes TEXT,  FOREIGN KEY (action_uuid) REFERENCES action(id)  );"
   },
   {
    "table": "patient_action",
@@ -90,7 +90,7 @@
   },
   {
    "table": "patient_event",
-   "query": "CREATE TABLE patient_event (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  event_id TEXT NOT NULL,  entered_by_uuid TEXT NOT NULL,  approved_by_uuid TEXT,  occurred INTEGER NOT NULL,  notes TEXT  );"
+   "query": "CREATE TABLE patient_event (id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  event_id TEXT NOT NULL,  entered_by_uuid TEXT NOT NULL,  approved_by_uuid TEXT,  occurred INTEGER NOT NULL,  notes TEXT  );"
   },
   {
    "table": "patient_event",
@@ -98,7 +98,7 @@
   },
   {
    "table": "patient_transfer",
-   "query": "CREATE TABLE patient_transfer (  id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  requested_by_uuid TEXT NOT NULL,  requesting_team TEXT,  grantor_uuid TEXT,  from_ward TEXT,  to_ward TEXT,  requested INTEGER NOT NULL,  disposed_at INTEGER,  status INTEGER,  denial INTEGER, transferred_at INTEGER,  notes TEXT  );"
+   "query": "CREATE TABLE patient_transfer (id TEXT PRIMARY KEY,  patient_uuid TEXT NOT NULL,  requested_by_uuid TEXT NOT NULL,  requesting_team TEXT,  grantor_uuid TEXT,  from_ward TEXT,  to_ward TEXT,  requested INTEGER NOT NULL,  disposed_at INTEGER,  status INTEGER,  denial INTEGER, transferred_at INTEGER,  notes TEXT  );"
   },
   {
    "table": "patient_transfer",
