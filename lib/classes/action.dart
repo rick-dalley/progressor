@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:core';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:triage/classes/date_time.dart';
+import 'package:triage/classes/date_time_utilities.dart';
 import 'package:triage/classes/phase_state_handlers.dart';
 
 //patient uuids from mockaroo json
@@ -217,8 +218,6 @@ class PatientActionFactory {
 
   // Inside ActionFactory
   List<PatientAction> getActionsForPatient(String patientUuid) {
-    // 1. Filter the values of the map
-    // 2. Convert the resulting Iterable back to a List
     return _actions.values.where((action) => action.patientUuid == patientUuid).toList();
   }
 }

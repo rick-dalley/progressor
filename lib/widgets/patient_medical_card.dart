@@ -122,7 +122,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
     // Assuming this returns a List or an empty list
     final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
-
+debugPrint("showTimelineScreen-actions: ${actions.length}");
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

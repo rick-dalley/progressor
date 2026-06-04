@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_theme.dart';
 import '../classes/action.dart';
-import '../classes/date_time.dart';
+import '../classes/date_time_utilities.dart';
 import '../widgets/timeline_widget.dart';
 
 class PatientTimelineScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class PatientTimelineScreenState extends State<PatientTimelineScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.clinicalWhite,
         appBar: AppBar(
-          title: Text("History of $widget.patientName", style: const TextStyle(fontSize: 18)),
+          title: Text("History of ${widget.patientName}", style: const TextStyle(fontSize: 18)),
 
           centerTitle: true,
           leading: IconButton(
@@ -42,9 +42,10 @@ class PatientTimelineScreenState extends State<PatientTimelineScreen> {
             Expanded(
               child: TimeLineWidget(
                 actions: widget.actions,
-                // Ensure these match your actual requirements
                 startTime: DTUtilities.aYearAgo(),
                 endTime: DateTime.now(),
+                timelineColor:Colors.black26,
+
               ),
             ),
           ],
