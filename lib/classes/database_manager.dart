@@ -25,39 +25,8 @@ class DatabaseManager {
   Map<String, dynamic>? sqlConfig;
 
   // DatabaseManager._internal();
-// ADD THIS
-  static int _instanceCount = 0;
-
-  DatabaseManager._internal() {
-    _instanceCount++;
-    print("FATAL: DatabaseManager Instance #${_instanceCount} created! Trace: ${StackTrace.current}");
-  }
+  DatabaseManager._internal();
   factory DatabaseManager() => _instance;
-
-  // Future<Database> get database async {
-  //   // Check if _db exists AND is actually open
-  //   if (_db != null && _db!.isOpen) {
-  //     return _db!;
-  //   }
-  //
-  //   // If we are currently initializing, wait for it
-  //   if (_dbCompleter != null && !_dbCompleter!.isCompleted) {
-  //     return _dbCompleter!.future;
-  //   }
-  //
-  //   // Otherwise, start a fresh initialization
-  //   _dbCompleter = Completer<Database>();
-  //   try {
-  //     final db = await init();
-  //     _db = db;
-  //     _dbCompleter!.complete(db);
-  //     return db;
-  //   } catch (e) {
-  //     _dbCompleter = null;
-  //     rethrow;
-  //   }
-  // }
-  // Private variable to track completion
 
   Future<Database> get database async {
     // 1. Double-checked locking
