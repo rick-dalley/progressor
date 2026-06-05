@@ -1,3 +1,4 @@
+
 class ConditionReference {
   final int id;
   final String name;

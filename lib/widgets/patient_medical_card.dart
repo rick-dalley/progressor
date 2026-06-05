@@ -13,6 +13,7 @@ import '../classes/action.dart';
 import '../classes/acuity.dart';
 import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
+import '../classes/patient.dart';
 import '../classes/phase_state_handlers.dart';
 import '../screens/acuity_viewer_screen.dart';
 import 'countdown_timer.dart';
@@ -56,35 +57,35 @@ class PatientMedicalCard extends StatefulWidget {
 }
 
 class PatientMedicalCardState extends State<PatientMedicalCard> {
-  late Map<String, dynamic> patient;
+  late Patient patient;
   late CurrentVitalsRecord vitals;
 
   @override
   void initState() {
     super.initState();
-    patient = widget.patient;
-    vitals = CurrentVitalsRecord.fromPatientJson(patient);
+    patient = Patient.fromJson(widget.patient);
+    vitals = CurrentVitalsRecord.fromPatientJson(widget.patient);
   }
 
   @override
   void didUpdateWidget(covariant PatientMedicalCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.patient != widget.patient) {
-      patient = widget.patient;
-      vitals = CurrentVitalsRecord.fromPatientJson(patient);
+      patient = Patient.fromJson(widget.patient);
+      vitals = CurrentVitalsRecord.fromPatientJson(widget.patient);
     }
   }
 
   // A completely separate, clean async routine to fetch fresh row data
   Future<void> refreshPatientData() async {
-    final dynamic result = await DatabaseManager().getPatientWithVitals(patientUuid: patient["patient_uuid"]);
+    final dynamic result = await DatabaseManager().getPatientWithVitals(patientUuid: patient.patientUuid);
     final Map<String, dynamic> updatedPatient = result[0];
 
     if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
-        patient = updatedPatient;
-        vitals = CurrentVitalsRecord.fromPatientJson(patient);
+        patient = Patient.fromJson(updatedPatient);
+        vitals = CurrentVitalsRecord.fromPatientJson(updatedPatient);
       });
     }
   }
@@ -136,12 +137,12 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
 
   @override
   Widget build(BuildContext context) {
-    final AcuityLevel acuityId = AcuityLevel.values[patient['acuity']];
+    final AcuityLevel acuityId = patient.acuityLevel;
     Acuity? acuity = AcuityFactory.instance.getAcuity(level:acuityId);
-    final String lastName = (patient['first_name'] ?? 'Patient').toString();
-    final String firstName = (patient['last_name'] ?? 'Unknown').toString();
+    final String lastName = patient.firstName;
+    final String firstName = patient.lastName;
     final String fullName = '$firstName $lastName';
-    final String patientUuid = patient['patient_uuid'] ?? "";
+    final String patientUuid =patient.patientUuid;
     final admittedDate = AdmittanceUtils.generateRandomAdmittance();
     int randomNumber = Random().nextInt(4);
     return Card(

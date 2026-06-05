@@ -127,8 +127,8 @@ class TransferRequest implements TimelineItem {
       granter: json["grantor_uuid"],
       fromWard: json["from_ward"],
       toWard: json["to_ward"],
-      transferred: json["transferred_at"],
-      disposed: json["disposed_at"],
+      transferred: DTUtilities.dateStringToUnixInt(json["transferred_at"]),
+      disposed: DTUtilities.dateStringToUnixInt(json["disposed_at"]),
       notes: json["notes"],
     );
   }

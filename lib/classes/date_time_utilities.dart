@@ -1,4 +1,28 @@
 class DTUtilities {
+
+  static DateTime sqliteToDart(dynamic value) {
+    if (value == null) return DateTime.now();
+
+    // If SQLite returns a String (e.g., '2026-06-05 16:26:45.000')
+    if (value is String) {
+      List<String> parts = value.split('/');
+      if (parts.length == 3) {
+        int month = int.parse(parts[0]);
+        int day = int.parse(parts[1]);
+        int year = int.parse(parts[2]);
+
+        return DateTime(year, month, day);
+      }
+    }
+    // If you are storing as Unix integers
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+    }
+
+    // Fallback
+    return DateTime.tryParse(value.toString()) ?? DateTime.now();
+  }
+
   static int dateStringToUnixInt(String dateString) {
     try {
       // 1. Try standard ISO parsing first

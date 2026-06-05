@@ -57,7 +57,6 @@ class PatientRosterState extends State<PatientRoster> {
     );
   }
 
-
   void _launchInterviewModal(BuildContext context, int index) async {
     // 1. Trigger the modal
     final bool? didSave = await showModalBottomSheet<bool>(

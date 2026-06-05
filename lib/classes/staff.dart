@@ -35,7 +35,7 @@ class StaffMember {
   });
 
   factory StaffMember.fromJson(Map<String, dynamic> json) {
-    debugPrint('Position: ${json["position"]}');
+
     return StaffMember(
       id: json["id"],
       firstName: json["first_name"],

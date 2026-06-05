@@ -49,7 +49,7 @@ class StaffIdCard extends StatelessWidget {
       // 11:"assets/images/faces/dr_face_2.png",
       // 11:"assets/images/faces/dr_face_1.png",
     };
-    Color color = departmentColorList[departmentColor] ?? Colors.orange;
+
     return Card(
       elevation: 4,
       clipBehavior: Clip.antiAlias,
@@ -88,7 +88,7 @@ class StaffIdCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                        Text(position, style: TextStyle(color: Colors.grey[700])),
+                        Text(position, style: const TextStyle(color: Colors.grey)),
                         const SizedBox(height: 8),
                         Text("ID: ${staffId.toUpperCase().substring(0,8)}"),
                         Text("Hired: $hireDate"),
