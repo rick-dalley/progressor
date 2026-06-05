@@ -121,9 +121,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
         }
       });
 
-      debugPrint(
-        "Loaded ${_meds.length} meds from DB for ${widget.patient['patient_uuid']}",
-      );
     } catch (e) {
       debugPrint("Error loading medications from DB: $e");
     }
@@ -532,7 +529,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       _dataSheetCount = _countDataSheets();
                     });
 
-                    debugPrint("Parent caught expansion event! State updated.");
                   },
                 );
               },

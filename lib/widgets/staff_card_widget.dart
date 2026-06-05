@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:triage/classes/staff.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StaffIdCard extends StatelessWidget {
   final String photoPath;
@@ -8,6 +9,9 @@ class StaffIdCard extends StatelessWidget {
   final String department;
   final String staffId;
   final String hireDate;
+  final String phone;
+  final String email;
+  final String? pager;
   final DepartmentColors departmentColor;
   final int index;
 
@@ -19,6 +23,9 @@ class StaffIdCard extends StatelessWidget {
     required this.department,
     required this.staffId,
     required this.hireDate,
+    required this.phone,
+    required this.email,
+    this.pager,
     required this.departmentColor,
     required this.index,
   });
@@ -45,52 +52,97 @@ class StaffIdCard extends StatelessWidget {
     Color color = departmentColorList[departmentColor] ?? Colors.orange;
     return Card(
       elevation: 4,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        width: 350,
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
           children: [
-            // Left Side: Photo
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                photos[index % 12]!,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
+            Container(
+              height: 40.0,
+              width: double.infinity,
+              alignment: Alignment.center,
+              color: departmentColorList[DepartmentColors.values[index % 4]],
+              child: Text("University Hospital - $department", style: TextStyle(color: Colors.white,fontWeight:FontWeight.bold)),
             ),
-            const SizedBox(width: 16),
-            // Right Side: Info
-            Expanded(
-              child: Column(
+            Container(
+              padding: EdgeInsets.all(16),
+              child: Row(
+
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  Text(position, style: TextStyle(color: Colors.grey[700])),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    color: color.withAlpha(128),
-                    child: Text(department, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+                  // Left Side: Photo
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      photos[index % 12]!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text("ID: $staffId"),
-                  Text("Hired: $hireDate"),
-                  const SizedBox(height: 8),
-                  // Placeholder for Barcode/QR
-                  Container(
-                    height: 40,
-                    width: 40,
-                    color: Colors.black, // Replace with your QR/Barcode widget
+                  const SizedBox(width: 16),
+                  // Right Side: Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        Text(position, style: TextStyle(color: Colors.grey[700])),
+                        const SizedBox(height: 8),
+                        Text("ID: ${staffId.toUpperCase().substring(0,8)}"),
+                        Text("Hired: $hireDate"),
+                        const SizedBox(height: 8),
+                        // Placeholder for Barcode/QR
+                        Row(
+                          children: [
+                            Container(
+                              height: 40,
+                              width: 40,
+                              color: Colors.black12, // Replace with your QR/Barcode widget
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(8.0),
+                              alignment: Alignment.centerLeft,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  InkWell(
+                                    onTap: () async {
+                                      final Uri emailLaunchUri = Uri(
+                                        scheme: 'mailto',
+                                        path: email,
+                                        query: 'subject=Hello&body=Regarding your inquiry...', // Optional
+                                      );
+
+                                      if (await canLaunchUrl(emailLaunchUri)) {
+                                        await launchUrl(emailLaunchUri);
+                                      } else {
+                                        // Handle the error (e.g., show a snackbar saying no email app is configured)
+                                      }
+                                    },
+                                    child: Text(
+                                      email,
+                                      style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                    ),
+                                  ),
+                                  Text("Ph: $phone"),
+                                  if(pager != null || pager!.isNotEmpty)
+                                    Text("Pg: $pager"),
+                                ],)
+                              ,
+                            )
+
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
+            )
           ],
-        ),
+        )
       ),
     );
   }

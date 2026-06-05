@@ -78,12 +78,6 @@ class Medication {
       return (section != null && section.isNotEmpty) ? section.join('\n\n') : "";
     }
 
-    // Convert the comma-separated string from the DB into a clean list
-    List<String> classList = classString.isNotEmpty
-        ? classString.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
-        : [];
-
-
     return Medication(
       setId: json['set_id'] ?? '',
       genericName: (openFda['generic_name'] as List?)?.first ?? 'Unknown Medication',

@@ -55,6 +55,9 @@ class StaffScreenState extends State<StaffScreen> {
                   department: staffMember.department,
                   staffId: staffMember.id,
                   hireDate: staffMember.hireDate.year.toString(),
+                  phone: staffMember.phone,
+                  email: staffMember.email,
+                  pager: staffMember.pager,
                   departmentColor: staffMember.color,
                   index: index,
                 );

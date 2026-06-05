@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
-import '../classes/database_manager.dart';
 
 class StartupScreen extends StatefulWidget {
   const StartupScreen({super.key});

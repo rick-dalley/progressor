@@ -17,9 +17,7 @@ class NoteTaker extends StatefulWidget {
 class NoteTakerState extends State<NoteTaker> {
   // This guarantees text persistence across reactive UI rebuild frames.
   late final TextEditingController _localController;
-  // _localControllerlate stt.SpeechToText _speech;
   bool _isListening = false;
-  final String _listeningError = "";
 
   @override
   void initState() {

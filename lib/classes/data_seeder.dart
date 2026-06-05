@@ -49,8 +49,9 @@ class DataSeeder {
           'phone':entry['phone'],
         });
       }
+
       await batch.commit(noResult: true);
-      debugPrint('Staff seeded.');
+
     } catch (error) {
       debugPrint("Critical failure executing master condition data migration: $error");
     }
@@ -97,7 +98,7 @@ class DataSeeder {
 
       // 4. Commit rows down to the storage engine
       await migrationBatch.commit(noResult: true);
-      debugPrint("Successfully seeded master condition table with auto-increment keys.");
+
     } catch (error) {
       debugPrint("Critical failure executing master condition data migration: $error");
     }

@@ -53,14 +53,12 @@ class _AcuityChangeConfirmationState extends State<AcuityChangeConfirmation> {
   bool _canSubmit = false;
   bool _isEmergency = false;
 
-  late final int _jump;
   late final bool _isBigJumpUp; // 3/4 -> 1/2
   late final bool _isSignificantDrop; // Drop by >= 2 levels
 
   @override
   void initState() {
     super.initState();
-    _jump = (widget.toAcuity.level.index - widget.fromAcuity.level.index).abs();
     _isBigJumpUp = (widget.fromAcuity.level.index >= 2 && widget.toAcuity.level.index <= 1);
     _isSignificantDrop = (widget.fromAcuity.level.index - widget.toAcuity.level.index) >= 2;
 

@@ -53,7 +53,7 @@ class DatabaseManager {
     }
   }
   Future<Database> _init({bool overwrite = true}) async {
-    debugPrint('initializing database');
+
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 
@@ -75,7 +75,6 @@ class DatabaseManager {
         await DataSeeder.seed(db);
       },
     );
-    debugPrint('finished initializing database...');
     return db;
   }
 
@@ -273,7 +272,7 @@ class DatabaseManager {
 
     // 3. Commit all rows to the phone storage database in one single disk pass
     await batch.commit(noResult: true);
-    debugPrint("Database Batch: Successfully committed raw OCR/Manual vitals with explicit GUIDs.");
+
   }
 
   Future<CurrentVitalsRecord?> getCurrentVitals(String patientUuid) async {
@@ -799,13 +798,12 @@ class DatabaseManager {
     final db = await database;
 
     // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
-    final result = await db.rawQuery('''
+    return await db.rawQuery('''
     SELECT s.*
     FROM staff s
     ORDER BY s.last_name, s.first_name
   ''',);
-    debugPrint('$result');
-    return result;
+
   }
 
   Future<List<Map<String, dynamic>>> getStaffMember({required String id}) async {
