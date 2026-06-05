@@ -37,11 +37,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
   Future<void> _initializeSystem() async {
     _controller.forward(); // Start the "Triage" slide animation
 
-    // Replaces the call in main(). Now we actually 'await' the result.
-    final dbManager = DatabaseManager();
-
     await Future.wait([
-      dbManager.init(overwrite: true), // Load SQL, seed JSON, setup tables
       // Load ML Engine here if needed
       Future.delayed(const Duration(seconds: 2)), // Minimum time to show your branding
     ]);

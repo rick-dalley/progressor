@@ -39,15 +39,17 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
-    - assets/patients/
     - assets/assessment/
     - assets/conditions/
+    - assets/images/faces/
     - assets/medications/
     - assets/observations/
+    - assets/patients/
     - assets/process/
     - assets/questionnaires/
     - assets/questions/
     - assets/screen_captures/
     - assets/sql/
+    - assets/staff/
 flutter_intl:
   enabled: true

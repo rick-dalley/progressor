@@ -14,9 +14,49 @@ class DataSeeder {
     await _seedPatientData(db);
     await _seedObservations(db);
     await _seedConditionsCatalog(db);
+    await _seedStaff(db);
 
     debugPrint('--- Seeding Complete ---');
   }
+
+  static Future<void> _seedStaff(Database db) async {
+    // 1. Verify if the master table has already been populated
+    final List<Map<String, dynamic>> existingRecords = await db.rawQuery(
+      "SELECT COUNT(*) as total FROM staff",
+    );
+
+    if (existingRecords.first['total'] as int > 0) {
+      return; // Catalog is already successfully configured!
+    }
+
+    try {
+      // 2. Read raw condition data groups from json asset bundle
+      final String jsonString = await rootBundle.loadString('assets/staff/staff.json');
+      final List<dynamic> data = jsonDecode(jsonString);
+
+      Batch batch = db.batch();
+      for (var entry in data) {
+        batch.insert('staff', {
+          'id': entry['id'],
+          'first_name': entry['first_name'],
+          'last_name': entry['last_name'],
+          'email':entry['email'],
+          'position':entry['position'],
+          'gender':entry['gender'],
+          'is_specialist':0,
+          'on_call':entry['on_call'] ? 1:0,
+          'pager':entry['pager'],
+          'phone':entry['phone'],
+        });
+      }
+      await batch.commit(noResult: true);
+      debugPrint('Staff seeded.');
+    } catch (error) {
+      debugPrint("Critical failure executing master condition data migration: $error");
+    }
+  }
+
+
 
   static Future<void> _seedConditionsCatalog(Database db) async {
     // 1. Verify if the master table has already been populated

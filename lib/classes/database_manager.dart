@@ -6,7 +6,6 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:triage/classes/patient_condition.dart';
-import 'package:triage/classes/process_step.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:uuid/uuid.dart';
 import 'acuity.dart';
@@ -25,50 +24,67 @@ class DatabaseManager {
   // Cache the SQL configuration in memory
   Map<String, dynamic>? sqlConfig;
 
-  DatabaseManager._internal();
+  // DatabaseManager._internal();
+// ADD THIS
+  static int _instanceCount = 0;
 
+  DatabaseManager._internal() {
+    _instanceCount++;
+    print("FATAL: DatabaseManager Instance #${_instanceCount} created! Trace: ${StackTrace.current}");
+  }
   factory DatabaseManager() => _instance;
 
-  // Accessor that ensures only ONE initialization happens
-  Future<Database> get database async {
-    // 1. If DB is already open, return it immediately
-    if (_db != null) return _db!;
+  // Future<Database> get database async {
+  //   // Check if _db exists AND is actually open
+  //   if (_db != null && _db!.isOpen) {
+  //     return _db!;
+  //   }
+  //
+  //   // If we are currently initializing, wait for it
+  //   if (_dbCompleter != null && !_dbCompleter!.isCompleted) {
+  //     return _dbCompleter!.future;
+  //   }
+  //
+  //   // Otherwise, start a fresh initialization
+  //   _dbCompleter = Completer<Database>();
+  //   try {
+  //     final db = await init();
+  //     _db = db;
+  //     _dbCompleter!.complete(db);
+  //     return db;
+  //   } catch (e) {
+  //     _dbCompleter = null;
+  //     rethrow;
+  //   }
+  // }
+  // Private variable to track completion
 
-    // 2. If we are ALREADY initializing, wait for that specific process
+  Future<Database> get database async {
+    // 1. Double-checked locking
+    if (_db != null && _db!.isOpen) return _db!;
+
+    // 2. Return existing future if in progress
     if (_dbCompleter != null) return _dbCompleter!.future;
 
-    // 3. We are the first ones here. Start the process and lock the gate.
+    // 3. Create the completer immediately
     _dbCompleter = Completer<Database>();
 
     try {
-      final db = await init();
+      // 4. Perform the init
+      final db = await _init();
+
+      // 5. CRITICAL: Assign _db BEFORE completing the future
       _db = db;
-      _dbCompleter!.complete(db); // Release the "waiting room"
+      _dbCompleter!.complete(db);
+
       return db;
     } catch (e) {
-      _dbCompleter = null; // Reset if it failed so we can try again
+      _dbCompleter = null;
       rethrow;
     }
   }
-
-  Map<int, ProcessStep> processBlueprint = {};
-
-  ProcessStep? getProcessStepForId(int stepId) {
-    ProcessStep? currentStepNode;
-
-    // 2. Iterate through the phases using .values to find where the step lives
-    for (final phase in processBlueprint.values) {
-      final match = phase.children[stepId];
-      if (match != null) {
-        currentStepNode = match;
-        break; // Stop searching once we find the node
-      }
-    }
-    return currentStepNode;
-  }
-
-  Future<Database> init({bool overwrite = false}) async {
-
+  Future<Database> _init({bool overwrite = true}) async {
+    debugPrint('initializing database');
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 
@@ -90,7 +106,7 @@ class DatabaseManager {
         await DataSeeder.seed(db);
       },
     );
-
+    debugPrint('finished initializing database...');
     return db;
   }
 
@@ -809,4 +825,30 @@ class DatabaseManager {
     }
     return (false, "");
   }
+
+  Future<List<Map<String, dynamic>>> getStaff() async {
+    final db = await database;
+
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    final result = await db.rawQuery('''
+    SELECT s.*
+    FROM staff s
+    ORDER BY s.last_name, s.first_name
+  ''',);
+    debugPrint('$result');
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> getStaffMember({required String id}) async {
+    final db = await database;
+
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    return await db.rawQuery('''
+    SELECT s.*
+    FROM staff s
+    WHERE id = ?
+    ORDER BY s.last_name, s.first_name
+  ''',[id]);
+  }
 }
+
