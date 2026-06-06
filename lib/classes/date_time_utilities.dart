@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class DTUtilities {
 
   static int calculateYearsSince(DateTime pastDate) {
@@ -13,6 +15,24 @@ class DTUtilities {
     }
 
     return years;
+  }
+
+  static DateTime randomHrsAgo({required int max}) {
+    final random = Random();
+    int rand = random.nextInt(max) + 1;
+
+    // Capture the result of the subtraction
+    return DateTime.now().subtract(Duration(hours: rand));
+  }
+
+  static DateTime randomYrsAgo({required int min, required int max}) {
+    final random = Random();
+    if (min > max) return DateTime.now();
+
+    int rand = random.nextInt(max - min) + min;
+
+    // Capture the result of the subtraction
+    return DateTime.now().subtract(Duration(days: rand * 365));
   }
 
   static DateTime sqliteToDart(dynamic value) {

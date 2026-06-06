@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/database_manager.dart';
-import 'package:triage/classes/date_time_utilities.dart';
 import '../app_theme.dart';
 import '../classes/medication_services.dart';
 import '../classes/metric.dart';
@@ -65,7 +64,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
       if (lastHeightMetric == null || lastHeightMetric.value != newHeight) {
         await DatabaseManager().insertPatientMetric(patientUuid, newHeight, 'height');
         setState(() {
-          patient.currentHeight = newHeight;
+          patient.height = newHeight;
         });
       } else {
         debugPrint("Optimization: Height unchanged. Skipped write.");
@@ -88,7 +87,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
       if (shouldWriteWeight) {
         await DatabaseManager().insertPatientMetric(patientUuid, newWeight, 'weight');
         setState(() {
-          patient.currentWeight = newWeight;
+          patient.weight = newWeight;
         });
       }
     }
@@ -261,29 +260,10 @@ class PatientInformationCardState extends State<PatientInformationCard> {
   @override
   Widget build(BuildContext context) {
     final String name = '${patient.firstName} ${patient.lastName}';
-    final String phn = patient.phn;
-    final String phone = patient.phone;
-    final double height = patient.currentHeight;
-    final String heightUoM = patient.heightUoM;
-    final double weight = patient.currentWeight;
-    final String weightUom = patient.weightUoM;
-    final String proxyName = patient.contactName;
-    final String proxyPhone = patient.contactPhone;
-    final String familyDoctorName = patient.familyDoctorName;
-    final String familyDoctorPhone = patient.familyDoctorPhone;
-    final String pharmacyFax = patient.pharmacyFax;
-    final String pharmacyPhone = patient.pharmacyPhone;
-    final int policeReports = patient.policeReports;
-    final int medicationCount = patient.medications;
-    final medicationAudit = patient.medicationSafetyAudit;
-    final DateTime admitted = patient.admitted;
-    final DateTime dob = patient.dob;
-    final int age = DTUtilities.calculateYearsSince(dob);
-    bool hasReports = policeReports > 0;
+    bool hasReports = patient.policeReports > 0;
     Color? medColor;
-
-    if (medicationCount > 0) {
-      switch (medicationAudit) {
+    if (patient.medications > 0) {
+      switch (patient.medicationSafetyAudit) {
         case MedicationSafetyAudit.interactionsNotDetected:
           medColor = Colors.greenAccent;
           break;
@@ -319,16 +299,16 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                 ),
                 Spacer(),
                 Text("Provincial Health #:"),
-                Text(_formatPHN(phn.toString())),
+                Text(_formatPHN(patient.phn.toString())),
               ],
             ),
             SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Born: $dob ($age yrs)"), Spacer(), Text("Admitted: $admitted")],
+              children: [Text("Born: ${patient.formattedDateOfBirth} (${patient.age} yrs)"), Spacer(), Text("Admitted: ${patient.formattedAdmissionDate}")],
             ),
             SizedBox(height: 16),
-           _buildTappableMetricsRow(context: context, currentHeight: height, heightUom: heightUom, currentWeight:weight, weightUom: weightUom),
+           _buildTappableMetricsRow(context: context, currentHeight: patient.height, heightUom: patient.heightUoM, currentWeight:patient.weight, weightUom: patient.weightUoM),
             SizedBox(height: 16),
             Wrap(
               spacing: 8, // Horizontal space between buttons
@@ -361,20 +341,20 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             SizedBox(height: 8,),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "CONTACT:", value: proxyName),
-                second: StringValuePair(label: "PHONE:", value: proxyPhone),
+                first: StringValuePair(label: "CONTACT:", value: patient.contactName),
+                second: StringValuePair(label: "PHONE:", value: patient.contactPhone),
               ),
             ),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "DOCTOR:", value: familyDoctorName),
-                second: StringValuePair(label: "PHONE:", value: familyDoctorPhone),
+                first: StringValuePair(label: "DOCTOR:", value: patient.familyDoctorName),
+                second: StringValuePair(label: "PHONE:", value: patient.familyDoctorPhone),
               ),
             ),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "PHRMCY PHONE:", value: pharmacyPhone),
-                second: StringValuePair(label: "FAX:", value: pharmacyFax),
+                first: StringValuePair(label: "PHARMACY:", value: patient.pharmacyPhone),
+                second: StringValuePair(label: "FAX:", value: patient.pharmacyFax),
               ),
             ),
           ],

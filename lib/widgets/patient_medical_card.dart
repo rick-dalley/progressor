@@ -173,7 +173,7 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
                   ),
                   const Spacer(),
                   // Replace the old monitor_heart button with this:
-                  CountdownTimer(admittedAt: admittedDate),
+                  CountdownTimer(admittedAt: patient.admitted),
                   SizedBox(width: 4),
                   ?patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
                 ],

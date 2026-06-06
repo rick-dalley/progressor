@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
 
 import 'date_time_utilities.dart';
@@ -37,11 +38,14 @@ class Patient {
   final String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
   final String contactName; //'Silvain Saulter',
-  double currentHeight;
+  double height;
   String heightUoM;
-  double currentWeight;
+  double weight;
   String weightUoM;
   String narrativeHint;
+  String formattedDateOfBirth;
+  String formattedAdmissionDate;
+  int age;
 
   Patient({
     required this.patientUuid,
@@ -75,14 +79,20 @@ class Patient {
     required this.familyDoctorName,
     required this.contactName,
     required this.relation,
-    this.currentHeight = 0,
+    this.height = 0,
     this.heightUoM = "cm",
-    this.currentWeight = 0,
+    this.weight = 0,
     this.weightUoM = "kg",
     this.narrativeHint = "",
+    this.formattedAdmissionDate = "",
+    this.formattedDateOfBirth = "",
+    this.age = 17,
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
+    final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
+    final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max:95);
+
     return Patient(
       patientUuid: item['patient_uuid'],
       //'02039325-2425-4bf3-bf85-1ec81a797e25',
@@ -110,9 +120,9 @@ class Patient {
       //null,
       postalCode: item['postal_code'] ?? "",
       //null,
-      dob: DTUtilities.sqliteToDart(item['dob']),
+      dob: birth,
       //'4/27/2019',
-      admitted: DTUtilities.sqliteToDart(item['admitted']),
+      admitted: adm,
       //'12/25/2025',
       acuityLevel: AcuityLevel.values[item['acuity']],
       //3,
@@ -122,7 +132,7 @@ class Patient {
       //279,
       medications: item['medications'] ?? 0,
       //11,
-      medicationSafetyAudit: MedicationSafetyAudit.values[item['medicationsafety_audit']],
+      medicationSafetyAudit: item['medicationsafety_audit'] != null ? MedicationSafetyAudit.values[item['medicationsafety_audit']] : MedicationSafetyAudit.auditNotPerformed,
       //1,
       status: item['status'] ?? "",
       //'Unstable',
@@ -145,11 +155,15 @@ class Patient {
       contactName: item['contact_name'],
       //'Silvain Saulter',
       relation: item['relation'],
-      currentHeight:item['current_height'] ?? 0,
-      currentWeight:item['current_weight'] ?? 0,
-      //'Partner',
+      height:item['current_height'] ?? 0,
+      weight:item['current_weight'] ?? 0,
+      age : DTUtilities.calculateYearsSince(birth),
+      formattedDateOfBirth : DateFormat.yMEd().format(birth),
+      formattedAdmissionDate : DateFormat.yMEd().format(adm),
+
+    //'Partner',
       narrativeHint:
-          item['narrative_hint'] ?? "", //'Maecenas ut massa quis augue luctus tincidunt. Nulla mollis molestie lorem. Quisque ut erat.\n\nCurabitur gravida nisi at nibh. In hac habitasse platea dictumst. Aliquam augue quam, sollicitudin vitae, consectetuer eget, rutrum at, lorem.',
+          item['narrative_hint'] ?? "", //'Maecenas ut massa ...
     );
   }
 }
