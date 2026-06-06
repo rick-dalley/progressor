@@ -1,6 +1,7 @@
 import 'package:triage/classes/acuity.dart';
 
 import 'date_time_utilities.dart';
+import 'medication_services.dart';
 
 enum PatientState { stable, labile, agitated, catatonic, withdrawn }
 
@@ -24,7 +25,7 @@ class Patient {
   final int policeReports; //2,
   final int assessments; //279,
   final int medications; //11,
-  final bool medicationSafetyAudit; //1,
+  final MedicationSafetyAudit medicationSafetyAudit; //1,
   final String status; //'Unstable',
   final String path; //'Custody',
   final int flags; //'Involuntary',
@@ -36,9 +37,13 @@ class Patient {
   final String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
   final String contactName; //'Silvain Saulter',
-  final String narrativeHint;
+  double currentHeight;
+  String heightUoM;
+  double currentWeight;
+  String weightUoM;
+  String narrativeHint;
 
-  const Patient({
+  Patient({
     required this.patientUuid,
     required this.firstName,
     required this.lastName,
@@ -70,7 +75,11 @@ class Patient {
     required this.familyDoctorName,
     required this.contactName,
     required this.relation,
-    required this.narrativeHint,
+    this.currentHeight = 0,
+    this.heightUoM = "cm",
+    this.currentWeight = 0,
+    this.weightUoM = "kg",
+    this.narrativeHint = "",
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
@@ -113,7 +122,7 @@ class Patient {
       //279,
       medications: item['medications'] ?? 0,
       //11,
-      medicationSafetyAudit: item['medicationsafety_audit'] == 1 ? true : false,
+      medicationSafetyAudit: MedicationSafetyAudit.values[item['medicationsafety_audit']],
       //1,
       status: item['status'] ?? "",
       //'Unstable',
@@ -136,6 +145,8 @@ class Patient {
       contactName: item['contact_name'],
       //'Silvain Saulter',
       relation: item['relation'],
+      currentHeight:item['current_height'] ?? 0,
+      currentWeight:item['current_weight'] ?? 0,
       //'Partner',
       narrativeHint:
           item['narrative_hint'] ?? "", //'Maecenas ut massa quis augue luctus tincidunt. Nulla mollis molestie lorem. Quisque ut erat.\n\nCurabitur gravida nisi at nibh. In hac habitasse platea dictumst. Aliquam augue quam, sollicitudin vitae, consectetuer eget, rutrum at, lorem.',

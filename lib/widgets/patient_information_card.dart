@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:triage/classes/admittance_utils.dart';
 import 'package:triage/classes/database_manager.dart';
+import 'package:triage/classes/date_time_utilities.dart';
 import '../app_theme.dart';
 import '../classes/medication_services.dart';
 import '../classes/metric.dart';
+import '../classes/patient.dart';
 import 'body_metrics.dart';
 
 class StringValuePair {
@@ -43,18 +44,18 @@ class PatientInformationCard extends StatefulWidget{
 }
 
 class PatientInformationCardState extends State<PatientInformationCard> {
-  late final Map<String, dynamic> patient;
+  late Patient patient;
   String heightUom = "cm";
   String weightUom = "kg";
 
   @override
   void initState() {
     super.initState();
-    patient = widget.patient;
+    patient = Patient.fromJson(widget.patient);
   }
 
   void onMetricsChanged({double? newHeight, double? newWeight}) async {
-    final String patientUuid = patient["patient_uuid"]?.toString() ?? "";
+    final String patientUuid = patient.patientUuid;
     if (patientUuid.isEmpty) return;
 
     // --- 1. HANDLE HEIGHT FILTER ---
@@ -64,7 +65,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
       if (lastHeightMetric == null || lastHeightMetric.value != newHeight) {
         await DatabaseManager().insertPatientMetric(patientUuid, newHeight, 'height');
         setState(() {
-          patient["current_height"] = newHeight;
+          patient.currentHeight = newHeight;
         });
       } else {
         debugPrint("Optimization: Height unchanged. Skipped write.");
@@ -87,7 +88,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
       if (shouldWriteWeight) {
         await DatabaseManager().insertPatientMetric(patientUuid, newWeight, 'weight');
         setState(() {
-          patient["current_weight"] = newWeight;
+          patient.currentWeight = newWeight;
         });
       }
     }
@@ -259,38 +260,25 @@ class PatientInformationCardState extends State<PatientInformationCard> {
 
   @override
   Widget build(BuildContext context) {
-    final String name = '${patient["first_name"]} ${patient["last_name"]}';
-    final String phn = patient["phn"];
-    final String? phone = patient["phone"];
-    final String? rawDoB = patient["dob"];
-    final double? rawHeight = patient["current_height"];
-    final String? rawHeightUom = patient["current_height_uom"];
-    final double? rawWeight = patient["current_weight"];
-    final String? rawWeightUom = patient["current_weight_uom"];
-    final String? proxyName = patient["contact_name"];
-    final String? proxyPhone = patient["contact_phone"];
-    final String? familyDoctorName = patient["family_doctor_name"];
-    final String? familyDoctorPhone = patient["family_doctor_phone"];
-    final String? pharmacyFax = patient["pharmacy_fax"];
-    final String? pharmacyPhone = patient["pharmacy_phone"];
-    final int policeReports = patient['police_reports'] ?? 0;
-    final int medicationCount = patient['medications'] ?? 0;
-    final int auditIndex = patient['medication_safety_audit'] ?? 0;
-    final medicationAudit = MedicationSafetyAudit.values[auditIndex];
-    final String? rawAdmissionDate = patient["admitted"];
-    final DateTime? admitted = rawAdmissionDate == null
-        ? AdmittanceUtils.generateRandomAdmittance()
-        : AdmittanceUtils.parseDatabaseDate(rawAdmissionDate);
-    final DateTime? dob = rawDoB == null
-        ? AdmittanceUtils.generateRandomDoB()
-        : AdmittanceUtils.parseDatabaseDate(rawDoB);
-    final String formattedAdmission = AdmittanceUtils.formatAdmission(admitted);
-    final String formattedDoB = AdmittanceUtils.formatDoB(dob);
-    final int age = AdmittanceUtils.calculateYearsSince(dob!);
-    final String weightUom = rawWeightUom ?? "kg";
-    final String heightUom = rawHeightUom ?? "cm";
-    final double weight = rawWeight ?? 0.0;
-    final double height = rawHeight ?? 0.0;
+    final String name = '${patient.firstName} ${patient.lastName}';
+    final String phn = patient.phn;
+    final String phone = patient.phone;
+    final double height = patient.currentHeight;
+    final String heightUoM = patient.heightUoM;
+    final double weight = patient.currentWeight;
+    final String weightUom = patient.weightUoM;
+    final String proxyName = patient.contactName;
+    final String proxyPhone = patient.contactPhone;
+    final String familyDoctorName = patient.familyDoctorName;
+    final String familyDoctorPhone = patient.familyDoctorPhone;
+    final String pharmacyFax = patient.pharmacyFax;
+    final String pharmacyPhone = patient.pharmacyPhone;
+    final int policeReports = patient.policeReports;
+    final int medicationCount = patient.medications;
+    final medicationAudit = patient.medicationSafetyAudit;
+    final DateTime admitted = patient.admitted;
+    final DateTime dob = patient.dob;
+    final int age = DTUtilities.calculateYearsSince(dob);
     bool hasReports = policeReports > 0;
     Color? medColor;
 
@@ -337,7 +325,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Born: $formattedDoB ($age yrs)"), Spacer(), Text("Admitted: $formattedAdmission")],
+              children: [Text("Born: $dob ($age yrs)"), Spacer(), Text("Admitted: $admitted")],
             ),
             SizedBox(height: 16),
            _buildTappableMetricsRow(context: context, currentHeight: height, heightUom: heightUom, currentWeight:weight, weightUom: weightUom),
@@ -373,20 +361,20 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             SizedBox(height: 8,),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "CONTACT:", value: "$proxyName"),
-                second: StringValuePair(label: "PHONE:", value: "$proxyPhone"),
+                first: StringValuePair(label: "CONTACT:", value: proxyName),
+                second: StringValuePair(label: "PHONE:", value: proxyPhone),
               ),
             ),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "DOCTOR:", value: "$familyDoctorName"),
-                second: StringValuePair(label: "PHONE:", value: "$familyDoctorPhone"),
+                first: StringValuePair(label: "DOCTOR:", value: familyDoctorName),
+                second: StringValuePair(label: "PHONE:", value: familyDoctorPhone),
               ),
             ),
             _buildTuple(
               Tuple(
-                first: StringValuePair(label: "PHRMCY PHONE:", value: "$pharmacyPhone"),
-                second: StringValuePair(label: "FAX:", value: "$pharmacyFax"),
+                first: StringValuePair(label: "PHRMCY PHONE:", value: pharmacyPhone),
+                second: StringValuePair(label: "FAX:", value: pharmacyFax),
               ),
             ),
           ],

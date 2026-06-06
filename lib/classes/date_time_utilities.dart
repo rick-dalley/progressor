@@ -1,5 +1,20 @@
 class DTUtilities {
 
+  static int calculateYearsSince(DateTime pastDate) {
+    final DateTime now = DateTime.now();
+
+    // 1. Get the raw difference in years
+    int years = now.year - pastDate.year;
+
+    // 2. Adjust downwards if the anniversary hasn't happened yet this year
+    if (now.month < pastDate.month ||
+        (now.month == pastDate.month && now.day < pastDate.day)) {
+      years--;
+    }
+
+    return years;
+  }
+
   static DateTime sqliteToDart(dynamic value) {
     if (value == null) return DateTime.now();
 

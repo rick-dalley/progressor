@@ -11,7 +11,6 @@ import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
 import '../classes/action.dart';
 import '../classes/acuity.dart';
-import '../classes/admittance_utils.dart';
 import '../classes/database_manager.dart';
 import '../classes/patient.dart';
 import '../classes/phase_state_handlers.dart';
@@ -143,7 +142,7 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
     final String firstName = patient.lastName;
     final String fullName = '$firstName $lastName';
     final String patientUuid =patient.patientUuid;
-    final admittedDate = AdmittanceUtils.generateRandomAdmittance();
+    final admittedDate = patient.dob;
     int randomNumber = Random().nextInt(4);
     return Card(
       elevation: 4,

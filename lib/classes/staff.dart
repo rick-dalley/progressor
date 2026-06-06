@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:triage/classes/database_manager.dart';
 
 enum DepartmentColors { blue, green, cyan, purple }
