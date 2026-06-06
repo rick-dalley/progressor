@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
+import 'package:triage/classes/vitals.dart';
 
 import 'date_time_utilities.dart';
 import 'medication_services.dart';
@@ -23,7 +24,7 @@ class Patient {
   final DateTime dob; //'4/27/2019',
   final DateTime admitted; //'12/25/2025',
   final AcuityLevel acuityLevel; //3,
-  final int policeReports; //2,
+  int policeReports; //2,
   final int assessments; //279,
   final int medications; //11,
   final MedicationSafetyAudit medicationSafetyAudit; //1,
@@ -46,6 +47,7 @@ class Patient {
   String formattedDateOfBirth;
   String formattedAdmissionDate;
   int age;
+  CurrentVitalsRecord? vitals;
 
   Patient({
     required this.patientUuid,
@@ -64,7 +66,6 @@ class Patient {
     required this.dob,
     required this.admitted,
     required this.acuityLevel,
-    required this.policeReports,
     required this.assessments,
     required this.medications,
     required this.medicationSafetyAudit,
@@ -79,6 +80,7 @@ class Patient {
     required this.familyDoctorName,
     required this.contactName,
     required this.relation,
+    this.policeReports = 0,
     this.height = 0,
     this.heightUoM = "cm",
     this.weight = 0,
@@ -87,12 +89,13 @@ class Patient {
     this.formattedAdmissionDate = "",
     this.formattedDateOfBirth = "",
     this.age = 17,
+    this.vitals
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
     final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
     final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max:95);
-
+    CurrentVitalsRecord vitalsRecord = CurrentVitalsRecord.fromPatientJson(item);
     return Patient(
       patientUuid: item['patient_uuid'],
       //'02039325-2425-4bf3-bf85-1ec81a797e25',
@@ -160,10 +163,12 @@ class Patient {
       age : DTUtilities.calculateYearsSince(birth),
       formattedDateOfBirth : DateFormat.yMEd().format(birth),
       formattedAdmissionDate : DateFormat.yMEd().format(adm),
-
+      vitals : vitalsRecord,
     //'Partner',
       narrativeHint:
           item['narrative_hint'] ?? "", //'Maecenas ut massa ...
     );
   }
-}
+  }
+
+

@@ -47,7 +47,7 @@ Map<SentimentScale, PatientSentiment> patientSentiments = {
 
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
-  final Map<String, dynamic> patient;
+  final Patient patient;
 
   const PatientMedicalCard({super.key, required this.patient});
 
@@ -62,16 +62,14 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   @override
   void initState() {
     super.initState();
-    patient = Patient.fromJson(widget.patient);
-    vitals = CurrentVitalsRecord.fromPatientJson(widget.patient);
+    patient = widget.patient;
   }
 
   @override
   void didUpdateWidget(covariant PatientMedicalCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.patient != widget.patient) {
-      patient = Patient.fromJson(widget.patient);
-      vitals = CurrentVitalsRecord.fromPatientJson(widget.patient);
+      patient = widget.patient;
     }
   }
 
@@ -84,7 +82,6 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
         patient = Patient.fromJson(updatedPatient);
-        vitals = CurrentVitalsRecord.fromPatientJson(updatedPatient);
       });
     }
   }
@@ -107,7 +104,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   void showVitalsHistory({
     required BuildContext context,
     required String patientUuid,
-    required CurrentVitalsRecord vitals,
+    required CurrentVitalsRecord? vitals,
   }) {
     showModalBottomSheet(
       context: context,
@@ -122,7 +119,6 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
   Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
     // Assuming this returns a List or an empty list
     final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
-debugPrint("showTimelineScreen-actions: ${actions.length}");
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -138,11 +134,8 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
   Widget build(BuildContext context) {
     final AcuityLevel acuityId = patient.acuityLevel;
     Acuity? acuity = AcuityFactory.instance.getAcuity(level:acuityId);
-    final String lastName = patient.firstName;
-    final String firstName = patient.lastName;
-    final String fullName = '$firstName $lastName';
-    final String patientUuid =patient.patientUuid;
-    final admittedDate = patient.dob;
+    final String fullName = '${patient.firstName} ${patient.lastName}';
+    final String patientUuid = patient.patientUuid;
     int randomNumber = Random().nextInt(4);
     return Card(
       elevation: 4,
@@ -192,7 +185,7 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
                     iconColor: AppTheme.acuityColors[acuityId],
                     backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
                     onTap: () {
-                      showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
+                        showVitalsHistory(context: context, patientUuid: patientUuid, vitals: patient.vitals);
                     },
                     pulse: acuityId == AcuityLevel.resuscitation,
                     shadowText: false,
@@ -229,7 +222,7 @@ debugPrint("showTimelineScreen-actions: ${actions.length}");
                       // Graph: Expanded to fill remaining width
                       Expanded(
                         child: InkWell(
-                          child: VitalTrendContainerSmall(vitals: vitals, height: 56),
+                          child: VitalTrendContainerSmall(vitals: patient.vitals, height: 56),
                           onTap: () {
                             showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
                           },

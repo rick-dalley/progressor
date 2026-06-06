@@ -1,15 +1,15 @@
-class Metric {
+class MetricValue {
   final double value;
   final DateTime recorded;
 
   // Standard constructor with named arguments
-  const Metric({
+  const MetricValue({
     required this.value,
     required this.recorded,
   });
 
   /// Factory constructor to parse database raw maps cleanly
-  factory Metric.fromJson(Map<String, dynamic> json) {
+  factory MetricValue.fromJson(Map<String, dynamic> json) {
     // Safely parse the dynamic value column to a double
     final dynamic rawValue = json['metric_value'] ?? json['value'];
     final double parsedValue = (rawValue as num?)?.toDouble() ?? 0.0;
@@ -20,7 +20,7 @@ class Metric {
         ? DateTime.tryParse(rawDate.toString()) ?? DateTime.now()
         : DateTime.now();
 
-    return Metric(
+    return MetricValue(
       value: parsedValue,
       recorded: parsedDate,
     );

@@ -8,7 +8,7 @@ import '../screens/vitals_capture_screen.dart';
 
 class VitalsHistoryView extends StatefulWidget {
   final String patientUuid;
-  final CurrentVitalsRecord vitals;
+  final CurrentVitalsRecord? vitals;
   final VoidCallback onAddedVitals;
   const VitalsHistoryView({super.key, required this.patientUuid, required this.vitals, required this.onAddedVitals});
 

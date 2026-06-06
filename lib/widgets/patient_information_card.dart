@@ -3,7 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/database_manager.dart';
 import '../app_theme.dart';
 import '../classes/medication_services.dart';
-import '../classes/metric.dart';
+import '../classes/metric_value.dart';
 import '../classes/patient.dart';
 import 'body_metrics.dart';
 
@@ -21,8 +21,8 @@ class Tuple {
   const Tuple({required this.first, required this.second});
 }
 
-class PatientInformationCard extends StatefulWidget{
-  final Map<String, dynamic> patient;
+class PatientInformationCard extends StatefulWidget {
+  final Patient patient;
   final VoidCallback? onPoliceTap;
   final VoidCallback? onAssessmentsTap;
   final VoidCallback onInterviewTap; // <--- Add this
@@ -39,7 +39,6 @@ class PatientInformationCard extends StatefulWidget{
 
   @override
   State<StatefulWidget> createState() => PatientInformationCardState();
-
 }
 
 class PatientInformationCardState extends State<PatientInformationCard> {
@@ -50,30 +49,31 @@ class PatientInformationCardState extends State<PatientInformationCard> {
   @override
   void initState() {
     super.initState();
-    patient = Patient.fromJson(widget.patient);
+    patient = widget.patient;
   }
 
   void onMetricsChanged({double? newHeight, double? newWeight}) async {
     final String patientUuid = patient.patientUuid;
     if (patientUuid.isEmpty) return;
 
-    // --- 1. HANDLE HEIGHT FILTER ---
+    // --- HANDLE HEIGHT FILTER ---
     if (newHeight != null && newHeight > 0) {
-      final Metric? lastHeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'height');
+      final MetricValue? lastHeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'height');
 
       if (lastHeightMetric == null || lastHeightMetric.value != newHeight) {
         await DatabaseManager().insertPatientMetric(patientUuid, newHeight, 'height');
         setState(() {
           patient.height = newHeight;
+          widget.patient.height = newHeight;
         });
       } else {
         debugPrint("Optimization: Height unchanged. Skipped write.");
       }
     }
 
-    // --- 2. HANDLE WEIGHT FILTER ---
+    // --- HANDLE WEIGHT FILTER ---
     if (newWeight != null && newWeight > 0) {
-      final Metric? lastWeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'weight');
+      final MetricValue? lastWeightMetric = await DatabaseManager().getLatestMetric(patientUuid, 'weight');
       bool shouldWriteWeight = true;
 
       if (lastWeightMetric != null) {
@@ -88,11 +88,11 @@ class PatientInformationCardState extends State<PatientInformationCard> {
         await DatabaseManager().insertPatientMetric(patientUuid, newWeight, 'weight');
         setState(() {
           patient.weight = newWeight;
+          widget.patient.weight = newWeight;
         });
       }
     }
   }
-
 
   void _showMetricsEntryDialog({
     required BuildContext context,
@@ -101,11 +101,10 @@ class PatientInformationCardState extends State<PatientInformationCard> {
     double? initialWeight,
     required String initialWeightUom,
   }) {
-    // 1. Sanitize variables and assign them to strict local copies
+    // Sanitize variables and assign them to strict local copies
     // BEFORE entering the framework's showDialog execution stack.
     final double? cleanHeight = (initialHeight == 0.0) ? null : initialHeight;
     final double? cleanWeight = (initialWeight == 0.0) ? null : initialWeight;
-
     // Normalize the unit strings here to avoid doing text mutations inside the render tree
     final String normalizedHeightUom = initialHeightUom.toLowerCase();
     final String normalizedWeightUom = initialWeightUom.toLowerCase();
@@ -155,12 +154,11 @@ class PatientInformationCardState extends State<PatientInformationCard> {
   }) {
     final heightStr = currentHeight != null ? '${currentHeight.toStringAsFixed(1)} $heightUom' : 'Not Set';
     final weightStr = currentWeight != null ? '${currentWeight.toStringAsFixed(1)} $weightUom' : 'Not Set';
-
     final bmiValue = MedicalMath.calculateBMI(
-        weight: currentWeight ?? 0.0,
-        weightUom: weightUom,
-        height: currentHeight ?? 0.0,
-        heightUom: heightUom
+      weight: currentWeight ?? 0.0,
+      weightUom: weightUom,
+      height: currentHeight ?? 0.0,
+      heightUom: heightUom,
     );
     final bmiStr = bmiValue > 0 ? bmiValue.toStringAsFixed(1) : 'Not Set';
 
@@ -202,7 +200,6 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             ),
 
             const SizedBox(width: 4), // Small safe gutter padding
-
             // 2. WEIGHT COLUMN (Occupies exactly 1/3 of available row space)
             Expanded(
               child: Row(
@@ -305,10 +302,20 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Born: ${patient.formattedDateOfBirth} (${patient.age} yrs)"), Spacer(), Text("Admitted: ${patient.formattedAdmissionDate}")],
+              children: [
+                Text("Born: ${patient.formattedDateOfBirth} (${patient.age} yrs)"),
+                Spacer(),
+                Text("Admitted: ${patient.formattedAdmissionDate}"),
+              ],
             ),
             SizedBox(height: 16),
-           _buildTappableMetricsRow(context: context, currentHeight: patient.height, heightUom: patient.heightUoM, currentWeight:patient.weight, weightUom: patient.weightUoM),
+            _buildTappableMetricsRow(
+              context: context,
+              currentHeight: patient.height,
+              heightUom: patient.heightUoM,
+              currentWeight: patient.weight,
+              weightUom: patient.weightUoM,
+            ),
             SizedBox(height: 16),
             Wrap(
               spacing: 8, // Horizontal space between buttons
@@ -321,7 +328,12 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                   icon: Symbols.medical_information,
                   onTap: widget.onAssessmentsTap ?? () {},
                 ),
-                _buildCompactButton(context: context, label: "Interview", icon: Icons.mic, onTap: widget.onInterviewTap),
+                _buildCompactButton(
+                  context: context,
+                  label: "Interview",
+                  icon: Icons.mic,
+                  onTap: widget.onInterviewTap,
+                ),
                 _buildCompactButton(
                   context: context,
                   label: "Meds",
@@ -338,7 +350,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                 ),
               ],
             ),
-            SizedBox(height: 8,),
+            SizedBox(height: 8),
             _buildTuple(
               Tuple(
                 first: StringValuePair(label: "CONTACT:", value: patient.contactName),
@@ -386,11 +398,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                 Expanded(
                   child: Text(
                     tuple.first.value,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.deepCharcoal,
-                        fontWeight: FontWeight.w500
-                    ),
+                    style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal, fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -400,7 +408,6 @@ class PatientInformationCardState extends State<PatientInformationCard> {
         ),
 
         const SizedBox(width: 16), // Gutter separation between the two columns
-
         // RIGHT COLUMN (Second Pair: e.g., CONTACT or PHARMACY)
         Expanded(
           child: Padding(
@@ -420,11 +427,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                 Expanded(
                   child: Text(
                     tuple.second.value,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.deepCharcoal,
-                        fontWeight: FontWeight.w500
-                    ),
+                    style: const TextStyle(fontSize: 13, color: AppTheme.deepCharcoal, fontWeight: FontWeight.w500),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -432,7 +435,6 @@ class PatientInformationCardState extends State<PatientInformationCard> {
             ),
           ),
         ),
-
       ],
     );
   }
@@ -454,7 +456,6 @@ class PatientInformationCardState extends State<PatientInformationCard> {
     Color? color,
   }) {
     double availableWidth = MediaQuery.of(context).size.width - 80; // Adjusted for margins
-
     return SizedBox(
       width: availableWidth / 4,
       child: OutlinedButton(

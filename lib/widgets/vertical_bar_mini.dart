@@ -3,7 +3,7 @@ import 'package:triage/widgets/vertical_range_indicator.dart';
 import '../classes/vitals.dart';
 
 class VitalTrendContainerSmall extends StatelessWidget {
-  final CurrentVitalsRecord vitals;
+  final CurrentVitalsRecord? vitals;
   final double? height;
 
   const VitalTrendContainerSmall({
@@ -15,13 +15,16 @@ class VitalTrendContainerSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double sanitizedHeight = height ?? 36;
-    return Row(
+
+    return  vitals == null
+    ? SizedBox()
+    : Row(
       // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: vitals.mapValues.entries.map((entry) {
-        final VitalType type = entry.key;
-        final VitalInstance data = entry.value;
+      children: vitals!.mapValues.entries.map((entry) {
+        final MetricType type = entry.key;
+        final MetricInstance data = entry.value;
         final Limits limits = vitalsLimits[type]!;
-        final String label = vitalDisplayLabels[type] ?? "value";
+        final String label = metricDisplayLabels[type] ?? "value";
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: VerticalRangeIndicator(
@@ -39,14 +42,14 @@ class VitalTrendContainerSmall extends StatelessWidget {
     );
   }
 
-  Color _getColorForType(VitalType type) {
+  Color _getColorForType(MetricType type) {
     // Basic color mapping logic
     switch (type) {
-      case VitalType.systolic: return Colors.blue;
-      case VitalType.diastolic: return Colors.blueGrey;
-      case VitalType.pulse: return Colors.purple;
-      case VitalType.spo2: return Colors.green;
-      case VitalType.temperature: return Colors.brown;
+      case MetricType.systolic: return Colors.blue;
+      case MetricType.diastolic: return Colors.blueGrey;
+      case MetricType.pulse: return Colors.purple;
+      case MetricType.spo2: return Colors.green;
+      case MetricType.temperature: return Colors.brown;
       default: return Colors.grey;
     }
   }

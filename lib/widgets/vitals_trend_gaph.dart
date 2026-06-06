@@ -36,11 +36,11 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
                 titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
-                  if (showPulse) _generateLine(widget.history, VitalType.pulse, AppTheme.vitalsPulse),
-                  if (showBP) _generateLine(widget.history, VitalType.systolic, AppTheme.vitalsBP),
-                  if (showBP) _generateLine(widget.history, VitalType.diastolic, AppTheme.vitalsBP.withAlpha(168)),
-                  if (showTemp) _generateLine(widget.history, VitalType.temperature, AppTheme.lightTheme.disabledColor),
-                  if (showO2) _generateLine(widget.history, VitalType.spo2, AppTheme.vitalsOxygen),
+                  if (showPulse) _generateLine(widget.history, MetricType.pulse, AppTheme.vitalsPulse),
+                  if (showBP) _generateLine(widget.history, MetricType.systolic, AppTheme.vitalsBP),
+                  if (showBP) _generateLine(widget.history, MetricType.diastolic, AppTheme.vitalsBP.withAlpha(168)),
+                  if (showTemp) _generateLine(widget.history, MetricType.temperature, AppTheme.lightTheme.disabledColor),
+                  if (showO2) _generateLine(widget.history, MetricType.spo2, AppTheme.vitalsOxygen),
                 ],
               ),
             ),
@@ -53,18 +53,18 @@ class _VitalsTrendGraphState extends State<VitalsTrendGraph> {
     );
   }
 
-  LineChartBarData _generateLine(List<VitalsRecord> data, VitalType type, Color color) {
+  LineChartBarData _generateLine(List<VitalsRecord> data, MetricType type, Color color) {
     final points = data.reversed.toList().asMap().entries.map((e) {
       final record = e.value;
 
       // Switch to get the specific metric object based on the type
-      final VitalMetric? metric = switch (type) {
-        VitalType.temperature => record.temp,
-        VitalType.systolic    => record.sys,
-        VitalType.diastolic   => record.dia,
-        VitalType.pulse       => record.pulse,
-        VitalType.spo2        => record.o2,
-        VitalType.unknown     => null,
+      final Metric? metric = switch (type) {
+        MetricType.temperature => record.temp,
+        MetricType.systolic    => record.sys,
+        MetricType.diastolic   => record.dia,
+        MetricType.pulse       => record.pulse,
+        MetricType.spo2        => record.o2,
+        MetricType.unknown     => null,
       };
 
       // Return the value, defaulting to 0.0 or handling nulls as needed

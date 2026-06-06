@@ -4,6 +4,7 @@ import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
+import '../classes/patient.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
 import 'assessments.dart';
@@ -102,7 +103,7 @@ class PatientRosterState extends State<PatientRoster> {
               // Added top padding for breathing room
               itemCount: _patients.length,
               itemBuilder: (context, index) {
-                Map<String, dynamic> patient = Map<String, dynamic>.from(_patients[index]);
+                Patient patient = Patient.fromJson(_patients[index]);
                 return FlippableCardController(
                   height: 408,
                   front: PatientMedicalCard(
@@ -145,7 +146,7 @@ class PatientRosterState extends State<PatientRoster> {
                       // Use a standard null check instead of the ! operator
                       if (reportCount != null && reportCount > 0) {
                         setState(() {
-                          patient['police_reports'] = reportCount;
+                          patient.policeReports = reportCount;
                           _patients[index] = patient;
                         });
                       }

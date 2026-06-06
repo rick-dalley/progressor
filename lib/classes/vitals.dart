@@ -1,31 +1,29 @@
-import 'package:flutter/cupertino.dart';
+enum MetricType { systolic, diastolic, pulse, spo2, temperature, unknown }
 
-enum VitalType { systolic, diastolic, pulse, spo2, temperature, unknown }
-
-const Map<String, VitalType> vitalTypeStrings = {
-  "systolic": VitalType.systolic,
-  "diastolic": VitalType.diastolic,
-  "pulse": VitalType.pulse,
-  "spo2": VitalType.spo2,
-  "temp": VitalType.temperature,
-  "unknown": VitalType.unknown,
+const Map<String, MetricType> metricTypeStrings = {
+  "systolic": MetricType.systolic,
+  "diastolic": MetricType.diastolic,
+  "pulse": MetricType.pulse,
+  "spo2": MetricType.spo2,
+  "temp": MetricType.temperature,
+  "unknown": MetricType.unknown,
 };
 
-const Map<VitalType, String> vitalTypeLabels = {
-  VitalType.systolic:"systolic",
-  VitalType.diastolic:"diastolic",
-  VitalType.pulse:"pulse",
-  VitalType.spo2: "spo2",
-  VitalType.temperature:"temp",
-  VitalType.unknown:"unknown"
+const Map<MetricType, String> metricTypeLabels = {
+  MetricType.systolic:"systolic",
+  MetricType.diastolic:"diastolic",
+  MetricType.pulse:"pulse",
+  MetricType.spo2: "spo2",
+  MetricType.temperature:"temp",
+  MetricType.unknown:"unknown"
 };
 
-const Map<VitalType, String> vitalDisplayLabels = {
-  VitalType.systolic:"SYS",
-  VitalType.diastolic:"DIA",
-  VitalType.pulse:"PULSE",
-  VitalType.spo2: "O2",
-  VitalType.temperature:"TEMP",
+const Map<MetricType, String> metricDisplayLabels = {
+  MetricType.systolic:"SYS",
+  MetricType.diastolic:"DIA",
+  MetricType.pulse:"PULSE",
+  MetricType.spo2: "O2",
+  MetricType.temperature:"TEMP",
 };
 
 
@@ -34,33 +32,33 @@ class Limits {
   const Limits({required this.upper, required this.lower});
 }
 
-const Map<VitalType, Limits> vitalsLimits = {
-  VitalType.systolic: Limits(upper: 130, lower: 110),
-  VitalType.diastolic: Limits(upper: 90, lower: 60),
-  VitalType.pulse: Limits(upper: 100, lower: 60),
-  VitalType.spo2: Limits(upper: 100, lower: 90),
-  VitalType.temperature: Limits(upper: 37.2, lower: 36.1),
+const Map<MetricType, Limits> vitalsLimits = {
+  MetricType.systolic: Limits(upper: 130, lower: 110),
+  MetricType.diastolic: Limits(upper: 90, lower: 60),
+  MetricType.pulse: Limits(upper: 100, lower: 60),
+  MetricType.spo2: Limits(upper: 100, lower: 90),
+  MetricType.temperature: Limits(upper: 37.2, lower: 36.1),
 };
 
 
-class VitalMetric {
-  final VitalType type;
+class Metric {
+  final MetricType type;
   final String label;
   final double value;
   final DateTime recorded;
   final int readingId;
 
-  VitalMetric({
+  Metric({
     required this.readingId,
     required this.label,
     required this.value,
     DateTime? recorded
-  }) : type = vitalTypeStrings[label] ?? VitalType.unknown,
+  }) : type = metricTypeStrings[label] ?? MetricType.unknown,
         recorded = recorded ?? DateTime.timestamp();
 
-  factory VitalMetric.fromJson(Map<String, dynamic> json) {
+  factory Metric.fromJson(Map<String, dynamic> json) {
       String? rawDate = json["recorded_at"];
-    return VitalMetric(
+    return Metric(
       readingId: json["reading_id"],
       label: json["metric_type"] ?? "unknown",
       value: json["metric_value"] != null ? (json["metric_value"] as num).toDouble(): 0.0,
@@ -72,19 +70,19 @@ class VitalMetric {
 class VitalsRecord {
   // Use nullable types to simplify completion checks
   final int thisReading;
-  VitalMetric? temp, o2, sys, dia, pulse;
+  Metric? temp, o2, sys, dia, pulse;
   DateTime? recordedAt;
 
   VitalsRecord({required this.thisReading, required this.recordedAt});
 
-  void addMetric(VitalMetric metric) {
+  void addMetric(Metric metric) {
     switch (metric.type) {
-      case VitalType.systolic: sys = metric;
-      case VitalType.diastolic: dia = metric;
-      case VitalType.pulse: pulse = metric;
-      case VitalType.spo2: o2 = metric;
-      case VitalType.temperature: temp = metric;
-      case VitalType.unknown: break;
+      case MetricType.systolic: sys = metric;
+      case MetricType.diastolic: dia = metric;
+      case MetricType.pulse: pulse = metric;
+      case MetricType.spo2: o2 = metric;
+      case MetricType.temperature: temp = metric;
+      case MetricType.unknown: break;
     }
   }
 
@@ -105,7 +103,7 @@ class VitalsHistoryBuilder {
       if (item == null){
         continue;
       }
-      VitalMetric metric = VitalMetric.fromJson(item);
+      Metric metric = Metric.fromJson(item);
       if((currentReading != thisReading)){
         activeVitalsRecord = VitalsRecord(thisReading: thisReading, recordedAt: metric.recorded);
         currentReading = thisReading;
@@ -121,10 +119,10 @@ class VitalsHistoryBuilder {
   }
 }
 
-class VitalInstance {
+class MetricInstance {
   final double min, max, current, upperLimit, lowerLimit;
-  final VitalType vital;
-  const VitalInstance({
+  final MetricType vital;
+  const MetricInstance({
     required this.min,
     required this.max,
     required this.current,
@@ -136,7 +134,7 @@ class VitalInstance {
 
 class CurrentVitalsRecord {
   // Use a final map to ensure it's initialized correctly
-  final Map<VitalType, VitalInstance> mapValues = {};
+  final Map<MetricType, MetricInstance> mapValues = {};
 
   CurrentVitalsRecord();
 
@@ -151,56 +149,54 @@ class CurrentVitalsRecord {
     }
   }
 
-  // Renamed to fromJoinedRow to reflect it handles a single row with all vitals
-  CurrentVitalsRecord.fromPatientJson(Map<String, dynamic> row) {
-    // Manually map each vital type from the columns
+  CurrentVitalsRecord.fromPatientJson(Map<String, dynamic> metric){
     _add("systolic",
-        (row['min_systolic'] as num?)?.toDouble() ?? 0.0,
-        (row['max_systolic'] as num?)?.toDouble() ?? 0.0,
-        (row['current_systolic'] as num?)?.toDouble() ?? 0.0);
+        (metric['min_systolic'] as num?)?.toDouble() ?? 0.0,
+        (metric['max_systolic'] as num?)?.toDouble() ?? 0.0,
+        (metric['current_systolic'] as num?)?.toDouble() ?? 0.0);
 
     _add("diastolic",
-        (row['min_diastolic'] as num?)?.toDouble() ?? 0.0,
-        (row['max_diastolic'] as num?)?.toDouble() ?? 0.0,
-        (row['current_diastolic'] as num?)?.toDouble() ?? 0.0);
+        (metric['min_diastolic'] as num?)?.toDouble() ?? 0.0,
+        (metric['max_diastolic'] as num?)?.toDouble() ?? 0.0,
+        (metric['current_diastolic'] as num?)?.toDouble() ?? 0.0);
 
     _add("pulse",
-        (row['min_pulse'] as num?)?.toDouble() ?? 0.0,
-        (row['max_pulse'] as num?)?.toDouble() ?? 0.0,
-        (row['current_pulse'] as num?)?.toDouble() ?? 0.0);
+        (metric['min_pulse'] as num?)?.toDouble() ?? 0.0,
+        (metric['max_pulse'] as num?)?.toDouble() ?? 0.0,
+        (metric['current_pulse'] as num?)?.toDouble() ?? 0.0);
 
     _add("spo2",
-        (row['min_spo2'] as num?)?.toDouble() ?? 0.0,
-        (row['max_spo2'] as num?)?.toDouble() ?? 0.0,
-        (row['current_spo2'] as num?)?.toDouble() ?? 0.0);
+        (metric['min_spo2'] as num?)?.toDouble() ?? 0.0,
+        (metric['max_spo2'] as num?)?.toDouble() ?? 0.0,
+        (metric['current_spo2'] as num?)?.toDouble() ?? 0.0);
 
     _add("temp",
-        (row['min_temperature'] as num?)?.toDouble() ?? 0.0,
-        (row['max_temperature'] as num?)?.toDouble() ?? 0.0,
-        (row['current_temperature'] as num?)?.toDouble() ?? 0.0);
+        (metric['min_temperature'] as num?)?.toDouble() ?? 0.0,
+        (metric['max_temperature'] as num?)?.toDouble() ?? 0.0,
+        (metric['current_temperature'] as num?)?.toDouble() ?? 0.0);
+
   }
 
-
   void _add(String label, double min, double max, double current) {
-    VitalType? vitalType = vitalTypeStrings[label.toLowerCase()];
+    MetricType? metricType = metricTypeStrings[label.toLowerCase()];
 
     // Safety checks
-    if (vitalType == null || vitalType == VitalType.unknown || min < 0 || max < 0) {
-      debugPrint("Skipping invalid vital: $label");
+    if (metricType == null || metricType == MetricType.unknown || min < 0 || max < 0) {
       return;
     }
 
-    Limits? limits = vitalsLimits[vitalType];
+    Limits? limits = vitalsLimits[metricType];
     if (limits == null) return;
 
     // Create and save the instance
-    mapValues[vitalType] = VitalInstance(
+    mapValues[metricType] = MetricInstance(
       min: min,
       max: max,
       current: current,
       upperLimit: limits.upper,
       lowerLimit: limits.lower,
-      vital: vitalType,
+      vital: metricType,
     );
   }
+
 }

@@ -22,7 +22,7 @@
   },
   {
    "table": "patient_metrics",
-   "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, metric_type TEXT NOT NULL, metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, reading_id INTEGER NOT NULL, FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
+   "query": "CREATE TABLE IF NOT EXISTS patient_metrics ( id TEXT PRIMARY KEY NOT NULL, patient_uuid TEXT NOT NULL, reading_id int NOT NULL, metric_type TEXT NOT NULL, metric_value REAL NOT NULL, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(patient_uuid) REFERENCES patient(uuid) ON DELETE CASCADE);"
   },
   {
    "table": "patient",
