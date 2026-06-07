@@ -48,42 +48,56 @@ Map<SentimentScale, PatientSentiment> patientSentiments = {
 class PatientMedicalCard extends StatefulWidget {
   // Pass the initial patient snapshot down from the roster list
   final Patient patient;
+  final Function onPatientUpdate;
+  final Function onVitalsUpdate;
 
-  const PatientMedicalCard({super.key, required this.patient});
+  const PatientMedicalCard({
+    super.key,
+    required this.patient,
+    required this.onPatientUpdate({required Patient patient}),
+    required this.onVitalsUpdate({required Patient patient}),
+  });
 
   @override
   State<PatientMedicalCard> createState() => PatientMedicalCardState();
 }
 
 class PatientMedicalCardState extends State<PatientMedicalCard> {
-  late Patient patient;
-  late CurrentVitalsRecord vitals;
+  late PatientController patientController;
 
   @override
   void initState() {
     super.initState();
-    patient = widget.patient;
+    patientController = PatientController(widget.patient);
   }
 
   @override
   void didUpdateWidget(covariant PatientMedicalCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.patient != widget.patient) {
-      patient = widget.patient;
+      patientController = PatientController(widget.patient);
     }
   }
 
   // A completely separate, clean async routine to fetch fresh row data
   Future<void> refreshPatientData() async {
-    final dynamic result = await DatabaseManager().getPatientWithVitals(patientUuid: patient.patientUuid);
+    final dynamic result = await DatabaseManager().getPatientWithVitals(
+      patientUuid: patientController.patient.patientUuid,
+    );
     final Map<String, dynamic> updatedPatient = result[0];
 
     if (mounted) {
       // Synchronous setState execution ONLY after the data is securely sitting in memory
       setState(() {
-        patient = Patient.fromJson(updatedPatient);
+        patientController.patient = Patient.fromJson(updatedPatient);
       });
+      widget.onPatientUpdate(patient:patientController.patient);
     }
+  }
+
+  void updateAcuity() {
+    widget.onPatientUpdate(patient: patientController.patient);
+    setState(() {});
   }
 
   void showAcuityModal(BuildContext context, Acuity? acuity) {
@@ -96,7 +110,12 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
       builder: (BuildContext context) {
-        return AcuityViewer(acuity: acuity);
+        return AcuityViewer(
+          patientUuid: patientController.patient.patientUuid,
+          acuity: acuity,
+          patientController: patientController,
+          onAcuityUpdated: updateAcuity,
+        );
       },
     );
   }
@@ -132,140 +151,150 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
 
   @override
   Widget build(BuildContext context) {
-    final AcuityLevel acuityId = patient.acuityLevel;
-    Acuity? acuity = AcuityFactory.instance.getAcuity(level:acuityId);
-    final String fullName = '${patient.firstName} ${patient.lastName}';
-    final String patientUuid = patient.patientUuid;
-    int randomNumber = Random().nextInt(4);
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        // side: BorderSide(color: statusColor, width: 3),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              // 1. Apply the background color fill and styling
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceColor, // Swap this for whatever color matches your layout theme
-                borderRadius: BorderRadius.circular(8.0), // Keeps the container edges crisp and clean
-              ),
-              // 2. Add padding so your elements have breathing room inside the colored block
-              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-
-              child: Row(
-                children: [
-                  Text(
-                    fullName,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
-                  ),
-                  const Spacer(),
-                  // Replace the old monitor_heart button with this:
-                  CountdownTimer(admittedAt: patient.admitted),
-                  SizedBox(width: 4),
-                  ?patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
-                ],
-              ),
-            ),
-            Row(
+    return ListenableBuilder(
+      key: ValueKey(patientController.patient.acuityLevel),
+      listenable: patientController,
+      builder: (context, _) {
+        final patient = patientController.patient;
+        Acuity? acuity = AcuityFactory.instance.getAcuity(level: patient.acuityLevel);
+        final String fullName = '${patient.firstName} ${patient.lastName}';
+        final String patientUuid = patient.patientUuid;
+        int randomNumber = Random().nextInt(4);
+        return Card(
+          elevation: 4,
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            // side: BorderSide(color: statusColor, width: 3),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    showAcuityModal(context, acuity);
-                  },
-                  child: PulsingChip(
-                    iconData: AppTheme.acuityIcons[acuityId]!,
-                    text: acuity != null ? "Acuity: ${acuity.statusName}" : "Acuity: pending",
-                    textColor: AppTheme.lightTheme.disabledColor,
-                    iconColor: AppTheme.acuityColors[acuityId],
-                    backgroundColor: AppTheme.acuityBackgroundColors[acuityId],
-                    onTap: () {
-                        showVitalsHistory(context: context, patientUuid: patientUuid, vitals: patient.vitals);
-                    },
-                    pulse: acuityId == AcuityLevel.resuscitation,
-                    shadowText: false,
+                Container(
+                  // 1. Apply the background color fill and styling
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor, // Swap this for whatever color matches your layout theme
+                    borderRadius: BorderRadius.circular(8.0), // Keeps the container edges crisp and clean
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Column(
-              mainAxisSize: MainAxisSize.min, // Prevents Column from taking infinite height
-              children: [
-                // 1. Header
-                Row(
-                  children: [
-                    const Icon(Symbols.monitoring, size: 24, color: AppTheme.deepLogicViolet),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Tracking",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet),
-                    ),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_ios, size: 20, color: AppTheme.lightTheme.disabledColor),
-                  ],
-                ),
-                const SizedBox(height: 24.0),
+                  // 2. Add padding so your elements have breathing room inside the colored block
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
 
-                // 2. Button and Graph Row
-                SizedBox(
-                  height: 100, // Increased height to comfortably fit stacked icon buttons
                   child: Row(
                     children: [
-                      //Text(""),
-                      SizedBox(width: 64.0),
-                      // Graph: Expanded to fill remaining width
-                      Expanded(
-                        child: InkWell(
-                          child: VitalTrendContainerSmall(vitals: patient.vitals, height: 56),
-                          onTap: () {
-                            showVitalsHistory(context: context, patientUuid: patientUuid, vitals: vitals);
-                          },
-                        ),
+                      Text(
+                        fullName,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.deepCharcoal),
                       ),
+                      const Spacer(),
+                      // Replace the old monitor_heart button with this:
+                      CountdownTimer(admittedAt: patient.admitted),
+                      SizedBox(width: 4),
+                      ?patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
                     ],
                   ),
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "as of: 26/08/2026 12:35 pm",
-                    style: TextStyle(fontSize: 12, color: AppTheme.deepLogicViolet),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        showAcuityModal(context, acuity);
+                      },
+                      child: PulsingChip(
+                        iconData: AppTheme.acuityIcons[patient.acuityLevel]!,
+                        text: acuity != null ? "Acuity: ${acuity.statusName}" : "Acuity: pending",
+                        textColor: AppTheme.lightTheme.disabledColor,
+                        iconColor: AppTheme.acuityColors[patient.acuityLevel],
+                        backgroundColor: AppTheme.acuityBackgroundColors[patient.acuityLevel],
+                        onTap: () {
+                          showVitalsHistory(context: context, patientUuid: patientUuid, vitals: patient.vitals);
+                        },
+                        pulse: patient.acuityLevel == AcuityLevel.resuscitation,
+                        shadowText: false,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Column(
+                  mainAxisSize: MainAxisSize.min, // Prevents Column from taking infinite height
+                  children: [
+                    // 1. Header
+                    Row(
+                      children: [
+                        const Icon(Symbols.monitoring, size: 24, color: AppTheme.deepLogicViolet),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Tracking",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.deepLogicViolet),
+                        ),
+                        Spacer(),
+                        Icon(Icons.arrow_forward_ios, size: 20, color: AppTheme.lightTheme.disabledColor),
+                      ],
+                    ),
+                    const SizedBox(height: 24.0),
+
+                    // 2. Button and Graph Row
+                    SizedBox(
+                      height: 100, // Increased height to comfortably fit stacked icon buttons
+                      child: Row(
+                        children: [
+                          //Text(""),
+                          SizedBox(width: 64.0),
+                          // Graph: Expanded to fill remaining width
+                          Expanded(
+                            child: InkWell(
+                              child: VitalTrendContainerSmall(vitals: patient.vitals, height: 56),
+                              onTap: () {
+                                showVitalsHistory(context: context, patientUuid: patientUuid, vitals: patient.vitals);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        "as of: 26/08/2026 12:35 pm",
+                        style: TextStyle(fontSize: 12, color: AppTheme.deepLogicViolet),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Icon(Symbols.news, size: 24, color: AppTheme.lightTheme.primaryColor),
+                    SizedBox(width: 8.0),
+                    Text(
+                      "Patient Situation",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.lightTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: () => showTimeLineScreen(context, patientUuid, fullName),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // The Macro Linear Rail — tracks active phase block seamlessly
+                      PatientStateWidget(prompts: ["Previous", "Current", "Next"]),
+                    ],
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Icon(Symbols.news, size: 24, color: AppTheme.lightTheme.primaryColor),
-                SizedBox(width: 8.0),
-                Text(
-                  "Patient Situation",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.lightTheme.primaryColor),
-                ),
-              ],
-            ),
-            InkWell(
-              onTap: () => showTimeLineScreen(context, patientUuid, fullName),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // The Macro Linear Rail — tracks active phase block seamlessly
-                  PatientStateWidget(prompts: ["Previous", "Current", "Next"]),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

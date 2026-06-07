@@ -26,6 +26,7 @@ class DatabaseManager {
 
   // DatabaseManager._internal();
   DatabaseManager._internal();
+
   factory DatabaseManager() => _instance;
 
   Future<Database> get database async {
@@ -52,8 +53,8 @@ class DatabaseManager {
       rethrow;
     }
   }
-  Future<Database> _init({bool overwrite = true}) async {
 
+  Future<Database> _init({bool overwrite = false}) async {
     final String response = await rootBundle.loadString('assets/sql/sql.json');
     sqlConfig = json.decode(response);
 
@@ -92,6 +93,24 @@ class DatabaseManager {
     }
   }
 
+  // Drugs
+  Future<String?> getInteractions(String drugNameA, String drugNameB) async {
+    final db = await database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'interaction',
+      columns: ['explanation'],
+      where: '(name_a = ? AND name_b = ?) OR (name_a = ? AND name_b = ?)',
+      whereArgs: [drugNameA, drugNameB, drugNameB, drugNameA],
+    );
+    debugPrint("$results");
+    // Return the interaction description if found, otherwise the default message
+    if (results.isNotEmpty) {
+      String explanation = results.first['explanation'] as String;
+      return explanation;
+    } else {
+      return null;
+    }
+  }
 
 
   // Inside your classes/database_manager.dart file
@@ -143,25 +162,31 @@ class DatabaseManager {
     final db = await database;
 
     // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
-    return await db.rawQuery('''
+    return await db.rawQuery(
+      '''
     SELECT p.*, m.*
     FROM patient p
     LEFT JOIN patient_current_metrics m ON p.patient_uuid = m.patient_uuid
     WHERE p.patient_uuid = ?
-  ''',[patientUuid]);
+  ''',
+      [patientUuid],
+    );
   }
 
   Future<List<Map<String, dynamic>>> getPatientVitalsHistory({required String patientUuid}) async {
     final db = await database;
 
     // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
-    return await db.rawQuery('''
+    return await db.rawQuery(
+      '''
     SELECT m.*
     FROM patient p
     LEFT JOIN patient_metrics m ON p.patient_uuid = m.patient_uuid
     WHERE p.patient_uuid = ?
     ORDER BY m.reading_id, m.metric_type
-  ''',[patientUuid]);
+  ''',
+      [patientUuid],
+    );
   }
 
   // Helper to avoid deadlocks during the open/create cycle
@@ -169,10 +194,49 @@ class DatabaseManager {
     await db.insert('vitals', data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> insertAcuity({required Acuity acuity, required String rationale}) async {
-    // await db.insert('acuity_log', data, conflictAlgorithm: ConflictAlgorithm.replace);
+  Future<void> insertAcuity({
+    required String patientUuid,
+    required AcuityLevel acuityLevel,
+    required String rationale,
+    required String encounterId,
+    required String setBu, // Assuming this is the 'set by user' identifier
+  }) async {
+    final db = await database;
+    await updatePatientAcuity(patientUuid: patientUuid, newAcuityLevel: acuityLevel);
+
+    // Use a UUID package to generate the primary key
+    final String id = const Uuid().v4();
+
+    try {
+      await db.insert('acuity_log', {
+        'id': id,
+        'patient_uuid': patientUuid,
+        'acuity_level': acuityLevel.index,
+        'encounter_id': encounterId,
+        'rationale': rationale,
+        'set_bu': setBu,
+        // 'set_at' is handled by DEFAULT CURRENT_TIMESTAMP in your SQL
+      });
+    } catch (e) {
+      debugPrint("Error logging acuity change: $e");
+      // Handle or rethrow based on your app's error policy
+    }
   }
 
+  Future<void> updatePatientAcuity({required String patientUuid, required AcuityLevel newAcuityLevel}) async {
+    final db = await database; // Or your specific DB instance accessor
+
+    try {
+      await db.update(
+        'patient', // Replace with your actual table name
+        {'acuity': newAcuityLevel.index},
+        where: 'patient_uuid = ?',
+        whereArgs: [patientUuid],
+      );
+    } catch (e) {
+      debugPrint("Error updating database: $e");
+    }
+  }
 
   // Inside your DatabaseManager class:
   Future<Map<String, List<ConditionReference>>> getConditionsCatalog() async {
@@ -224,8 +288,8 @@ class DatabaseManager {
   // import 'package:uuid/uuid.dart';
   Future<int> getNextReadingId(Database db, String patientUuid) async {
     final List<Map<String, dynamic>> result = await db.rawQuery(
-        'SELECT COALESCE(MAX(reading_id), 0) + 1 as next_id FROM patient_metrics WHERE patient_uuid = ?',
-        [patientUuid]
+      'SELECT COALESCE(MAX(reading_id), 0) + 1 as next_id FROM patient_metrics WHERE patient_uuid = ?',
+      [patientUuid],
     );
 
     return result.first['next_id'] as int;
@@ -262,7 +326,7 @@ class DatabaseManager {
 
         batch.insert('patient_metrics', {
           'id': rowId, // <-- Supply the required primary key GUID here!
-          'reading_id' : nextReadingId,
+          'reading_id': nextReadingId,
           'patient_uuid': patientUuid,
           'metric_type': metricType,
           'metric_value': value,
@@ -273,7 +337,6 @@ class DatabaseManager {
 
     // 3. Commit all rows to the phone storage database in one single disk pass
     await batch.commit(noResult: true);
-
   }
 
   Future<CurrentVitalsRecord?> getCurrentVitals(String patientUuid) async {
@@ -764,36 +827,36 @@ class DatabaseManager {
     // Reconstruct the Map<String, String> (question_id -> answer)
     return {for (var row in questionMaps) row['question_id'] as String: row['answer'] as String};
   }
-
-  Future<(bool, String)> checkInteractionsInDb(String primarySetId, String otherSetId) async {
-    final db = await database;
-
-    // STEP 3: The Full CTE
-    final List<Map<String, dynamic>> result = await db.rawQuery(
-      r'''
-    WITH RECURSIVE split_classes(class_name, remainder) AS (
-      SELECT 
-        trim(substr(classes || ',', 1, instr(classes || ',', ',') - 1)),
-        substr(classes || ',', instr(classes || ',', ',') + 1)
-      FROM datasheet WHERE set_id = ?
-      UNION ALL
-      SELECT 
-        trim(substr(remainder, 1, instr(remainder, ',') - 1)),
-        substr(remainder, instr(remainder, ',') + 1)
-      FROM split_classes
-      WHERE remainder != ''
-    )
-    SELECT class_name FROM split_classes WHERE class_name != '';
-  ''',
-      [otherSetId],
-    );
-
-    if (result.isNotEmpty) {
-      List<String> list = result.map((e) => e['class_name'].toString()).toList();
-      return (true, list.first);
-    }
-    return (false, "");
-  }
+  //
+  // Future<(bool, String)> checkInteractions(String primarySetId, String otherSetId) async {
+  //   final db = await database;
+  //
+  //   // The Full CTE
+  //   final List<Map<String, dynamic>> result = await db.rawQuery(
+  //     r'''
+  //   WITH RECURSIVE split_classes(class_name, remainder) AS (
+  //     SELECT
+  //       trim(substr(classes || ',', 1, instr(classes || ',', ',') - 1)),
+  //       substr(classes || ',', instr(classes || ',', ',') + 1)
+  //     FROM datasheet WHERE set_id = ?
+  //     UNION ALL
+  //     SELECT
+  //       trim(substr(remainder, 1, instr(remainder, ',') - 1)),
+  //       substr(remainder, instr(remainder, ',') + 1)
+  //     FROM split_classes
+  //     WHERE remainder != ''
+  //   )
+  //   SELECT class_name FROM split_classes WHERE class_name != '';
+  // ''',
+  //     [otherSetId],
+  //   );
+  //
+  //   if (result.isNotEmpty) {
+  //     List<String> list = result.map((e) => e['class_name'].toString()).toList();
+  //     return (true, list.first);
+  //   }
+  //   return (false, "");
+  // }
 
   Future<List<Map<String, dynamic>>> getStaff() async {
     final db = await database;
@@ -803,20 +866,21 @@ class DatabaseManager {
     SELECT s.*
     FROM staff s
     ORDER BY s.last_name, s.first_name
-  ''',);
-
+  ''');
   }
 
   Future<List<Map<String, dynamic>>> getStaffMember({required String id}) async {
     final db = await database;
 
     // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
-    return await db.rawQuery('''
+    return await db.rawQuery(
+      '''
     SELECT s.*
     FROM staff s
     WHERE id = ?
     ORDER BY s.last_name, s.first_name
-  ''',[id]);
+  ''',
+      [id],
+    );
   }
 }
-

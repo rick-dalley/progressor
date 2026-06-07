@@ -34,7 +34,13 @@ class PatientRosterState extends State<PatientRoster> {
     final data = await DatabaseManager().getAllPatientsWithVitals();
 
     setState(() {
-      _patients = data.map((p) => Map<String, dynamic>.from(p)).toList();
+      _patients = data.map((p) => Patient.fromJson(p)).toList();
+    });
+  }
+
+  void updatePatient({required int index, required Patient patient}){
+    setState(() {
+      _patients[index] = patient;
     });
   }
 
@@ -74,11 +80,11 @@ class PatientRosterState extends State<PatientRoster> {
     if (didSave == true) {
       setState(() {
         // Create our writable copy
-        Map<String, dynamic> updatedPatient = Map<String, dynamic>.from(_patients[index]);
+        Patient updatedPatient = _patients[index];
 
         // Increment the assessment count
-        int currentCount = updatedPatient['assessments'] ?? 0;
-        updatedPatient['assessments'] = currentCount + 1;
+        int currentCount = updatedPatient.assessments;
+        updatedPatient.assessments = currentCount + 1;
 
         // Update the master list
         _patients[index] = updatedPatient;
@@ -103,16 +109,21 @@ class PatientRosterState extends State<PatientRoster> {
               // Added top padding for breathing room
               itemCount: _patients.length,
               itemBuilder: (context, index) {
-                Patient patient = Patient.fromJson(_patients[index]);
                 return FlippableCardController(
                   height: 408,
                   front: PatientMedicalCard(
-                    patient: patient,
+                    patient: _patients[index],
+                    onPatientUpdate: ({required Patient patient}) {
+                      updatePatient(index: index, patient: patient);
+                    },
+                    onVitalsUpdate: ({required Patient patient}) {
+                      updatePatient(index: index, patient: patient);
+                    },
                   ),
                   back: PatientInformationCard(
-                    patient: patient,
+                    patient: _patients[index],
                     onInterviewTap: () => _launchInterviewModal(context, index),
-                    onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index]["patient_uuid"]),
+                    onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index].patientUuid),
                     onMedsTap: () async {
                       final Map<String, dynamic>? result = await showModalBottomSheet(
                         context: context,
@@ -125,11 +136,11 @@ class PatientRosterState extends State<PatientRoster> {
                       if (result != null) {
                         setState(() {
                           // Create the writable copy to avoid read-only errors
-                          Map<String, dynamic> updatedPatient = {..._patients[index]};
+                          Patient updatedPatient = _patients[index];
 
                           // Map the returned values to our flat patient structure
-                          updatedPatient['medications'] = result['medications'];
-                          updatedPatient['medication_safety_audit'] = result['medication_safety_audit'];
+                          updatedPatient.medications = result['medications'];
+                          updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
 
                           _patients[index] = updatedPatient;
                         });
@@ -146,8 +157,7 @@ class PatientRosterState extends State<PatientRoster> {
                       // Use a standard null check instead of the ! operator
                       if (reportCount != null && reportCount > 0) {
                         setState(() {
-                          patient.policeReports = reportCount;
-                          _patients[index] = patient;
+                          _patients[index].policeReports = reportCount;
                         });
                       }
                     },

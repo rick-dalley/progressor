@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import '../classes/patient.dart';
 
 class InterviewModal extends StatefulWidget {
-  final Map<String, dynamic> patient;
+  final Patient patient;
   const InterviewModal({super.key, required this.patient});
 
   @override
@@ -134,7 +135,7 @@ class _InterviewModalState extends State<InterviewModal> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("${widget.patient['first_name']} ${widget.patient['last_name']}",
+            Text("${widget.patient.firstName} ${widget.patient.lastName}",
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Text("Interview in Progress...", style: TextStyle(color: Colors.red, fontSize: 12)),
           ],

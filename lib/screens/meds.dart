@@ -1,5 +1,3 @@
-
-
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,27 +6,18 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/medication_services.dart';
+import '../classes/patient.dart';
 import '../widgets/medication_card.dart';
 import '../widgets/text_scanner.dart';
 
-enum BannerType {
-  acknowledged,
-  advisory,
-  critical,
-  none,
-  unknown
-}
+enum BannerType { acknowledged, advisory, critical, none, unknown }
 
 class BannerData {
   final Color color;
   final String message;
   final IconData icon;
 
-  const BannerData({
-    required this.color,
-    required this.message,
-    required this.icon,
-  });
+  const BannerData({required this.color, required this.message, required this.icon});
 
   Color get bannerColor => color.withAlpha(128);
 }
@@ -57,13 +46,13 @@ final Map<BannerType, BannerData> banners = {
   ),
   BannerType.unknown: const BannerData(
     color: Color(0xFF888888),
-    message: "Unknown",
+    message: "Not yet checked",
     icon: Symbols.unknown_document,
   ),
 };
 
 class MedicationScreen extends StatefulWidget {
-  final Map<String, dynamic> patient;
+  final Patient patient;
 
   const MedicationScreen({super.key, required this.patient});
 
@@ -95,10 +84,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   int _countDataSheets() {
     int count = 0;
-    if (_meds.isNotEmpty){
-      for(dynamic m in _meds ){
-        if (m["has_local_datasheet"] > 0){
-          count ++;
+    if (_meds.isNotEmpty) {
+      for (dynamic m in _meds) {
+        if (m["has_local_datasheet"] > 0) {
+          count++;
         }
       }
     }
@@ -108,8 +97,9 @@ class _MedicationScreenState extends State<MedicationScreen> {
   Future<void> _loadMedsForPatient() async {
     try {
       // 1. Call the database instead of the JSON asset
-      final List<Map<String, dynamic>> dbMeds = await DatabaseManager()
-          .getMedicationsForPatient(widget.patient['patient_uuid']);
+      final List<Map<String, dynamic>> dbMeds = await DatabaseManager().getMedicationsForPatient(
+        widget.patient.patientUuid,
+      );
 
       setState(() {
         // 2. We need to create a mutable copy because db results are read-only
@@ -120,7 +110,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
           med['severity'] = med['severity'] ?? 'Neutral';
         }
       });
-
     } catch (e) {
       debugPrint("Error loading medications from DB: $e");
     }
@@ -138,24 +127,23 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
     for (var primaryMed in _meds) {
       // 1. Defend against null values coming from SQLite mapping
-      final String pId = primaryMed['set_id'] ?? '';
+      final String nameA = primaryMed['name'] ?? '';
       primaryMed['has_interaction'] = 0;
 
-      if (pId.isEmpty) continue; // 2. Skip audit logic if it has no FDA set_id synced yet
+      if (nameA.isEmpty) continue; // 2. Skip audit logic if it has no FDA set_id synced yet
 
       for (var otherMed in _meds) {
-        final String oId = otherMed['set_id'] ?? '';
-        if (oId.isEmpty || pId == oId) continue;
+        final String nameB = otherMed['name'] ?? '';
+        if (nameB.isEmpty || nameA == nameB) continue;
+        final String? interaction = await DatabaseManager().getInteractions(nameA, nameB);
 
-        final (isMatch, matchedClass) = await DatabaseManager()
-            .checkInteractionsInDb(pId, oId);
 
-        if (isMatch) {
+        if (interaction != null) {
           _currentConflicts.add(
             InteractionConflict(
               primaryMedName: primaryMed['name'],
               conflictingMedName: otherMed['name'],
-              matchedClass: matchedClass,
+              interaction: interaction,
             ),
           );
 
@@ -170,6 +158,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       _hasContraIndications = _currentConflicts.isNotEmpty;
     });
   }
+
 
   Color fromHex(String hexString) {
     final buffer = StringBuffer();
@@ -194,17 +183,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
     }
 
     // 2. Return the data map back to the Roster
-    Navigator.pop(context, {
-      'medications': _meds.length,
-      'medication_safety_audit': auditResultIndex,
-    });
+    Navigator.pop(context, {'medications': _meds.length, 'medication_safety_audit': auditResultIndex});
   }
 
   // Logic-driven Banner Widget
   Widget _buildStatusBanner() {
     _dataSheetCount = _countDataSheets();
-    if (_meds.isEmpty || _dataSheetCount < 2){
-      return SizedBox(height: 0,);
+    if (_meds.isEmpty || _dataSheetCount < 2) {
+      return SizedBox(height: 0);
     }
     // Determine state based on your list logic
     BannerData bannerData;
@@ -227,36 +213,31 @@ class _MedicationScreenState extends State<MedicationScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
+          if (_meds.length > 1) Icon(bannerData.icon, color: bannerData.color, size: 20),
+          if (_meds.length > 1) const SizedBox(width: 12),
           if (_meds.length > 1)
-          Icon(bannerData.icon, color: bannerData.color, size: 20),
-          if (_meds.length > 1)
-          const SizedBox(width: 12),
-          if (_meds.length > 1)
-          Expanded(
-            child: Text(
-              bannerData.message,
-              style: TextStyle(
-                color: bannerData.color,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                bannerData.message,
+                style: TextStyle(color: bannerData.color, fontWeight: FontWeight.bold),
               ),
             ),
-          ),
 
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: OutlinedButton.icon(
-                  onPressed: _runSafetyAudit,
-                  icon: const Icon(Symbols.fact_check, color: Colors.white),
-                  label: const Text("CHECK"),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(45),
-                    foregroundColor: Colors.white,
-                    backgroundColor: AppTheme.lightTheme.primaryColor
-                  ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: OutlinedButton.icon(
+                onPressed: _runSafetyAudit,
+                icon: const Icon(Symbols.fact_check, color: Colors.white),
+                label: const Text("CHECK"),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(45),
+                  foregroundColor: Colors.white,
+                  backgroundColor: AppTheme.lightTheme.primaryColor,
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -270,7 +251,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
       final newMed = {
         "id": medId,
-        "patient_uuid": widget.patient["patient_uuid"],
+        "patient_uuid": widget.patient.patientUuid,
         "name": medName,
         "dose": _doseController.text,
         "freq": "PRN",
@@ -312,11 +293,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       }
 
       // FDA Check
-      final drugDataSheet = await MedicationService.getDrugDataSheet(
-        medName,
-        "",
-        medId,
-      );
+      final drugDataSheet = await MedicationService.getDrugDataSheet(medName, "", medId);
       if (drugDataSheet != null) {
         _refreshMedInUI(medId, drugDataSheet['set_id']);
         _runSafetyAudit();
@@ -381,14 +358,10 @@ class _MedicationScreenState extends State<MedicationScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Crucial to keep keyboard from covering fields
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(
-            context,
-          ).viewInsets.bottom, // Moves with keyboard
+          bottom: MediaQuery.of(context).viewInsets.bottom, // Moves with keyboard
           left: 20,
           right: 20,
           top: 20,
@@ -417,10 +390,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                     SizedBox(width: 12),
                     Text(
                       "SCAN BOTTLE BARCODE",
-                      style: TextStyle(
-                        color: AppTheme.deepLogicViolet,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(color: AppTheme.deepLogicViolet, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -428,10 +398,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
             ),
 
             const SizedBox(height: 20),
-            const Text(
-              "OR ENTER MANUALLY",
-              style: TextStyle(fontSize: 10, color: Colors.white38),
-            ),
+            const Text("OR ENTER MANUALLY", style: TextStyle(fontSize: 10, color: Colors.white38)),
             const SizedBox(height: 12),
 
             // OPTION 2: YOUR ORIGINAL FORM FIELDS
@@ -441,9 +408,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
             ),
             TextField(
               controller: _doseController,
-              decoration: const InputDecoration(
-                labelText: "Dosage (e.g. 10mg)",
-              ),
+              decoration: const InputDecoration(labelText: "Dosage (e.g. 10mg)"),
             ),
             const SizedBox(height: 20),
 
@@ -467,7 +432,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name = "${widget.patient['first_name']} ${widget.patient['last_name']}";
+    final name = "${widget.patient.firstName} ${widget.patient.lastName}";
 
     return Scaffold(
       appBar: AppBar(
@@ -480,7 +445,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
             child: const Text("SAVE", style: TextStyle(color: Colors.white)),
           ),
         ],
-        backgroundColor:  AppTheme.clinicalWhite, // Your Navy brand color
+        backgroundColor: AppTheme.clinicalWhite, // Your Navy brand color
         foregroundColor: AppTheme.deepLogicViolet,
       ),
       // The Floating Action Button replaces the top form
@@ -491,7 +456,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
         backgroundColor: AppTheme.deepLogicViolet,
         foregroundColor: AppTheme.clinicalWhite,
       ),
-      
+
       body: Column(
         children: [
           _buildStatusBanner(),
@@ -519,16 +484,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       _dataSheetCount = _countDataSheets();
                     });
 
-                    debugPrint(
-                      'Permanently deleted medication: $medIdToDelete',
-                    );
+                    debugPrint('Permanently deleted medication: $medIdToDelete');
                   },
                   onExpansionChanged: (isExpanded) {
                     setState(() {
                       med["has_local_datasheet"] = 1;
                       _dataSheetCount = _countDataSheets();
                     });
-
                   },
                 );
               },
@@ -581,10 +543,7 @@ class _BarcodeScannerModal extends StatelessWidget {
           const SizedBox(height: 16),
           const Text(
             "ALIGN BARCODE",
-            style: TextStyle(
-              color: Colors.cyanAccent,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
           ),
           Expanded(
             child: Stack(
@@ -615,10 +574,7 @@ class _BarcodeScannerModal extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "CANCEL",
-              style: TextStyle(color: Colors.white54),
-            ),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.white54)),
           ),
           const SizedBox(height: 20),
         ],

@@ -111,7 +111,25 @@
   {
    "table": "acuity_log",
    "query": "CREATE TABLE acuity_log (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL,acuity_level INTEGER NOT NULL, encounter_id TEXT, rationale TEXT,set_bu TEXT NOT NULL, set_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (patient_uuid) REFERENCES patient (patient_uuid) ON DELETE CASCADE);"
+  },
+  {
+   "table": "interaction",
+   "query": "CREATE TABLE interaction (interaction_id INTEGER PRIMARY KEY AUTOINCREMENT, name_a TEXT NOT NULL, name_b TEXT NOT NULL, rxcui_a TEXT, rxcui_b TEXT , severity TEXT, explanation TEXT, local_datasheet_id TEXT,FOREIGN KEY(rxcui_a) REFERENCES drug_name(rx_norm_id),FOREIGN KEY(rxcui_b) REFERENCES drug_name(rx_norm_id));"
+  },
+  {
+   "table": "interaction",
+   "query": "CREATE INDEX idx_interaction_pair ON interaction(rxcui_a, rxcui_b);"
+  },
+  {
+   "table": "interaction",
+   "query": "CREATE INDEX idx_interaction_name_pair ON interaction(name_a, name_b);"
+  },
+  {
+   "table": "drug_name",
+   "query": "CREATE TABLE drug_name (rx_norm_id TEXT PRIMARY KEY,name TEXT NOT NULL);"
   }
+
+
  ],
  "INSERT": [
   {

@@ -12,24 +12,24 @@ enum MedicationSafetyAudit {
 class InteractionConflict {
   final String primaryMedName;
   final String conflictingMedName;
-  final String matchedClass;
+  final String interaction;
 
   InteractionConflict({
     required this.primaryMedName,
     required this.conflictingMedName,
-    required this.matchedClass,
+    required this.interaction,
   });
 
   // Returns a clean string for the Chip UI
-  String get conflictDetail => "$conflictingMedName ($matchedClass)";
+  String get conflictDetail => "$conflictingMedName ($interaction)";
 
   // Basic string getters
   String get primary => primaryMedName;
   String get conflicting => conflictingMedName;
-  String get type => matchedClass;
+  String get type => interaction;
 
   // A helper getter for a formatted summary string
-  String get description => "$primaryMedName interacts with $conflictingMedName via $matchedClass";
+  String get description => "$primaryMedName interacts with $conflictingMedName";
   // Boilerplate for equality checks (important for List comparison)
   @override
   bool operator ==(Object other) =>
@@ -38,19 +38,18 @@ class InteractionConflict {
               runtimeType == other.runtimeType &&
               primaryMedName == other.primaryMedName &&
               conflictingMedName == other.conflictingMedName &&
-              matchedClass == other.matchedClass;
+              interaction == other.interaction;
 
-  bool hasInteraction(String medicationName ) => ((primaryMedName == medicationName)  || (conflictingMedName == medicationName)) && primaryMedName != conflictingMedName;
-
+  bool hasInteraction(String medicationName ) => ((primaryMedName == medicationName)  && (primaryMedName != conflictingMedName));
   @override
   int get hashCode =>
       primaryMedName.hashCode ^
       conflictingMedName.hashCode ^
-      matchedClass.hashCode;
+      interaction.hashCode;
 
   // Handy for debugging in the console
   @override
-  String toString() => 'Conflict: $primaryMedName <-> $conflictingMedName on $matchedClass';
+  String toString() => 'Conflict: $primaryMedName <-> $conflictingMedName on $interaction';
 }
 
 class Medication {

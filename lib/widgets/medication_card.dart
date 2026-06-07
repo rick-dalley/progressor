@@ -300,10 +300,10 @@ class InteractionsChipState extends State<InteractionsChip> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    item.conflicting,
+                    item.description,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(item.description),
+                  subtitle: Text(item.interaction),
                 );
               },
             ),

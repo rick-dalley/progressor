@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
 import 'package:triage/classes/vitals.dart';
 
+import 'database_manager.dart';
 import 'date_time_utilities.dart';
 import 'medication_services.dart';
 
@@ -23,11 +25,6 @@ class Patient {
   final String postalCode; //null,
   final DateTime dob; //'4/27/2019',
   final DateTime admitted; //'12/25/2025',
-  final AcuityLevel acuityLevel; //3,
-  int policeReports; //2,
-  final int assessments; //279,
-  final int medications; //11,
-  final MedicationSafetyAudit medicationSafetyAudit; //1,
   final String status; //'Unstable',
   final String path; //'Custody',
   final int flags; //'Involuntary',
@@ -39,6 +36,11 @@ class Patient {
   final String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
   final String contactName; //'Silvain Saulter',
+  int assessments; //279,
+  int medications; //11,
+  MedicationSafetyAudit medicationSafetyAudit; //1,
+  AcuityLevel acuityLevel; //3,
+  int policeReports; //2,
   double height;
   String heightUoM;
   double weight;
@@ -65,10 +67,6 @@ class Patient {
     required this.postalCode,
     required this.dob,
     required this.admitted,
-    required this.acuityLevel,
-    required this.assessments,
-    required this.medications,
-    required this.medicationSafetyAudit,
     required this.status,
     required this.path,
     required this.flags,
@@ -80,7 +78,11 @@ class Patient {
     required this.familyDoctorName,
     required this.contactName,
     required this.relation,
+    this.assessments = 0,
+    this.medications = 0,
+    this.medicationSafetyAudit = MedicationSafetyAudit.auditNotPerformed,
     this.policeReports = 0,
+    this.acuityLevel = AcuityLevel.notUrgent,
     this.height = 0,
     this.heightUoM = "cm",
     this.weight = 0,
@@ -89,12 +91,12 @@ class Patient {
     this.formattedAdmissionDate = "",
     this.formattedDateOfBirth = "",
     this.age = 17,
-    this.vitals
+    this.vitals,
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
     final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
-    final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max:95);
+    final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max: 95);
     CurrentVitalsRecord vitalsRecord = CurrentVitalsRecord.fromPatientJson(item);
     return Patient(
       patientUuid: item['patient_uuid'],
@@ -135,7 +137,9 @@ class Patient {
       //279,
       medications: item['medications'] ?? 0,
       //11,
-      medicationSafetyAudit: item['medicationsafety_audit'] != null ? MedicationSafetyAudit.values[item['medicationsafety_audit']] : MedicationSafetyAudit.auditNotPerformed,
+      medicationSafetyAudit: item['medicationsafety_audit'] != null
+          ? MedicationSafetyAudit.values[item['medicationsafety_audit']]
+          : MedicationSafetyAudit.auditNotPerformed,
       //1,
       status: item['status'] ?? "",
       //'Unstable',
@@ -158,17 +162,88 @@ class Patient {
       contactName: item['contact_name'],
       //'Silvain Saulter',
       relation: item['relation'],
-      height:item['current_height'] ?? 0,
-      weight:item['current_weight'] ?? 0,
-      age : DTUtilities.calculateYearsSince(birth),
-      formattedDateOfBirth : DateFormat.yMEd().format(birth),
-      formattedAdmissionDate : DateFormat.yMEd().format(adm),
-      vitals : vitalsRecord,
-    //'Partner',
-      narrativeHint:
-          item['narrative_hint'] ?? "", //'Maecenas ut massa ...
+      height: item['current_height'] ?? 0,
+      weight: item['current_weight'] ?? 0,
+      age: DTUtilities.calculateYearsSince(birth),
+      formattedDateOfBirth: DateFormat.yMEd().format(birth),
+      formattedAdmissionDate: DateFormat.yMEd().format(adm),
+      vitals: vitalsRecord,
+      //'Partner',
+      narrativeHint: item['narrative_hint'] ?? "", //'Maecenas ut massa ...
     );
   }
+  factory Patient.copy({required Patient patient}){
+    return Patient(
+    patientUuid: patient.patientUuid,
+    firstName: patient.firstName,
+    lastName: patient.lastName,
+    phn: patient.phn,
+    phaseStepId: patient.phaseStepId,
+    email: patient.email,
+    ssn:patient.ssn,
+    title: patient.title,
+    city: patient.city,
+    country: patient.country,
+    streetAddress: patient.streetAddress,
+    state: patient.state,
+    postalCode: patient.postalCode,
+    dob: patient.dob,
+    admitted: patient.admitted,
+    acuityLevel: patient.acuityLevel,
+    policeReports: patient.policeReports,
+    assessments: patient.assessments,
+    medications: patient.medications,
+    medicationSafetyAudit: patient.medicationSafetyAudit,
+    status: patient.status,
+    path: patient.path,
+    flags: patient.flags,
+    phone: patient.phone,
+    familyDoctorPhone: patient.familyDoctorPhone,
+    contactPhone: patient.contactPhone,
+    pharmacyPhone: patient.pharmacyPhone,
+    pharmacyFax: patient.pharmacyFax,
+    familyDoctorName: patient.familyDoctorName,
+    contactName: patient.contactName,
+    relation: patient.relation,
+    height: patient.height,
+    weight: patient.weight,
+    age: patient.age,
+    vitals: patient.vitals,
+    narrativeHint: patient.narrativeHint,
+    );
   }
 
+  Patient copyWithAcuity({required Patient oldPatient, required AcuityLevel acuityLevel}) {
+    Patient patient = Patient.copy(patient:oldPatient);
+    patient.acuityLevel = acuityLevel;
+    return patient;
+  }
+}
 
+class PatientController extends ChangeNotifier {
+  Patient patient;
+
+  // Use your existing DatabaseManager instance
+
+  bool _isLoading = false;
+
+  bool get isLoading => _isLoading;
+
+  PatientController(this.patient);
+
+  Future<void> addAcuity(Acuity newAcuity, String rationale) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // await _db.insertAcuity(patientUuid: patient.patientUuid, acuity: newAcuity, rationale: rationale);
+      await DatabaseManager().insertAcuity(patientUuid: patient.patientUuid, acuityLevel: newAcuity.level, rationale: rationale, encounterId: '', setBu: '');
+      patient.acuityLevel = newAcuity.level;
+    } catch (e) {
+      // Handle or re-throw error if needed
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+}
