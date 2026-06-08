@@ -22,13 +22,20 @@ class PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
   final idFront = 'assets/screen_captures/license_front.png';
   final idBack = 'assets/screen_captures/license_back.png';
-
+  String _searchQuery = "";
+  late TextEditingController _searchController;
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _loadPatientData();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    _searchController.dispose();
+  }
   Future<void> _loadPatientData() async {
     // DatabaseManager is a singleton, so this is safe and fast
     final data = await DatabaseManager().getAllPatientsWithVitals();
@@ -95,76 +102,121 @@ class PatientRosterState extends State<PatientRoster> {
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
+    final filteredPatients = _patients.where((p) {
+      final name = "${p.firstName} ${p.lastName}".toLowerCase();
+      return name.contains(_searchQuery.toLowerCase());
+    }).toList();
 
     return Scaffold(
       // Keeping the body as the main focus
-      body: _patients.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              // Added top padding for breathing room
-              itemCount: _patients.length,
-              itemBuilder: (context, index) {
-                return FlippableCardController(
-                  height: 408,
-                  front: PatientMedicalCard(
-                    patient: _patients[index],
-                    onPatientUpdate: ({required Patient patient}) {
-                      updatePatient(index: index, patient: patient);
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search by name...",
+                      prefixIcon: const Icon(Icons.search),
+                      // Add this to your decoration
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = ""; // Reset the query
+                          });
+                        },
+                      )
+                          : null, // No icon if the field is empty
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
                     },
-                    onVitalsUpdate: ({required Patient patient}) {
-                      updatePatient(index: index, patient: patient);
-                    },
-                  ),
-                  back: PatientInformationCard(
-                    patient: _patients[index],
-                    onInterviewTap: () => _launchInterviewModal(context, index),
-                    onAssessmentsTap: () => _showAssessmentsMenu(context, _patients[index].patientUuid),
-                    onMedsTap: () async {
-                      final Map<String, dynamic>? result = await showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        showDragHandle: true,
-                        builder: (context) => MedicationScreen(patient: _patients[index]),
-                      );
-
-                      if (result != null) {
-                        setState(() {
-                          // Create the writable copy to avoid read-only errors
-                          Patient updatedPatient = _patients[index];
-
-                          // Map the returned values to our flat patient structure
-                          updatedPatient.medications = result['medications'];
-                          updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
-
-                          _patients[index] = updatedPatient;
-                        });
-                      }
-                    },
-                    onPoliceTap: () async {
-                      // 1. Navigate and WAIT for the signal from the Save button
-                      final int? reportCount = await Navigator.push<int>(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-                      );
-
-                      // 2. If the user hit "Save" (which returns true)
-                      // Use a standard null check instead of the ! operator
-                      if (reportCount != null && reportCount > 0) {
-                        setState(() {
-                          _patients[index].policeReports = reportCount;
-                        });
-                      }
-                    },
-                  ),
-                );
-              },
+                  )
+                ),
+              ],
             ),
+          ),
+          Expanded(child:
+          filteredPatients.isEmpty
+              ? const Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
+            ),
+          )
+              : ListView.builder(
+            padding: const EdgeInsets.only(top: 8, bottom: 80),
+            // Added top padding for breathing room
+            itemCount: filteredPatients.length,
+            itemBuilder: (context, index) {
+              return FlippableCardController(
+                height: 408,
+                front: PatientMedicalCard(
+                  patient: filteredPatients[index],
+                  onPatientUpdate: ({required Patient patient}) {
+                    updatePatient(index: index, patient: patient);
+                  },
+                  onVitalsUpdate: ({required Patient patient}) {
+                    updatePatient(index: index, patient: patient);
+                  },
+                ),
+                back: PatientInformationCard(
+                  patient: filteredPatients[index],
+                  onInterviewTap: () => _launchInterviewModal(context, index),
+                  onAssessmentsTap: () => _showAssessmentsMenu(context, filteredPatients[index].patientUuid),
+                  onMedsTap: () async {
+                    final Map<String, dynamic>? result = await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      showDragHandle: true,
+                      builder: (context) => MedicationScreen(patient: filteredPatients[index]),
+                    );
+
+                    if (result != null) {
+                      setState(() {
+                        // Create the writable copy to avoid read-only errors
+                        Patient updatedPatient = filteredPatients[index];
+
+                        // Map the returned values to our flat patient structure
+                        updatedPatient.medications = result['medications'];
+                        updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
+
+                        filteredPatients[index] = updatedPatient;
+                      });
+                    }
+                  },
+                  onPoliceTap: () async {
+                    // 1. Navigate and WAIT for the signal from the Save button
+                    final int? reportCount = await Navigator.push<int>(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+                    );
+
+                    // 2. If the user hit "Save" (which returns true)
+                    // Use a standard null check instead of the ! operator
+                    if (reportCount != null && reportCount > 0) {
+                      setState(() {
+                        filteredPatients[index].policeReports = reportCount;
+                      });
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+          )
+        ],
+      ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _launchIntakeScreen(context),
