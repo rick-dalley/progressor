@@ -102,7 +102,6 @@ class DatabaseManager {
       where: '(name_a = ? AND name_b = ?) OR (name_a = ? AND name_b = ?)',
       whereArgs: [drugNameA, drugNameB, drugNameB, drugNameA],
     );
-    debugPrint("$results");
     // Return the interaction description if found, otherwise the default message
     if (results.isNotEmpty) {
       String explanation = results.first['explanation'] as String;

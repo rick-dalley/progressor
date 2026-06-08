@@ -128,6 +128,7 @@ class PatientRosterState extends State<PatientRoster> {
                         onPressed: () {
                           setState(() {
                             _searchQuery = ""; // Reset the query
+                            _searchController.clear();
                           });
                         },
                       )

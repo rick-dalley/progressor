@@ -104,6 +104,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
       setState(() {
         // 2. We need to create a mutable copy because db results are read-only
         _meds = dbMeds.map((m) => Map<String, dynamic>.from(m)).toList();
+        _runSafetyAudit();
 
         // 3. Inject your UI-specific state (Severity)
         for (var med in _meds) {
@@ -158,7 +159,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
       _hasContraIndications = _currentConflicts.isNotEmpty;
     });
   }
-
 
   Color fromHex(String hexString) {
     final buffer = StringBuffer();
@@ -229,7 +229,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
               child: OutlinedButton.icon(
                 onPressed: _runSafetyAudit,
                 icon: const Icon(Symbols.fact_check, color: Colors.white),
-                label: const Text("CHECK"),
+                label: const Text("RE-CHECK"),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(45),
                   foregroundColor: Colors.white,
@@ -433,7 +433,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
   @override
   Widget build(BuildContext context) {
     final name = "${widget.patient.firstName} ${widget.patient.lastName}";
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Medications: $name"),

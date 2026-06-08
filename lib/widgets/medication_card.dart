@@ -155,6 +155,9 @@ class _MedicationCardState extends State<MedicationCard> {
       if (text.isEmpty || text == "null") return const SizedBox.shrink();
 
       return ExpansionTile(
+        shape: const Border(),
+        // Remove the top and bottom borders when collapsed
+        collapsedShape: const Border(),
         // Keep it explicit and simple to avoid the 'bool vs double' theme leak
         title: Text(
           entry.value,
