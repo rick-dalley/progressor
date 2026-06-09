@@ -11,10 +11,11 @@ import 'package:triage/widgets/vitals_history.dart';
 import '../app_theme.dart';
 import '../classes/action.dart';
 import '../classes/acuity.dart';
+import '../classes/body_markers.dart';
 import '../classes/database_manager.dart';
 import '../classes/patient.dart';
-import '../classes/phase_state_handlers.dart';
 import '../screens/acuity_viewer_screen.dart';
+import '../screens/body_screen.dart';
 import 'countdown_timer.dart';
 
 class PatientSentiment {
@@ -36,6 +37,11 @@ Map<SentimentScale, PatientSentiment> patientSentiments = {
   SentimentScale.dissatisfied: PatientSentiment(
     iconData: Symbols.sentiment_dissatisfied,
     color: Colors.purpleAccent,
+    diameter: 32,
+  ),
+  SentimentScale.sad: PatientSentiment(
+    iconData: Symbols.sentiment_sad,
+        color:Colors.orange,
     diameter: 32,
   ),
   SentimentScale.stressed: PatientSentiment(
@@ -160,6 +166,7 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
         final String fullName = '${patient.firstName} ${patient.lastName}';
         final String patientUuid = patient.patientUuid;
         int randomNumber = Random().nextInt(4);
+        Icon sentimentIcon = patientSentiments[SentimentScale.values[randomNumber]]?.getIcon() ?? Icon(Symbols.sentiment_neutral);
         return Card(
           elevation: 4,
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -191,7 +198,23 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                       // Replace the old monitor_heart button with this:
                       CountdownTimer(admittedAt: patient.admitted),
                       SizedBox(width: 4),
-                      ?patientSentiments[SentimentScale.values[randomNumber]]?.getIcon(),
+                      IconButton(
+                        icon:sentimentIcon,
+                        onPressed: (){
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true, // Allows full-screen height
+                            useSafeArea: false,        // Prevents UI overlap with status/nav bars
+                            builder: (BuildContext context) {
+                              return SizedBox(
+                                height: MediaQuery.of(context).size.height, // 90% screen height
+                                child: const BodyOutlineScreen(), // The Stateful Widget from before
+                              );
+                            },
+                          );
+                        },
+                      )
+                      ,
                     ],
                   ),
                 ),

@@ -111,6 +111,58 @@ class DatabaseManager {
     }
   }
 
+  Future<String?> getTemplateTextForCode(String code) async{
+    final db = await database;
+    return "";
+  }
+
+  Future<void> insertBodyMarker(String patientUuid, Map<String, dynamic> marker) async {
+    final db = await database;
+
+    // Create a copy of the marker map to prepare for insertion
+    Map<String, dynamic> row = Map<String, dynamic>.from(marker);
+
+    // Add the patient reference
+    row['patient_uuid'] = patientUuid;
+
+    // Ensure all 'Chips' lists (JSON arrays) are encoded to strings
+    row['descriptions'] = jsonEncode(row['descriptions'] ?? []);
+    row['improves_when'] = jsonEncode(row['improves_when'] ?? []);
+    row['worsens_when'] = jsonEncode(row['worsens_when'] ?? []);
+    row['interventions_tried'] = jsonEncode(row['interventions_tried'] ?? []);
+
+    // Perform the insertion
+    await db.insert(
+      'markers',
+      row,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+// DatabaseManager now only cares about standard SQL operations
+  Future<void> insertMarkersBatch(String tableName, List<Map<String, dynamic>> rows) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var row in rows) {
+        await txn.insert(
+          tableName,
+          row,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getMarkersForPatient(String patientUuid) async {
+    final db = await database;
+
+    // Fetch all markers for the patient, sorted by most recent first
+    return await db.query(
+      'body_markers',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'recorded DESC',
+    );
+  }
 
   // Inside your classes/database_manager.dart file
   Future<bool> updatePatientProcessStep({required String uuid, required int targetStepId}) async {

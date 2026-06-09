@@ -103,6 +103,9 @@ class DTUtilities {
 // 3. Convert to Unix timestamp (seconds)
     return aYearAgo().millisecondsSinceEpoch ~/ 1000;
   }
+  static int now(){
+    return DateTime.now().millisecondsSinceEpoch ~/1000;
+  }
 
   static DateTime aWhileAgo(int m){
     DateTime now = DateTime.timestamp();

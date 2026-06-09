@@ -160,7 +160,7 @@ class PatientRosterState extends State<PatientRoster> {
             itemCount: filteredPatients.length,
             itemBuilder: (context, index) {
               return FlippableCardController(
-                height: 408,
+                height: 412,
                 front: PatientMedicalCard(
                   patient: filteredPatients[index],
                   onPatientUpdate: ({required Patient patient}) {

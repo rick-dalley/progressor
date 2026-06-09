@@ -126,10 +126,20 @@
   },
   {
    "table": "drug_name",
-   "query": "CREATE TABLE drug_name (rx_norm_id TEXT PRIMARY KEY,name TEXT NOT NULL);"
+   "query": "CREATE TABLE drug_name ( rx_norm_id TEXT PRIMARY KEY,name TEXT NOT NULL);"
+  },
+  {
+   "table": "markers",
+   "query": "CREATE TABLE markers ( id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT NOT NULL, dx REAL NOT NULL, dy REAL NOT NULL, zone INTEGER NOT NULL, emoji INTEGER NOT NULL, severity INTEGER, frequency INTEGER, nature INTEGER, descriptions TEXT, improves_when TEXT,  worsens_when TEXT,  interventions_tried TEXT,  recorded INTEGER NOT NULL);"
+  },
+  {
+   "table": "markers",
+   "query": "CREATE INDEX idx_markers_recorded ON markers(recorded);"
+  },
+  {
+   "table": "markers",
+   "query": "CREATE INDEX idx_markers_patient_uuid ON markers(patient_uuid);"
   }
-
-
  ],
  "INSERT": [
   {

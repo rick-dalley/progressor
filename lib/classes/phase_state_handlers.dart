@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
-enum SentimentScale { calm, content, neutral, dissatisfied, stressed }
-
 enum EventRequirement { mandatory, advised, discretionary, none }
 
 enum EventRequirementType { medical, administrative, legal, none }
