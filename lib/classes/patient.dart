@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
+import 'package:triage/classes/body_markers.dart';
 import 'package:triage/classes/vitals.dart';
 
 import 'database_manager.dart';
@@ -36,6 +39,7 @@ class Patient {
   final String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
   final String contactName; //'Silvain Saulter',
+  Sentiment sentiment;
   int assessments; //279,
   int medications; //11,
   MedicationSafetyAudit medicationSafetyAudit; //1,
@@ -92,12 +96,16 @@ class Patient {
     this.formattedDateOfBirth = "",
     this.age = 17,
     this.vitals,
+    this.sentiment = Sentiment.neutral,
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
     final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
     final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max: 95);
     CurrentVitalsRecord vitalsRecord = CurrentVitalsRecord.fromPatientJson(item);
+    int sentimentIndex = Random().nextInt(5);
+    Sentiment sentiment = Sentiment.values[sentimentIndex];
+
     return Patient(
       patientUuid: item['patient_uuid'],
       //'02039325-2425-4bf3-bf85-1ec81a797e25',
@@ -170,6 +178,7 @@ class Patient {
       vitals: vitalsRecord,
       //'Partner',
       narrativeHint: item['narrative_hint'] ?? "", //'Maecenas ut massa ...
+      sentiment: sentiment
     );
   }
   factory Patient.copy({required Patient patient}){

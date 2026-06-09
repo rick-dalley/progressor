@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -5,10 +6,12 @@ import 'package:triage/classes/database_manager.dart';
 import 'package:triage/classes/date_time_utilities.dart';
 import 'package:triage/classes/template_text.dart';
 
+import 'body_zone.dart';
+
 Map<VerbalSeverity, String> severityExplanations = {
   VerbalSeverity.none: "No pain.",
   VerbalSeverity.mild:
-      "Pain is very mild, barely noticeable. Most of the time you don't think about it.,// = Minor pain. It's annoying. You may have sharp pain now and then.",
+      "Pain is very mild, barely noticeable. Most of the time you don't think about it. Minor pain. It's annoying. You may have sharp pain now and then.",
   VerbalSeverity.minor: "Noticeable pain. It may distract you, but you can get used to it.",
   VerbalSeverity.moderate:
       "Moderate pain. If you are involved in an activity, you're able to ignore the pain for a while. But it is still distracting.",
@@ -37,39 +40,19 @@ enum VerbalSeverity {
 
 enum Frequency { cyclical, chronic, acute }
 
-enum Zone {
-  head,
-  neck,
-  shoulders,
-  chest,
-  back,
-  rightUpperArm,
-  leftUpperArm,
-  rightLowerArm,
-  leftLowerArm,
-  rightThigh,
-  leftThigh,
-  rightLowerLeg,
-  leftLowerLeg,
-  stomach,
-  pelvis,
-  rightWrist,
-  leftWrist,
-  rightIndexFinger,
-  leftIndexFinger,
-  buttocks,
-}
-
 enum Nature { stinging, penetrating, dull, throbbing, achy, nagging, gnawing, sharp }
 
-enum SentimentScale { calm, content, neutral, dissatisfied, sad, stressed }
+enum Sentiment { happy, content, neutral, dissatisfied, sad, stressed }
 
 typedef Chips = List<TemplateText>;
 
 class BodyMarker {
   final Offset offset;
-  final SentimentScale emoji;
-  final Zone zone;
+  final Sentiment emoji;
+  final BodyZones? bodyZone;
+  final HeadZones? headZone;
+  final HandZones? handZone;
+  final FootZones? footZone;
   Chips? descriptions = [];
   VerbalSeverity? severity;
   Frequency? frequency;
@@ -82,7 +65,10 @@ class BodyMarker {
   BodyMarker({
     required this.offset,
     required this.emoji,
-    required this.zone,
+    required this.bodyZone,
+    required this.footZone,
+    required this.handZone,
+    required this.headZone,
     this.descriptions,
     this.severity,
     this.frequency,
@@ -105,12 +91,14 @@ class BodyMarker {
 
   factory BodyMarker.fromJson(Map<String, dynamic> item) {
 
-
     int severityIndex = item["severity"];
     int emojiIndex = item["emoji"];
     int frequencyIndex = item["frequency"];
     int natureIndex = item["nature"];
-    int zoneIndex = item["zone"];
+    int bodyZoneIndex = item["body_zone"];
+    int headZoneIndex = item["head_zone"];
+    int footZoneIndex = item["foot_zone"];
+    int handZoneIndex = item["hand_zone"];
     double dx = item["dx"];
     double dy = item["dy"];
     Chips descriptionChips = chipList(item["description"]);
@@ -121,10 +109,13 @@ class BodyMarker {
 
     return BodyMarker(
       offset: Offset(dx, dy),
-      zone: Zone.values[zoneIndex],
+        bodyZone: BodyZones.values[bodyZoneIndex],
+        headZone: HeadZones.values[headZoneIndex],
+        handZone: HandZones.values[footZoneIndex],
+        footZone: FootZones.values[handZoneIndex],
       descriptions: descriptionChips,
       severity: VerbalSeverity.values[severityIndex],
-      emoji: SentimentScale.values[emojiIndex],
+      emoji: Sentiment.values[emojiIndex],
       frequency: Frequency.values[frequencyIndex],
       nature: Nature.values[natureIndex],
       improvesWhen: improvesWhenChips,
@@ -138,7 +129,10 @@ class BodyMarker {
     return {
       "dx": offset.dx,
       "dy": offset.dy,
-      "zone": zone.index,
+      "body_zone": bodyZone?.index,
+      "head_zone": headZone?.index,
+      "hand_zone": handZone?.index,
+      "foot_zone": footZone?.index,
       "emoji": emoji.index,
       "severity": severity?.index,
       "frequency": frequency?.index,

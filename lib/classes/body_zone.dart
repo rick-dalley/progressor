@@ -31,6 +31,8 @@ enum HandZones { none, palm, dorsum, thumb, pointer, middle, ring, little, wrist
 
 enum FootZones { none, heel, sole, instep, ball, bigToe, secondToe, thirdToe, fourthToe, littleToe, ankleJoint }
 
+enum ZoneMap{body, head, hand, foot}
+
 class Zone {
   Path get shape =>
       Path()

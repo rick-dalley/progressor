@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../app_theme.dart';
 import '../widgets/text_scanner.dart';
@@ -17,6 +18,9 @@ class IntakeScreen extends StatefulWidget {
 }
 
 class IntakeScreenState extends State<IntakeScreen> {
+
+  late String? frontOfId = widget.frontOfId ?? 'assets/screen_captures/license_front.png';
+  late String? backOfId = widget.backOfId ?? 'assets/screen_captures/license_back.png';
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phnController = TextEditingController();
@@ -25,7 +29,6 @@ class IntakeScreenState extends State<IntakeScreen> {
   bool _isScanningBack = false;
   bool _frontAttached = false; // New: track front completion
   bool _backAttached = false;  // New: track back completion
-  bool _cardAttached = false; // Did we successfully scan a card?
   bool _isSimulator = false;
 
   void _onTextDetected(RecognizedText recognizedText) {
@@ -70,7 +73,6 @@ class IntakeScreenState extends State<IntakeScreen> {
       } else if (_isScanningBack) {
         _isScanningBack = false;
         _backAttached = true;
-        _cardAttached = true;
       }
     });
   }
@@ -186,7 +188,7 @@ class IntakeScreenState extends State<IntakeScreen> {
       appBar: AppBar(title: const Text("Patient Intake")),
       body: Column(
         children: [
-          // 1. The Scanner Hero Section (35% of screen height)
+          // The Scanner Hero Section (35% of screen height)
           // The New Dual-Slot Scanner Hero
           _buildScannerHero(),
 
@@ -217,14 +219,33 @@ class IntakeScreenState extends State<IntakeScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                      backgroundColor: AppTheme.deepLogicViolet,
-                      foregroundColor: AppTheme.clinicalWhite ),
-                  child: const Text("CREATE PATIENT RECORD"),
-                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size.fromHeight(50),
+                          backgroundColor: AppTheme.deepLogicViolet,
+                          foregroundColor: AppTheme.clinicalWhite,
+                        ),
+                        child: const Icon(Symbols.save, size: 32,),
+                      ),
+                    ),
+                    const SizedBox(width: 16), // Spacing
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: const Size.fromHeight(50),
+                          backgroundColor: AppTheme.deepLogicViolet,
+                          foregroundColor: AppTheme.clinicalWhite,
+                        ),
+                        child: const Icon(Symbols.domino_mask, size: 32,),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
@@ -233,7 +254,6 @@ class IntakeScreenState extends State<IntakeScreen> {
     );
   }
   // Helper to switch between Prompt, Scanner, and Preview
-
 
 }
 

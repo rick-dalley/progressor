@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app_theme.dart';
+
 class VerticalRangeIndicator extends StatelessWidget {
   final double current, min, max, clinicalMin, clinicalMax, height;
   final Color color;
@@ -16,19 +18,21 @@ class VerticalRangeIndicator extends StatelessWidget {
     required this.color,
     this.showHistoricOutlierMarkers = false,
     this.label,
-    this.height = 40.0,
+    required this.height,
   });
 
   @override
   Widget build(BuildContext context) {
     // 1. Determine if we are out of bounds for the ripple
+    double margin = height * 0.25;
+    double paintAreaHeight = height - (2 * margin);
     final bool isOutlier = current > clinicalMax || current < clinicalMin;
     String sanitizedLabel = label ?? "value";
     // 2. Calculate the same Y position as the painter
     final double range = clinicalMax - clinicalMin;
     double currentY;
     if (current > clinicalMax) {
-      currentY = -6.0;
+      currentY = -(6.0 - margin*2);
     } else if (current < clinicalMin) {
       currentY = height + 6.0;
     }
@@ -38,17 +42,20 @@ class VerticalRangeIndicator extends StatelessWidget {
 
     return Column(
       mainAxisSize: MainAxisSize.min, // Takes only the space it needs
+
       children: [
         // 1. The existing graph stack
-        SizedBox(
+        SizedBox(height: margin,),
+        Container(
+          color: AppTheme.lightTheme.scaffoldBackgroundColor,
           width: 48,
-          height: height,
+          height: paintAreaHeight,
           child: Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
             children: [
               CustomPaint(
-                size: Size(12, height),
+                size: Size(12, paintAreaHeight),
                 painter: IndicatorPainter(
                   current: current,
                   min: min,
@@ -61,15 +68,14 @@ class VerticalRangeIndicator extends StatelessWidget {
               ),
               if (isOutlier)
                 Positioned(
-                  top: currentY - 10,
+                  top: currentY - (margin*2)-12,
                   child: IgnorePointer(child: RippleIndicator(color: color)),
                 ),
             ],
           ),
         ),
-
         // 2. The Label (Name of the vital)
-        const SizedBox(height: 12),
+        SizedBox(height: margin),
         Text(
           sanitizedLabel, // e.g., "HR" or "SpO2"
           style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w300),
@@ -116,15 +122,15 @@ final bool showHistoricOutlierMarkers;
       return size.height - (normalized * size.height);
     }
 
-    // 1. Light Grey Clinical Container (Pill shape)
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height), Radius.circular(circleRadius)),
-      Paint()..color = Colors.grey.shade300,
-    );
-    final borderRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height),
-      Radius.circular(circleRadius),
-    );
+    // Light Grey Clinical Container (Pill shape)
+    // canvas.drawRRect(
+    //   RRect.fromRectAndRadius(Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height), Radius.circular(circleRadius)),
+    //   Paint()..color = Colors.grey.shade300,
+    // );
+    // final borderRect = RRect.fromRectAndRadius(
+    //   Rect.fromLTWH(centerX - circleRadius, 0, barWidth, size.height),
+    //   Radius.circular(circleRadius),
+    // );
 
     // 2. Dark Grey Historical Bar (Pill shape)
     if (hasHistory) {
@@ -166,13 +172,13 @@ final bool showHistoricOutlierMarkers;
       }
 
     }
-    canvas.drawRRect(
-      borderRect,
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0, // Adjust this for thickness
-    );
+    // canvas.drawRRect(
+    //   borderRect,
+    //   Paint()
+    //     ..color = Colors.black
+    //     ..style = PaintingStyle.stroke
+    //     ..strokeWidth = 1.0, // Adjust this for thickness
+    // );
 
     // 4. Current Status Dot
     double currentY;

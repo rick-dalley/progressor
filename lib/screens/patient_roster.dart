@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/screens/police_report.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
@@ -8,7 +9,7 @@ import '../classes/patient.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
 import 'assessments.dart';
-import 'intake.dart';
+import 'encounter_screen.dart';
 import 'meds.dart';
 
 class PatientRoster extends StatefulWidget {
@@ -20,8 +21,6 @@ class PatientRoster extends StatefulWidget {
 
 class PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
-  final idFront = 'assets/screen_captures/license_front.png';
-  final idBack = 'assets/screen_captures/license_back.png';
   String _searchQuery = "";
   late TextEditingController _searchController;
   @override
@@ -60,11 +59,11 @@ class PatientRosterState extends State<PatientRoster> {
     );
   }
 
-  void _launchIntakeScreen(BuildContext context) {
+  void _launchEncounterScreen(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IntakeScreen(frontOfId: idFront, backOfId: idBack),
+        builder: (context) => IncidentTriageScreen(),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
       ),
@@ -160,7 +159,7 @@ class PatientRosterState extends State<PatientRoster> {
             itemCount: filteredPatients.length,
             itemBuilder: (context, index) {
               return FlippableCardController(
-                height: 412,
+                height: 352,
                 front: PatientMedicalCard(
                   patient: filteredPatients[index],
                   onPatientUpdate: ({required Patient patient}) {
@@ -187,11 +186,9 @@ class PatientRosterState extends State<PatientRoster> {
                       setState(() {
                         // Create the writable copy to avoid read-only errors
                         Patient updatedPatient = filteredPatients[index];
-
                         // Map the returned values to our flat patient structure
                         updatedPatient.medications = result['medications'];
                         updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
-
                         filteredPatients[index] = updatedPatient;
                       });
                     }
@@ -220,10 +217,10 @@ class PatientRosterState extends State<PatientRoster> {
       ),
 
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _launchIntakeScreen(context),
+        onPressed: () => _launchEncounterScreen(context),
         // New dedicated screen
-        label: const Text("INTAKE", style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600)),
-        icon: const Icon(Icons.qr_code_scanner),
+        label: const Text("+", style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600)),
+        icon: const Icon(Symbols.frame_person),
         // Signals scanning capability
         backgroundColor: AppTheme.deepLogicViolet,
         foregroundColor: AppTheme.clinicalWhite,

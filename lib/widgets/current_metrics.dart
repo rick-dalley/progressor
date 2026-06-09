@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:triage/widgets/vertical_range_indicator.dart';
 import '../classes/vitals.dart';
 
-class VitalTrendContainerSmall extends StatelessWidget {
+class CurrentMetrics extends StatelessWidget {
   final CurrentVitalsRecord? vitals;
   final double? height;
 
-  const VitalTrendContainerSmall({
+  const CurrentMetrics({
     super.key,
     required this.vitals,
     this.height,
@@ -14,7 +14,7 @@ class VitalTrendContainerSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double sanitizedHeight = height ?? 36;
+    double sanitizedHeight = height ?? 108;
 
     return  vitals == null
     ? SizedBox()
@@ -26,7 +26,7 @@ class VitalTrendContainerSmall extends StatelessWidget {
         final Limits limits = vitalsLimits[type]!;
         final String label = metricDisplayLabels[type] ?? "value";
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 4.0),
           child: VerticalRangeIndicator(
             height: sanitizedHeight,
             current: data.current,
