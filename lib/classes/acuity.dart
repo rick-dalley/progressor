@@ -63,15 +63,15 @@ class Acuity {
 }
 
 class AcuityFactory {
-  // 1. Private constructor
+  // Private constructor
   AcuityFactory._();
 
-  // 2. The single instance
+  // The single instance
   static final AcuityFactory instance = AcuityFactory._();
-  // 3. Cached storage
+  // Cached storage
   Map<AcuityLevel, Acuity> _acuities = {};
 
-  // 4. Initialization method (call this once at app startup)
+  // Initialization method (call this once at app startup)
   Future<void> initialize(String jsonPath) async {
     if (_acuities.isNotEmpty) return; // Prevent re-parsing
 

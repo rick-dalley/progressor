@@ -43,6 +43,7 @@ flutter:
   assets:
     - assets/assessment/
     - assets/conditions/
+    - assets/drugs/
     - assets/images/
     - assets/images/faces/
     - assets/interactions/

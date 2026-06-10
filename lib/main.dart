@@ -8,6 +8,7 @@ import 'package:triage/classes/database_manager.dart';
 import 'package:triage/screens/staff_screen.dart';
 import 'package:triage/screens/start_up.dart';
 import 'classes/action.dart';
+import 'classes/drugs.dart';
 import 'classes/phase_state_handlers.dart';
 import 'classes/staff.dart';
 import 'generated/l10n.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   await PatientActionFactory.instance.initialize('assets/patients/patient_actions.json');
   await AcuityFactory.instance.initialize('assets/assessment/mental_health_acuity.json');
   await StaffFactory.instance.initialize();
+  await DrugFactory.instance.initialize();
 
   runApp(const LuminescaApp());
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 
 class MissingPersonCaptureScreen extends StatefulWidget {
   final ScrollController? scrollController;

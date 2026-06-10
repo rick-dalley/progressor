@@ -1,0 +1,199 @@
+[
+  {
+    "name": "Cocaine",
+    "medical_name": "Cocaine",
+    "category": "Stimulants",
+    "street_names": []
+  },
+  {
+    "name": "Crack",
+    "medical_name": "Cocaine base",
+    "category": "Stimulants",
+    "street_names": []
+  },
+  {
+    "name": "Metamphetamines",
+    "medical_name": "Amphetamines",
+    "toxidrome": "",
+    "category": "Stimulants",
+    "appearance": "White, odourless, bitter-tasting crystalline powder that dissolves easily in water or alcohol",
+    "methods": [
+      "snorted",
+      "swallowed",
+      "smoked",
+      "injected"
+    ],
+    "street_names": [
+      "speed",
+      "meth",
+      "chalk",
+      "ice",
+      "crystal",
+      "crystal meth",
+      "jib",
+      "crank"
+    ],
+    "clinical_features": [
+      {
+        "vital_signs": [
+          "Tachycardia (rapid heart rate)",
+          "Severe hypertension (high blood pressure)",
+          "Hyperthermia (dangerously high body temperature)"
+        ]
+      },
+      {
+        "neurological": [
+          "Extreme agitation",
+          "Paranoia",
+          "Hallucinations",
+          "Delirium",
+          "Deizures"
+        ]
+      },
+      {
+        "physical": [
+          "Dilated pupils (mydriasis)",
+          "Profuse sweating (diaphoresis)",
+          "Dry mouth"
+        ]
+      }
+    ],
+    "medical_management": [
+  {
+    "name":"De-escalation & Sedation","value": "Primary treatment involves rapid sedation with benzodiazepines (e.g., lorazepam, midazolam) to control agitation, lower heart rate, and prevent seizures. Antipsychotics (e.g., olanzapine) may also be utilized."
+  },
+  {
+    "name":"Cooling","value": " Active external and internal cooling measures are critical to reduce severe hyperthermia, which is a major driver of mortality."
+  },
+  {
+    "name":"Supportive Care","value": "Administration of IV fluids to protect kidney function, cardiac monitoring, and respiratory support."
+  }
+  ],
+    "potential_affects": [
+      {
+        "name":"Cardiovascular", "value":"Chest pain, myocardial infarction (heart attack), and arrhythmias."
+      },
+      {
+        "name":"Neurological", "value":"Intracranial hemorrhage (stroke) and coma."
+      },
+      {
+        "name":"Musculoskeletal/Renal", "value":"Rhabdomyolysis (the rapid breakdown of muscle tissue) which can lead to acute kidney injury."
+      },
+      {
+        "name":"Metabolic", "value":"Severe metabolic acidosis and Multi-Organ Dysfunction Syndrome (MODS)."
+      }
+    ]
+  },
+  {
+    "name": "Amphetamines",
+    "medical_name": "Amphetamines",
+    "category": "Stimulants",
+    "appearance": "White, odourless, bitter-tasting crystalline powders. Illicitly prepared amphetamines vary in purity. They may be whitish with traces of gray or pink and may be a coarse powder, or in crystals or chunks. They may smell 'fishy' or like ammonia. Methamphetamine resembles shaved glass slivers or clear rock salt. Amphetamines are injected, smoked, sniffed or taken as pills.",
+    "street_names": [
+      "speed",
+      "bennies",
+      "glass",
+      "crystal",
+      "crank",
+      "pep pills",
+      "uppers"
+    ]
+  },
+  {
+    "name": "Methamphetamine",
+    "medical_name": "Methamphetamine hydrochloride",
+    "category": "Stimulants",
+    "street_names": []
+  },
+  {
+    "name": "MDMA",
+    "medical_name": "Methylenedioxymethamphetamine (MDMA)",
+    "category": "Stimulants",
+    "street_names": [
+      "Ecstasy",
+      "Molly"
+    ]
+  },
+  {
+    "name": "Prescription Stimulants: Dextroamphetamine, Methylphenidate",
+    "category": "Stimulants",
+    "street_names": []
+  },
+  {
+    "name": "Heroin",
+    "medical_name": " Diacetylmorphine",
+    "category": "Opioids",
+    "street_names": []
+  },
+  {
+    "name": "Fentanyl:",
+    "medical_name": " Fentanyl",
+    "category": "Opioids",
+    "street_names": []
+  },
+  {
+    "name": "Morphine:",
+    "medical_name": "Morphine",
+    "category": "Opioids",
+    "street_names": []
+  },
+  {
+    "name": "Codeine:",
+    "medical_name": " Codeine",
+    "category": "Opioids",
+    "street_names": []
+  },
+  {
+    "name": "Oxycodone",
+    "medical_name": "Hydrocodone: Oxycodone, Hydrocodone ",
+    "category": "Opioids",
+    "street_names": []
+  },
+  {
+    "name": "Benzodiazepines",
+    "medical_name": ": Alprazolam, Diazepam",
+    "category": "Depressants",
+    "street_names": []
+  },
+  {
+    "name": "Barbiturates",
+    "medical_name": ": Phenobarbital, Secobarbital",
+    "category": "Depressants",
+    "street_names": []
+  },
+  {
+    "name": "GHB",
+    "medical_name": ": Gamma-hydroxybutyrate",
+    "category": "Depressants",
+    "street_names": []
+  },
+  {
+    "name": "LSD",
+    "medical_name": ": Lysergic acid diethylamide",
+    "category": "Hallucinogens",
+    "street_names": []
+  },
+  {
+    "name": "Psilocybin",
+    "medical_name": ": Psilocybin",
+    "category": "Hallucinogens",
+    "street_names": []
+  },
+  {
+    "name": "Ketamine",
+    "medical_name": ": Ketamine hydrochloride",
+    "category": "Hallucinogens",
+    "street_names": []
+  },
+  {
+    "name": "PCP",
+    "medical_name": ": Phencyclidine",
+    "category": "Hallucinogens",
+    "street_names": []
+  },
+  {
+    "name": "Cannabis: Cannabis sativa",
+    "category": "Cannabinoids",
+    "street_names": []
+  }
+]
