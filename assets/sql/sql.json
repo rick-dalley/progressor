@@ -139,6 +139,10 @@
   {
    "table": "markers",
    "query": "CREATE INDEX idx_markers_patient_uuid ON markers(patient_uuid);"
+  },
+  {
+   "table": "missing_persons",
+   "query": "CREATE TABLE missing_persons (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, last_seen_ms INTEGER, clothing TEXT, identifying_marks TEXT, last_location TEXT,  travelling TEXT, photo_path TEXT, id_path TEXT, access_to_means INTEGER, disappeared_before INTEGER, financial_anomalies_idx INTEGER, created_at_ms INTEGER);"
   }
  ],
  "INSERT": [

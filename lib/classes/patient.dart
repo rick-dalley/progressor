@@ -39,6 +39,7 @@ class Patient {
   final String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
   final String contactName; //'Silvain Saulter',
+  String eyeColor;
   Sentiment sentiment;
   int assessments; //279,
   int medications; //11,
@@ -54,6 +55,7 @@ class Patient {
   String formattedAdmissionDate;
   int age;
   CurrentVitalsRecord? vitals;
+  bool isAWOL;
 
   Patient({
     required this.patientUuid,
@@ -97,7 +99,10 @@ class Patient {
     this.age = 17,
     this.vitals,
     this.sentiment = Sentiment.neutral,
+    this.eyeColor = "",
+    this.isAWOL = false,
   });
+
 
   factory Patient.fromJson(Map<String, dynamic> item) {
     final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
@@ -178,7 +183,8 @@ class Patient {
       vitals: vitalsRecord,
       //'Partner',
       narrativeHint: item['narrative_hint'] ?? "", //'Maecenas ut massa ...
-      sentiment: sentiment
+      sentiment: sentiment,
+      eyeColor: "brown",//item["eye_color"],
     );
   }
   factory Patient.copy({required Patient patient}){
@@ -219,6 +225,7 @@ class Patient {
     age: patient.age,
     vitals: patient.vitals,
     narrativeHint: patient.narrativeHint,
+      eyeColor: "brown",
     );
   }
 
