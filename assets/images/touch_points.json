@@ -1,0 +1,873 @@
+[
+
+  {
+    "image_map_index": 0,
+    "image_map_name": "Front of Body",
+    "image_path": "assets/images/body_front.png",
+    "zones": [
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 105,
+              "dy": 5
+            },
+            {
+              "dx": 185,
+              "dy": 5
+            },
+            {
+              "dx": 185,
+              "dy": 142
+            },
+            {
+              "dx": 105,
+              "dy": 142
+            }
+          ],
+          "name": "face",
+          "latin": "facies"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 95,
+              "dy": 15
+            },
+            {
+              "dx": 200,
+              "dy": 15
+            },
+            {
+              "dx": 200,
+              "dy": 142
+            },
+            {
+              "dx": 95,
+              "dy": 142
+            }
+          ],
+          "name": "head",
+          "latin": "cephalon"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 105,
+              "dy": 142
+            },
+            {
+              "dx": 190,
+              "dy": 142
+            },
+            {
+              "dx": 190,
+              "dy": 165
+            },
+            {
+              "dx": 105,
+              "dy": 165
+            }
+          ],
+          "name": "neck",
+          "latin": "cervicis"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 50,
+              "dy": 165
+            },
+            {
+              "dx": 90,
+              "dy": 165
+            },
+            {
+              "dx": 90,
+              "dy": 215
+            },
+            {
+              "dx": 40,
+              "dy": 215
+            }
+          ],
+          "name": "R shoulder",
+          "latin": "humero"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 200,
+              "dy": 165
+            },
+            {
+              "dx": 240,
+              "dy": 165
+            },
+            {
+              "dx": 250,
+              "dy": 215
+            },
+            {
+              "dx": 200,
+              "dy": 215
+            }
+          ],
+          "name": "L shoulder",
+          "latin": "humero"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 90,
+              "dy": 165
+            },
+            {
+              "dx": 145,
+              "dy": 165
+            },
+            {
+              "dx": 145,
+              "dy": 215
+            },
+            {
+              "dx": 90,
+              "dy": 215
+            }
+          ],
+          "name": "R clavicle",
+          "latin": "humero"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 145,
+              "dy": 165
+            },
+            {
+              "dx": 200,
+              "dy": 165
+            },
+            {
+              "dx": 200,
+              "dy": 215
+            },
+            {
+              "dx": 145,
+              "dy": 215
+            }
+          ],
+          "name": "L clavicle",
+          "latin": "humero"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 80,
+              "dy": 215
+            },
+            {
+              "dx": 215,
+              "dy": 215
+            },
+            {
+              "dx": 205,
+              "dy": 300
+            },
+            {
+              "dx": 90,
+              "dy": 300
+            }
+          ],
+          "name": "chest",
+          "latin": "thorax"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 90,
+              "dy": 300
+            },
+            {
+              "dx": 205,
+              "dy": 300
+            },
+            {
+              "dx": 225,
+              "dy": 385
+            },
+            {
+              "dx": 70,
+              "dy": 385
+            }
+          ],
+          "name": "abdomen",
+          "latin": "abdominis"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 68,
+              "dy": 385
+            },
+            {
+              "dx": 115,
+              "dy": 385
+            },
+            {
+              "dx": 115,
+              "dy": 435
+            },
+            {
+              "dx": 65,
+              "dy": 435
+            }
+          ],
+          "name": "R hip",
+          "latin": "coxal"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 190,
+              "dy": 385
+            },
+            {
+              "dx": 225,
+              "dy": 385
+            },
+            {
+              "dx": 231,
+              "dy": 435
+            },
+            {
+              "dx": 190,
+              "dy": 435
+            }
+          ],
+          "name": "L hip",
+          "latin": "coxal"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 125,
+              "dy": 385
+            },
+            {
+              "dx": 175,
+              "dy": 385
+            },
+            {
+              "dx": 165,
+              "dy": 440
+            },
+            {
+              "dx": 135,
+              "dy": 440
+            }
+          ],
+          "name": "groin",
+          "latin": "groin"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 115,
+              "dy": 385
+            },
+            {
+              "dx": 190,
+              "dy": 385
+            },
+            {
+              "dx": 190,
+              "dy": 440
+            },
+            {
+              "dx": 115,
+              "dy": 440
+            }
+          ],
+          "name": "pelvis",
+          "latin": "pelvis"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 62,
+              "dy": 435
+            },
+            {
+              "dx": 146,
+              "dy": 435
+            },
+            {
+              "dx": 146,
+              "dy": 555
+            },
+            {
+              "dx": 75,
+              "dy": 555
+            },
+            {
+              "dx": 70,
+              "dy": 515
+            }
+          ],
+          "name": "R thigh",
+          "latin": "femur"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 147,
+              "dy": 435
+            },
+            {
+              "dx": 230,
+              "dy": 435
+            },
+            {
+              "dx": 225,
+              "dy": 525
+            },
+            {
+              "dx": 210,
+              "dy": 555
+            },
+            {
+              "dx": 147,
+              "dy": 555
+            }
+          ],
+          "name": "L thigh",
+          "latin": "femur"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 40,
+              "dy": 215
+            },
+            {
+              "dx": 90,
+              "dy": 215
+            },
+            {
+              "dx": 90,
+              "dy": 305
+            },
+            {
+              "dx": 40,
+              "dy": 305
+            }
+          ],
+          "name": "R upper arm",
+          "latin": "brachium"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 205,
+              "dy": 215
+            },
+            {
+              "dx": 250,
+              "dy": 215
+            },
+            {
+              "dx": 250,
+              "dy": 305
+            },
+            {
+              "dx": 205,
+              "dy": 305
+            }
+          ],
+          "name": "L upper arm",
+          "latin": "brachium"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 0,
+              "dy": 0
+            },
+            {
+              "dx": 0,
+              "dy": 0
+            }
+          ],
+          "name": "R armpit",
+          "latin": "axilla"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 0,
+              "dy": 0
+            },
+            {
+              "dx": 0,
+              "dy": 0
+            }
+          ],
+          "name": " L armpit",
+          "latin": "axilla"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 30,
+              "dy": 305
+            },
+            {
+              "dx": 85,
+              "dy": 305
+            },
+            {
+              "dx": 65,
+              "dy": 415
+            },
+            {
+              "dx": 30,
+              "dy": 415
+            }
+          ],
+          "name": "R forearm",
+          "latin": "Antebrachium"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 208,
+              "dy": 305
+            },
+            {
+              "dx": 260,
+              "dy": 305
+            },
+            {
+              "dx": 260,
+              "dy": 415
+            },
+            {
+              "dx": 230,
+              "dy": 415
+            }
+          ],
+          "name": "L forearm",
+          "latin": "Antebrachium"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 30,
+              "dy": 415
+            },
+            {
+              "dx": 70,
+              "dy": 415
+            },
+            {
+              "dx": 70,
+              "dy": 430
+            },
+            {
+              "dx": 30,
+              "dy": 430
+            }
+          ],
+          "name": "R wrist",
+          "latin": "carpus"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 225,
+              "dy": 415
+            },
+            {
+              "dx": 265,
+              "dy": 415
+            },
+            {
+              "dx": 265,
+              "dy": 430
+            },
+            {
+              "dx": 225,
+              "dy": 430
+            }
+          ],
+          "name": "L wrist",
+          "latin": "carpus"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 25,
+              "dy": 425
+            },
+            {
+              "dx": 75,
+              "dy": 425
+            },
+            {
+              "dx": 75,
+              "dy": 495
+            },
+            {
+              "dx": 50,
+              "dy": 495
+            },
+            {
+              "dx": 25,
+              "dy": 465
+            }
+          ],
+          "name": "R hand",
+          "latin": "manus"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 225,
+              "dy": 425
+            },
+            {
+              "dx": 265,
+              "dy": 425
+            },
+            {
+              "dx": 265,
+              "dy": 495
+            },
+            {
+              "dx": 225,
+              "dy": 495
+            }
+          ],
+          "name": "L hand",
+          "latin": "manus"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 75,
+              "dy": 555
+            },
+            {
+              "dx": 140,
+              "dy": 555
+            },
+            {
+              "dx": 140,
+              "dy": 600
+            },
+            {
+              "dx": 75,
+              "dy": 600
+            }
+          ],
+          "name": "R knee",
+          "latin": "patella"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 150,
+              "dy": 555
+            },
+            {
+              "dx": 215,
+              "dy": 555
+            },
+            {
+              "dx": 215,
+              "dy": 600
+            },
+            {
+              "dx": 150,
+              "dy": 600
+            }
+          ],
+          "name": "L knee",
+          "latin": "patella"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 75,
+              "dy": 600
+            },
+            {
+              "dx": 135,
+              "dy": 600
+            },
+            {
+              "dx": 135,
+              "dy": 715
+            },
+            {
+              "dx": 95,
+              "dy": 715
+            }
+          ],
+          "name": "R shin",
+          "latin": "tibia"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 155,
+              "dy": 600
+            },
+            {
+              "dx": 220,
+              "dy": 600
+            },
+            {
+              "dx": 190,
+              "dy": 715
+            },
+            {
+              "dx": 160,
+              "dy": 715
+            }
+          ],
+          "name": "L shin",
+          "latin": "tibia"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 95,
+              "dy": 715
+            },
+            {
+              "dx": 135,
+              "dy": 715
+            },
+            {
+              "dx": 135,
+              "dy": 770
+            },
+            {
+              "dx": 85,
+              "dy": 770
+            }
+          ],
+          "name": "foot",
+          "latin": "pes"
+        }
+      },
+      {
+        "zone": {
+          "points": [
+            {
+              "dx": 160,
+              "dy": 715
+            },
+            {
+              "dx": 200,
+              "dy": 715
+            },
+            {
+              "dx": 210,
+              "dy": 770
+            },
+            {
+              "dx": 160,
+              "dy": 770
+            }
+          ],
+          "name": "foot",
+          "latin": "pes"
+        }
+      }
+    ]
+  },
+  {
+    "image_map_index": 1,
+    "image_map_name": "Back of Body",
+    "image_path": "assets/images/body_back.png",
+    "zones": [
+      { "zone": {"points": [{ "dx": 0, "dy": 0}, { "dx": 0, "dy": 0}], "name": "none", "latin":""}},
+      { "zone": {"points": [{ "dx": 135, "dy": 15}, { "dx": 245, "dy": 15}, { "dx": 245, "dy": 122}, { "dx": 135, "dy": 122}], "name": "head", "latin":"cephalon"}},
+      { "zone": {"points": [{ "dx": 150, "dy": 122}, { "dx": 235, "dy": 122}, { "dx": 235, "dy": 145}, { "dx": 150, "dy": 145}], "name": "neck", "latin":"cervicis"}},
+      { "zone": {"points": [{ "dx": 105, "dy": 150}, { "dx": 140, "dy": 145}, { "dx": 140, "dy": 195}, { "dx": 90, "dy": 195}], "name": "l shoulder", "latin":"humero"}},
+      { "zone": {"points": [{ "dx": 250, "dy": 145}, { "dx": 275, "dy": 150}, { "dx": 295,"dy":  195}, { "dx": 250, "dy": 195}], "name": "r shoulder", "latin":"humero"}},
+      { "zone": {"points": [{ "dx": 140, "dy": 145}, { "dx": 195, "dy": 145}, { "dx": 195, "dy": 195}, { "dx": 140, "dy": 195}], "name": "l clavicle", "latin":"humero"}},
+      { "zone": {"points": [{ "dx": 195, "dy": 145}, { "dx": 250, "dy": 145}, { "dx": 250, "dy": 195}, { "dx": 195, "dy": 195}], "name": "r clavicle", "latin":"humero"}},
+      { "zone": {"points": [{ "dx": 115, "dy": 195}, { "dx": 265, "dy": 195}, { "dx": 250, "dy": 300}, { "dx": 130, "dy": 300}], "name": "U back", "latin":"thorax"}},
+      { "zone": {"points": [{ "dx": 128, "dy": 300}, { "dx": 255, "dy": 300}, { "dx": 265, "dy": 365}, { "dx": 120, "dy": 365}], "name": "L back", "latin":"abdominis"}},
+      { "zone": {"points": [{ "dx": 110, "dy": 365}, { "dx": 145, "dy": 365}, { "dx": 145, "dy": 435}, { "dx": 110, "dy": 435}], "name": "l hip", "latin":"coxal"}},
+      { "zone": {"points": [{ "dx": 240, "dy": 365}, { "dx": 275, "dy": 365}, { "dx": 275, "dy": 435}, { "dx": 240, "dy": 435}], "name": "r hip", "latin":"coxal"}},
+      { "zone": {"points": [{ "dx": 145, "dy": 365},{ "dx": 190, "dy": 365}, { "dx": 190, "dy": 435}, { "dx": 145, "dy": 435}], "name": "l cheek", "latin":"gluteus"}},
+      { "zone": {"points": [{ "dx": 190, "dy": 365}, { "dx": 240, "dy": 365}, { "dx": 240, "dy": 435}, { "dx": 190, "dy": 435}], "name": "r cheek", "latin":"gluteus"}},
+      { "zone": {"points": [{ "dx": 112, "dy": 430}, { "dx": 190, "dy": 430}, { "dx": 190, "dy": 540}, { "dx": 112, "dy": 540}], "name": "l thigh", "latin":"femur"}},
+      { "zone": {"points": [{ "dx": 193, "dy": 430}, { "dx": 270, "dy": 430}, { "dx": 270, "dy": 540}, { "dx": 193, "dy": 540}], "name": "r thigh", "latin":"femur"}},
+      {"zone": {"points": [{ "dx": 85, "dy": 195}, { "dx": 135, "dy": 195}, { "dx": 135, "dy": 285}, { "dx": 85, "dy": 285}], "name": "l upper arm", "latin":"brachium"}},
+      {"zone": {"points": [{ "dx": 255, "dy": 195}, { "dx": 300, "dy": 195}, { "dx": 300, "dy": 285}, { "dx": 255, "dy": 285}], "name": "r upper arm", "latin":"brachium"}},
+      { "zone": {"points": [{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}], "name": "l armpit", "latin":"axilla"}},
+      { "zone": {"points": [{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}], "name": " r armpit", "latin":"axilla"}},
+      { "zone": {"points": [{ "dx": 75, "dy": 285}, { "dx": 130, "dy": 285}, { "dx": 110, "dy": 385}, { "dx": 75, "dy": 385}], "name": "l forearm", "latin":"Antebrachium"}},
+      { "zone": {"points": [{ "dx": 260, "dy": 285}, { "dx": 305, "dy": 285}, { "dx": 305, "dy": 385}, { "dx": 260,"dy":  385}], "name": "r forearm", "latin":"Antebrachium"}},
+      { "zone": {"points": [{ "dx": 80, "dy": 385}, { "dx": 120, "dy": 385}, { "dx": 120, "dy": 400}, { "dx": 80, "dy": 400}], "name": "l wrist", "latin":"carpus"}},
+      { "zone": {"points": [{ "dx": 270, "dy": 385}, { "dx": 310, "dy": 385}, { "dx": 310, "dy": 400}, { "dx": 270, "dy": 400}], "name": "r wrist", "latin":"carpus"}},
+      { "zone": {"points": [{ "dx": 75, "dy": 400}, { "dx": 120, "dy": 400}, { "dx": 120, "dy": 460}, { "dx": 75, "dy": 460}], "name": "l hand", "latin":"manus"}},
+      { "zone": {"points": [{ "dx": 265, "dy": 400}, { "dx": 305, "dy": 400}, { "dx": 305, "dy": 460}, { "dx": 265, "dy": 460}], "name": "r hand", "latin":"manus"}},
+      { "zone": {"points": [{ "dx": 120, "dy": 535}, { "dx": 185, "dy": 535}, { "dx": 180, "dy": 580}, { "dx": 120, "dy": 580}], "name": "l knee", "latin":"patella"}},
+      { "zone": {"points": [{ "dx": 195, "dy": 535}, { "dx": 265, "dy": 535}, { "dx": 265, "dy": 580}, { "dx": 195, "dy": 580}], "name": "r knee", "latin":"patella"}},
+      { "zone": {"points": [{ "dx": 115, "dy": 580}, { "dx": 180, "dy": 580}, { "dx": 180, "dy": 695}, { "dx": 130, "dy": 695}], "name": "l shin", "latin":"tibia"}},
+      { "zone": {"points": [{ "dx": 200, "dy": 580},{ "dx": 265, "dy": 580}, { "dx": 250,"dy": 695}, { "dx": 200,"dy": 695}], "name": "r shin", "latin":"tibia"}},
+      {"zone":{"points": [{ "dx": 110, "dy": 695}, { "dx": 170, "dy": 695}, { "dx": 170, "dy": 750}, { "dx": 110, "dy": 750}], "name": "l foot", "latin":"pes"}},
+      {"zone":{"points": [{ "dx": 210, "dy": 695}, { "dx": 270, "dy": 695}, { "dx": 270, "dy": 750}, { "dx": 210, "dy": 750}], "name": "r foot", "latin":"pes"}}
+    ]
+  },
+  {
+    "image_map_index": 2,
+    "image_map_name": "Face",
+    "image_path": "assets/images/face.png",
+    "zones": [
+
+  { "zone": {"name": "none", "latin": "", "points": [{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}]}},
+   { "zone": {"name": "forehead", "latin": "cranium", "points": [{ "dx": 125, "dy":90}, { "dx": 305, "dy":90}, { "dx": 315, "dy":190}, { "dx": 115, "dy":190}]}},
+   { "zone": {"name": "r brow", "latin": "oculus", "points": [{ "dx": 120, "dy":190}, { "dx": 220, "dy":190}, { "dx": 220, "dy":210}, { "dx": 120, "dy":210}]}},
+   { "zone": {"name": "l brow", "latin": "oculus", "points": [{ "dx": 220, "dy":190}, { "dx": 310, "dy":190}, { "dx": 310, "dy":210}, { "dx": 220, "dy":210}]}},
+   { "zone": {"name": "r eye", "latin": "oculus", "points": [{ "dx": 110, "dy":210}, { "dx": 200, "dy":210}, { "dx": 200, "dy":245}, { "dx": 110, "dy":245}]}},
+   { "zone": {"name": "l eye", "latin": "oculus", "points": [{ "dx": 230, "dy":210}, { "dx": 320, "dy":210}, { "dx": 320, "dy":245}, { "dx": 230, "dy":245}]}},
+   { "zone": {"name": "nose", "latin": "nasus", "points": [{ "dx": 200, "dy":210}, { "dx": 230, "dy":210}, { "dx": 250, "dy":310}, { "dx": 180, "dy":310}]}},
+      {"zone":  {"name": "mouth", "latin": "os", "points": [{ "dx": 165, "dy":310}, { "dx": 270, "dy":310}, { "dx": 270, "dy":355}, { "dx": 165, "dy":355}]}},
+   { "zone": {"name": "chin", "latin": "mentum", "points": [{ "dx": 165, "dy":360},{ "dx": 270, "dy":360}, { "dx": 270, "dy":410}, { "dx": 165, "dy":410}]}},
+   { "zone": {"name": "jaw", "latin": "mandibula", "points": [{ "dx": 110, "dy":310},{ "dx": 320, "dy":310}, { "dx": 300, "dy":385}, { "dx": 130, "dy":385}]}},
+   { "zone": {"name": "r ear", "latin": "auris", "points": [{ "dx": 70, "dy":210},{ "dx": 110, "dy":210}, { "dx": 110, "dy":305}, { "dx": 70, "dy":305}]}},
+   { "zone": {"name": "l ear", "latin": "auris", "points": [{ "dx": 320, "dy":210},{ "dx": 360, "dy":210}, { "dx": 360, "dy":305}, { "dx": 320, "dy":305}]}},
+   { "zone": {"name": "r cheek", "latin": "bucca", "points": [{ "dx": 110, "dy":245},{ "dx": 195, "dy":245}, { "dx": 190,"dy": 310}, { "dx": 110,"dy": 310}]}},
+   { "zone": {"name": "l cheek", "latin": "bucca", "points": [{ "dx": 235, "dy":245},{ "dx": 320, "dy":245}, { "dx": 320, "dy":310}, { "dx": 240, "dy":310} ]}},
+   { "zone": {"name": "temple", "latin": "tempora", "points": [{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}, { "dx": 0, "dy":0}, { "dx": 0, "dy":0}]}},
+   { "zone": {"name": "temple", "latin": "tempora", "points": [{ "dx": 0, "dy":0},{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}, { "dx": 0, "dy":0}]}}
+]
+  },
+  {
+    "image_map_index": 3,
+    "image_map_name": "Front of Hand",
+    "image_path": "assets/images/hand_front.png",
+    "zones": [
+      { "zone": {"name": "none", "latin": "", "points": [{"dx": 0, "dy":0}, {"dx": 0, "dy": 0}]}},
+      { "zone": {"name": "thumb", "latin": "pollex", "points": [{"dx": 10, "dy": 210}, {"dx": 70, "dy": 215}, {"dx": 125, "dy": 320}, {"dx": 125, "dy": 510}, {"dx": 100, "dy": 510}, {"dx": 35, "dy": 410}]}},
+      { "zone": {"name": "index finger", "latin": "index", "points": [{"dx": 130, "dy": 40}, {"dx": 200, "dy":  40}, {"dx": 200, "dy": 260}, {"dx": 130, "dy": 260}]}},
+      { "zone": {"name": "middle finger", "latin": "digitus medius", "points": [{"dx": 225, "dy": 10}, {"dx": 280, "dy": 15}, {"dx": 270, "dy": 265}, {"dx": 205, "dy": 260}]}},
+      { "zone": {"name": "ring finger", "latin": "digitus annularis", "points": [{"dx": 300, "dy": 50}, {"dx": 360, "dy": 60}, {"dx": 320, "dy": 300}, {"dx": 270, "dy": 275}]}},
+      { "zone": {"name": "little finger", "latin": "digitus minimus", "points": [{"dx": 370, "dy": 135}, {"dx": 435, "dy": 150}, {"dx": 390, "dy": 335}, {"dx": 325, "dy": 305}]}},
+      { "zone": {"name": "palm", "latin": "palma", "points": [{"dx": 125, "dy":260}, {"dx": 255, "dy": 260}, {"dx": 380, "dy": 320}, {"dx": 360, "dy": 530}, {"dx": 125, "dy": 530}]}},
+      { "zone": {"name": "wrist joint", "latin": "articulatio radiocarpalis", "points": [{"dx": 120, "dy": 530}, {"dx": 330, "dy": 530}, {"dx": 330, "dy": 580}, {"dx": 120, "dy": 580}]}}]
+},
+  {
+    "image_map_index": 4,
+    "image_map_name": "Back of Hand",
+    "image_path": "assets/images/hand_back.png",
+    "zones": [
+      { "zone": {"name": "none", "latin": "", "points": [{"dx": 0, "dy": 0}, {"dx": 0, "dy": 0}]}},
+      { "zone": {"name": "wrist joint", "latin": "articulatio radiocarpalis", "points": [{"dx": 160, "dy": 100}, {"dx": 360, "dy": 100}, {"dx": 360, "dy": 180}, {"dx": 160,"dy": 180}]}},
+      { "zone": {"name": "dorsum", "latin": "dorsum manus", "points": [{"dx": 160, "dy":180}, {"dx": 360, "dy": 180}, {"dx": 350, "dy": 380}, {"dx": 200,"dy": 380}, {"dx": 90,"dy": 330}]}},
+      { "zone": {"name": "little finger", "latin": "digitus minimus", "points": [{"dx": 90, "dy": 330}, {"dx": 5, "dy": 460}, {"dx": 0, "dy": 485}, {"dx": 45, "dy": 510},  {"dx": 135, "dy": 345}]}},
+      { "zone": {"name": "ring finger", "latin": "digitus annularis", "points": [{"dx": 135, "dy": 345}, {"dx": 100, "dy": 395}, {"dx": 60, "dy": 590}, {"dx": 130, "dy": 600}, {"dx": 165, "dy": 450}, {"dx": 190, "dy": 370}]}},
+      { "zone": {"name": "middle finger", "latin": "digitus medius", "points": [{"dx": 190, "dy": 370}, {"dx": 165, "dy": 445}, {"dx": 140, "dy": 645}, {"dx": 210, "dy": 645}, {"dx": 245, "dy": 375}]}},
+      { "zone": {"name": "index finger", "latin": "index", "points": [{"dx": 240, "dy": 375}, {"dx": 235, "dy": 500}, {"dx": 235, "dy": 630}, {"dx": 300, "dy": 630}, {"dx": 330, "dy": 380}]}},
+      { "zone": {"name": "thumb", "latin": "pollex", "points": [{"dx": 360, "dy": 180}, {"dx": 350, "dy": 380}, {"dx": 380, "dy": 490}, {"dx": 445, "dy": 490}, {"dx": 435, "dy": 450}, {"dx": 430, "dy": 400}, {"dx": 410, "dy": 290}]}}
+      ]
+},
+  {
+    "image_map_index": 5,
+    "image_map_name": "Top of foot",
+    "image_path": "assets/images/foot_top.png",
+    "zones": [
+     { "zone": {"name": "none", "latin": "", "points": [{ "dx": 0, "dy": 0}, { "dx": 0, "dy": 0}]}},
+     { "zone": {"name": "big toe", "latin": "hallux", "points": [{ "dx": 225, "dy": 590 },{ "dx": 340, "dy": 595}, { "dx": 340, "dy": 735}, { "dx": 225, "dy": 735}]}},
+     { "zone": {"name": "second toe", "latin": "digitus secundus", "points": [{ "dx": 165, "dy": 580}, { "dx": 225, "dy": 585}, { "dx": 220, "dy": 735}, { "dx": 155, "dy": 735}, { "dx": 155, "dy": 715}, { "dx": 160, "dy": 700}]}},
+     { "zone": {"name": "middle toe", "latin": "digitus tertius", "points": [{ "dx": 120, "dy": 560},{ "dx": 170, "dy": 580},{ "dx": 170, "dy": 640}, { "dx": 160, "dy": 715}, { "dx": 105, "dy": 710}]}},
+     { "zone": {"name": "fourth toe", "latin": "digitus quartus", "points": [{ "dx": 70, "dy": 550},{ "dx": 125, "dy": 560}, { "dx": 110, "dy": 690}, { "dx": 65, "dy": 680}]}},
+     { "zone": {"name": "little toe", "latin": "digitus minimus", "points": [{ "dx": 15, "dy": 550}, { "dx": 70, "dy": 550}, { "dx": 70, "dy": 650}, { "dx": 35, "dy": 640}]}},
+     { "zone": {"name": "ankle ", "latin": "articulatio talocruralis", "points": [{ "dx": 70, "dy": 140}, { "dx": 310, "dy": 140}, { "dx": 310, "dy": 280}, { "dx": 70, "dy": 280}]}},
+     { "zone": {"name": "top", "latin": "articulatio talocruralis", "points": [{ "dx": 70, "dy": 280}, { "dx": 310, "dy": 280}, { "dx": 340, "dy": 600}, { "dx": 10, "dy": 570}, { "dx": 10, "dy": 530}]}}]
+  },
+  {
+
+    "image_map_index": 6,
+    "image_map_name": "Bottom of foot",
+    "image_path": "assets/images/foot_bottom.png",
+    "zones": [
+   { "zone": {"name": "none", "latin": "", "points": [{ "dx": 0, "dy": 0}, { "dx": 0, "dy": 0}]}},
+   { "zone": {"name": "big toe", "latin": "hallux", "points": [{ "dx": 20, "dy": 600}, { "dx": 115, "dy": 620}, { "dx": 115, "dy": 770},{ "dx": 50, "dy": 770}, { "dx": 15, "dy": 695}]}},
+   { "zone": {"name": "second toe", "latin": "digitus secundus", "points": [{ "dx": 115, "dy": 625}, { "dx": 165, "dy": 630}, { "dx": 165, "dy": 760}, { "dx": 115, "dy": 760}]}},
+   { "zone": {"name": "middle toe", "latin": "digitus tertius", "points": [{ "dx": 160, "dy": 630}, { "dx": 205, "dy": 610}, { "dx": 200, "dy": 680}, { "dx": 225, "dy": 720}, { "dx": 175, "dy": 740}, { "dx": 160, "dy": 690}]}},
+   { "zone": {"name": "fourth toe", "latin": "digitus quartus", "points": [{ "dx": 205, "dy": 610}, { "dx": 245, "dy": 595}, { "dx": 245, "dy": 630},  { "dx": 255, "dy": 685},{ "dx": 225, "dy": 710},{ "dx": 200, "dy": 680}]}},
+   { "zone": {"name": "pinkie toe", "latin": "digitus minimus", "points": [{ "dx": 245, "dy": 580}, { "dx": 295, "dy": 560}, { "dx": 295, "dy": 610}, { "dx": 275, "dy": 660}, { "dx": 250, "dy": 660}, { "dx": 245, "dy": 630}]}},
+   { "zone": {"name": "instep", "latin": "instita", "points": [{ "dx": 60, "dy": 250}, { "dx": 160, "dy": 250}, { "dx": 160, "dy": 485}, { "dx": 25, "dy": 485}]}},
+   { "zone": {"name": "ball ", "latin": "caput metatarsale", "points": [{ "dx": 15, "dy": 485}, { "dx": 145, "dy": 485}, { "dx": 145, "dy": 630}, { "dx": 15, "dy": 600}]}},
+      { "zone": {"name": "heel", "latin": "calcaneus", "points": [{ "dx": 55, "dy": 80}, { "dx": 90, "dy": 15}, { "dx": 200, "dy": 5}, { "dx": 260, "dy": 60}, { "dx": 260, "dy": 250}, { "dx": 60, "dy": 250}]}},
+   { "zone": {"name": "sole", "latin": "planta", "points": [{ "dx": 55, "dy": 250}, { "dx": 280, "dy": 250}, { "dx": 320, "dy": 560},  { "dx": 160, "dy": 635},{ "dx": 15, "dy": 600}]}}]
+}
+  
+]

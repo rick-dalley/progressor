@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/acuity.dart';
+import 'package:triage/classes/body_zone.dart';
 import 'package:triage/classes/database_manager.dart';
 import 'package:triage/screens/staff_screen.dart';
 import 'package:triage/screens/start_up.dart';
@@ -19,13 +20,6 @@ Future<void> main() async {
   // Ensure the binding is ready for the splash screen to render
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  await DatabaseManager().database;
-  await PhasesFactory.instance.initialize('assets/process/phases.json');
-  await PatientActionFactory.instance.initialize('assets/patients/patient_actions.json');
-  await AcuityFactory.instance.initialize('assets/assessment/mental_health_acuity.json');
-  await StaffFactory.instance.initialize();
-  await DrugFactory.instance.initialize();
-
   runApp(const LuminescaApp());
 }
 
@@ -55,53 +49,87 @@ class LuminescaApp extends StatelessWidget {
   }
 }
 
-
-class LuminescaHome extends StatelessWidget {
+class LuminescaHome extends StatefulWidget {
   const LuminescaHome({super.key});
+
+  @override
+  State<StatefulWidget> createState() => LuminescaHomeState();
+}
+
+class LuminescaHomeState extends State<LuminescaHome> {
+  // We make the initialization a Future that we can listen to
+  late Future<void> _initFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await Future.wait([
+      DatabaseManager().database,
+      PhasesFactory.instance.initialize('assets/process/phases.json'),
+      PatientActionFactory.instance.initialize('assets/patients/patient_actions.json'),
+      AcuityFactory.instance.initialize('assets/assessment/mental_health_acuity.json'),
+      TouchImageFactory.instance.initialize('assets/images/touch_points.json'),
+      StaffFactory.instance.initialize(),
+      DrugFactory.instance.initialize(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // The "RichText" implementation to fix the branding hierarchy
         title: RichText(
           text: TextSpan(
-            style: GoogleFonts.inclusiveSans(
-              fontSize: 20,
-              letterSpacing: 0.5,
-            ),
+            style: GoogleFonts.inclusiveSans(fontSize: 20, letterSpacing: 0.5),
             children: const [
               TextSpan(
                 text: 'LUMINESCA',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700, // Bold for the core brand
-                  color: AppTheme.deepLogicViolet,
-                  letterSpacing: 1.2,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.deepLogicViolet, letterSpacing: 1.2),
               ),
-              TextSpan(
-                text: ' — ',
-                style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w300
-                ),
-              ),
-              TextSpan(
-                text: 'Triage',
-                style: TextStyle(
-                  fontWeight: FontWeight.w400, // Regular/Lighter for the app function
-                  color: AppTheme.clinicalCyan,
-                ),
-              ),
+              TextSpan(text: ' — ', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300)),
+              TextSpan(text: 'Triage', style: TextStyle(fontWeight: FontWeight.w400, color: AppTheme.clinicalCyan)),
             ],
           ),
         ),
         actions: [
-          IconButton(onPressed:(){ showStaff(context);}, icon: Icon(Symbols.person))
+          IconButton(onPressed: () => showStaff(context), icon: const Icon(Symbols.person))
         ],
       ),
-      // This will now display your roster using the Inclusive Sans theme
-      body: const PatientRoster(),
+      // The Roster stays in the tree at all times (so it lays out),
+      // and we only animate the loading overlay on top.
+      body: Stack(
+        children: [
+          // 1. The Roster: Always present and laid out, just hidden by the stack
+          const PatientRoster(),
+
+          // 2. The Loading Overlay: Only exists while loading
+          FutureBuilder(
+            future: _initFuture,
+            builder: (context, snapshot) {
+              final isWaiting = snapshot.connectionState == ConnectionState.waiting;
+
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: isWaiting
+                    ? Container(
+                  key: const ValueKey('loading'),
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: const Center(child: CircularProgressIndicator()),
+                )
+                    : const SizedBox.shrink(key: ValueKey('loaded')),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -110,8 +138,9 @@ class LuminescaHome extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StaffScreen(),
+      builder: (context) => const StaffScreen(),
     );
   }
 }
+
 

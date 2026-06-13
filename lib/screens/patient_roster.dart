@@ -23,6 +23,7 @@ class PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
   String _searchQuery = "";
   late TextEditingController _searchController;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +36,7 @@ class PatientRosterState extends State<PatientRoster> {
     super.dispose();
     _searchController.dispose();
   }
+
   Future<void> _loadPatientData() async {
     // DatabaseManager is a singleton, so this is safe and fast
     final data = await DatabaseManager().getAllPatientsWithVitals();

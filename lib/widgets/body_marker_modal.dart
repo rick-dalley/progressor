@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:triage/classes/body_zone.dart';
 import 'package:triage/classes/patient_sentiment.dart';
 
 import '../classes/body_markers.dart';
@@ -104,11 +103,8 @@ class _BodyMarkerModalState extends State<BodyMarkerModal> {
     return BodyMarker(
       offset: _currentMarker.offset,
       emoji: _currentMarker.emoji,
-      bodyZone: _currentMarker.bodyZone,
+      zone: _currentMarker.zone,
       severity: severity ?? _currentMarker.severity,
-      handZone: HandZones.none,
-      footZone: FootZones.none,
-      headZone: HeadZones.none
     );
   }
 }

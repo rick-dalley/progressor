@@ -49,10 +49,7 @@ typedef Chips = List<TemplateText>;
 class BodyMarker {
   final Offset offset;
   final Sentiment emoji;
-  final BodyZones? bodyZone;
-  final HeadZones? headZone;
-  final HandZones? handZone;
-  final FootZones? footZone;
+  final Zone zone;
   Chips? descriptions = [];
   VerbalSeverity? severity;
   Frequency? frequency;
@@ -65,10 +62,7 @@ class BodyMarker {
   BodyMarker({
     required this.offset,
     required this.emoji,
-    required this.bodyZone,
-    required this.footZone,
-    required this.handZone,
-    required this.headZone,
+    required this.zone,
     this.descriptions,
     this.severity,
     this.frequency,
@@ -95,10 +89,7 @@ class BodyMarker {
     int emojiIndex = item["emoji"];
     int frequencyIndex = item["frequency"];
     int natureIndex = item["nature"];
-    int bodyZoneIndex = item["body_zone"];
-    int headZoneIndex = item["head_zone"];
-    int footZoneIndex = item["foot_zone"];
-    int handZoneIndex = item["hand_zone"];
+    Zone zoneFromJson = Zone.fromJson(item["zone"]);
     double dx = item["dx"];
     double dy = item["dy"];
     Chips descriptionChips = chipList(item["description"]);
@@ -109,10 +100,7 @@ class BodyMarker {
 
     return BodyMarker(
       offset: Offset(dx, dy),
-        bodyZone: BodyZones.values[bodyZoneIndex],
-        headZone: HeadZones.values[headZoneIndex],
-        handZone: HandZones.values[footZoneIndex],
-        footZone: FootZones.values[handZoneIndex],
+        zone: zoneFromJson,
       descriptions: descriptionChips,
       severity: VerbalSeverity.values[severityIndex],
       emoji: Sentiment.values[emojiIndex],
@@ -129,10 +117,7 @@ class BodyMarker {
     return {
       "dx": offset.dx,
       "dy": offset.dy,
-      "body_zone": bodyZone?.index,
-      "head_zone": headZone?.index,
-      "hand_zone": handZone?.index,
-      "foot_zone": footZone?.index,
+      "zone": zone,
       "emoji": emoji.index,
       "severity": severity?.index,
       "frequency": frequency?.index,
