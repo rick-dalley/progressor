@@ -89,7 +89,8 @@ class BodyMarker {
     int emojiIndex = item["emoji"];
     int frequencyIndex = item["frequency"];
     int natureIndex = item["nature"];
-    Zone zoneFromJson = Zone.fromJson(item["zone"]);
+    ZoneMaps zoneMap = ZoneMaps.values[item["map"]];
+    Zone zoneFromJson = Zone.fromJson(item["zone"], zoneMap);
     double dx = item["dx"];
     double dy = item["dy"];
     Chips descriptionChips = chipList(item["description"]);

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:triage/classes/patient_sentiment.dart';
-import 'package:triage/widgets/card_flipper.dart';
-
 import '../classes/body_markers.dart';
 import '../classes/body_zone.dart';
 import '../classes/patient.dart';
@@ -19,11 +17,26 @@ class BodyOutlineScreen extends StatefulWidget {
 class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
   // Example: Store marker points here
   final List<Offset> _markers = [];
+  ZoneMaps selectedMap = ZoneMaps.bodyFront;
 
   Zone _identifyZone(Offset tap, TouchImage touchImage) {
+    ZoneMaps tappedMap = ZoneMaps.bodyFront;
+    selectedMap = ZoneMaps.bodyFront;
     for (var zone in touchImage.zones) {
       if (zone.isIn(tap.dx, tap.dy)) {
         debugPrint('Zone: ${zone.name}');
+        if (zone.name == "right hand" || zone.name == "left hand"){
+          tappedMap = ZoneMaps.handFront;
+        }
+        if (zone.name == "right foot" || zone.name == "left foot"){
+          tappedMap = ZoneMaps.footBottom;
+        }
+        if(zone.name == "face"){
+          tappedMap = ZoneMaps.face;
+        }
+        setState(() {
+          selectedMap = tappedMap;
+        });
         return zone; // Returns the BodyZones enum
       }
     }
@@ -32,7 +45,7 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    TouchImage? touchImage = TouchImageFactory.instance.getTouchImage(selection: ZoneMaps.footBottom);
+    TouchImage? touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap);
     if (touchImage == null ){
       return Text("Touch Image not found!");
     }
@@ -115,7 +128,7 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                         final tappedOffset = details.localPosition;
 
                         // 1. Identify which zone was tapped (using your mapping logic)
-                        final zone = _identifyZone(tappedOffset, touchImage!);
+                        final zone = _identifyZone(tappedOffset, touchImage);
 
                         // 2. Create a temporary marker
                         final newMarker = BodyMarker(
@@ -147,7 +160,7 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                       fit: StackFit.loose,
                       children: [
                         // Full screen body image
-                        Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
+                        Image.asset(touchImage.imagePath, fit: BoxFit.contain),
                           Positioned.fill(
                             child: CustomPaint(
                               painter: PolygonPainter(touchImage.zones),

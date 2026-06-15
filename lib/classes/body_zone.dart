@@ -1,26 +1,23 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-enum HeadZones { none, forehead, rightEye, leftEye, rightEyeBrow, leftEyeBrow, rightEar, leftEar, nose, mouth, jaw, rightCheek, leftCheek, rightTemple, leftTemple, chin }
+enum ZoneMaps{ bodyFront, bodyBack, face, handFront, handBack, footTop, footBottom}
 
-enum HandZones { none, palm, dorsum, thumb, pointer, middle, ring, little, wristJoint }
-
-enum FootZones { none, heel, sole, instep, ball, bigToe, secondToe, thirdToe, fourthToe, littleToe, ankleJoint, footTop }
 
 class Zone {
   final String name;
   final String latin;
   final List<Offset> points;
-
+  final ZoneMaps map;
   Zone({
     required this.name,
     required this.latin,
     required this.points,
+    required this.map
   });
 
-  factory Zone.fromJson(Map<String, dynamic> json){
+  factory Zone.fromJson(Map<String, dynamic> json, ZoneMaps zoneMap){
     List<dynamic> rawPoints = json['points'];
     List<Offset> offsetPoints  = [];
 
@@ -33,6 +30,7 @@ class Zone {
     return Zone(
       name : json['name'],
       latin: json['latin'],
+      map: zoneMap,
       points: offsetPoints,
     );
   }
@@ -96,9 +94,9 @@ class TouchImage{
   factory TouchImage.fromJson(Map<String, dynamic> json){
     dynamic rawZones = json['zones'];
     List<Zone> zonesFromJson = [];
-
+    ZoneMaps zoneMap = ZoneMaps.values[json['image_map_index']];
     for (dynamic rawZone in rawZones){
-      Zone zone = Zone.fromJson(rawZone['zone']);
+      Zone zone = Zone.fromJson(rawZone['zone'], zoneMap);
           zonesFromJson.add(zone);
     }
 
@@ -109,7 +107,6 @@ class TouchImage{
   }
 
 }
-enum ZoneMaps{ bodyFront, bodyBack, face, handFront, handBack, footTop, footBottom}
 
 class TouchImageFactory {
   // Private constructor
@@ -130,7 +127,6 @@ class TouchImageFactory {
     _touchImages = {
       for (var item in jsonList)
         ZoneMaps.values[item['image_map_index']]: TouchImage.fromJson(item)
-
     };
   }
 
