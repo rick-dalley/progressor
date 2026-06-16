@@ -82,8 +82,8 @@ class TimeLineWidgetState extends State<TimeLineWidget> {
     _currentStartTime = widget.startTime;
     _currentEndTime = widget.endTime;
     _segments = widget.segments ?? getSegmentsForDuration(startTime: _currentStartTime, endTime: _currentEndTime);
-    debugPrint('# of segments in TimelineWidgetState: ${_segments.length}');
-    debugPrint('# of actions in initState of TimeLineWidgetState: ${widget.actions.length}');
+    // debugPrint('# of segments in TimelineWidgetState: ${_segments.length}');
+    // debugPrint('# of actions in initState of TimeLineWidgetState: ${widget.actions.length}');
   }
 
   List<TimelineSegment> getSegmentsForDuration({required DateTime startTime, required DateTime endTime}) {

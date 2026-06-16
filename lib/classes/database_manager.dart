@@ -618,8 +618,6 @@ class DatabaseManager {
       'set_id': medication['set_id'] ?? '',
       'has_local_datasheet': 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
-
-    debugPrint('Inserted medication record with UUID: ${medication['id']}');
   }
 
   // The Tether (Updating the set_id)
@@ -631,7 +629,6 @@ class DatabaseManager {
       where: 'id = ?',
       whereArgs: [localUuid],
     );
-    debugPrint('Tethered medication $localUuid to FDA set_id: $newSetId');
   }
 
   Future<int> deleteMedication(String medUuid) async {
@@ -749,11 +746,8 @@ class DatabaseManager {
     );
 
     if (results.isNotEmpty) {
-      debugPrint('Local tether found for $medName: ${results.first['set_id']}');
       return results.first['set_id'] as String;
     }
-
-    debugPrint('No local datasheet for $medName. Fetch required.');
     return null;
   }
 

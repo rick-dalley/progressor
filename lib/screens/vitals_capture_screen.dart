@@ -116,7 +116,7 @@ class VitalsCaptureScreenState extends State<VitalsCaptureScreen> {
                         break;
                       case 'PATIENT_ID':
                       // If you add a controller for Patient ID, update it here
-                        debugPrint("Captured Patient ID: ${entry.value}");
+                      //   debugPrint("Captured Patient ID: ${entry.value}");
                         break;
                     }
                   }

@@ -31,6 +31,7 @@ class _BodyMarkerModalState extends State<BodyMarkerModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text(_currentMarker.name.toUpperCase()),
             Row(children: [
               IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.happy]!.getIcon()),
               IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.content]!.getIcon()),
@@ -103,7 +104,9 @@ class _BodyMarkerModalState extends State<BodyMarkerModal> {
     return BodyMarker(
       offset: _currentMarker.offset,
       emoji: _currentMarker.emoji,
-      zone: _currentMarker.zone,
+      name: _currentMarker.name,
+      medicalName: _currentMarker.medicalName,
+      zoneMap: _currentMarker.zoneMap,
       severity: severity ?? _currentMarker.severity,
     );
   }

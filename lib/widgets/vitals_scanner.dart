@@ -94,10 +94,7 @@ class _VitalsScannerWidgetState extends State<VitalsScannerWidget> with WidgetsB
       _isInitializing = false; // Ensure no other spinners are active
     });
 
-    // 2. Log exactly what we are sending back
-    debugPrint("Finalizing Static Scan: Found ${results.vitals.length} results.");
-
-    // 3. Hand off to the parent
+    // Hand off to the parent
     widget.onScanCompleted(results.vitals);
   }
 

@@ -482,8 +482,6 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       _meds.removeAt(index);
                       _dataSheetCount = _countDataSheets();
                     });
-
-                    debugPrint('Permanently deleted medication: $medIdToDelete');
                   },
                   onExpansionChanged: (isExpanded) {
                     setState(() {

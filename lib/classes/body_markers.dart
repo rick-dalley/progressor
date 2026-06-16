@@ -49,7 +49,9 @@ typedef Chips = List<TemplateText>;
 class BodyMarker {
   final Offset offset;
   final Sentiment emoji;
-  final Zone zone;
+  final ZoneMaps zoneMap;
+  final String name;
+  final String medicalName;
   Chips? descriptions = [];
   VerbalSeverity? severity;
   Frequency? frequency;
@@ -62,7 +64,9 @@ class BodyMarker {
   BodyMarker({
     required this.offset,
     required this.emoji,
-    required this.zone,
+    required this.name,
+    required this.medicalName,
+    required this.zoneMap,
     this.descriptions,
     this.severity,
     this.frequency,
@@ -83,6 +87,9 @@ class BodyMarker {
     return chips;
   }
 
+  factory BodyMarker.fromOffset(Offset offset, String name, String medicalName, ZoneMaps zoneMap, ){
+    return BodyMarker(offset: offset, emoji: Sentiment.stressed, name: name, medicalName: medicalName, zoneMap: zoneMap);
+  }
   factory BodyMarker.fromJson(Map<String, dynamic> item) {
 
     int severityIndex = item["severity"];
@@ -101,7 +108,8 @@ class BodyMarker {
 
     return BodyMarker(
       offset: Offset(dx, dy),
-        zone: zoneFromJson,
+        name: zoneFromJson.name,
+      medicalName: zoneFromJson.latin,
       descriptions: descriptionChips,
       severity: VerbalSeverity.values[severityIndex],
       emoji: Sentiment.values[emojiIndex],
@@ -110,7 +118,8 @@ class BodyMarker {
       improvesWhen: improvesWhenChips,
       worsensWhen: worsensWhenChips,
       interventionsTried: interventionsTriedChips,
-      recorded:item["recorded"]
+      recorded:item["recorded"],
+        zoneMap: zoneFromJson.map,
     );
   }
 
@@ -118,7 +127,8 @@ class BodyMarker {
     return {
       "dx": offset.dx,
       "dy": offset.dy,
-      "zone": zone,
+      "name": name,
+      "medical_name": medicalName,
       "emoji": emoji.index,
       "severity": severity?.index,
       "frequency": frequency?.index,

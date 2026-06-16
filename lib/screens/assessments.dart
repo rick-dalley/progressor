@@ -435,7 +435,6 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
       ),
     );
 
-    debugPrint("Result of physical checklist modal: $result");
     if (result == true && mounted) {
       setState(() {
         _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(patientUuid);
@@ -582,7 +581,6 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
       ),
     );
 
-    debugPrint("Result of show modal:$result");
     if (result == true && mounted) {
       setState(() {
         _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(

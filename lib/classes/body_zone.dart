@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-enum ZoneMaps{ bodyFront, bodyBack, face, handFront, handBack, footTop, footBottom}
+enum ZoneMaps{ bodyFront, bodyBack, face, handFront, handBack, footTop, footBottom }
 
 
 class Zone {
@@ -34,6 +34,26 @@ class Zone {
       points: offsetPoints,
     );
   }
+
+  factory Zone.fromJsonReversed(Map<String, dynamic> json, ZoneMaps zoneMap, double imageWidth){
+    List<dynamic> rawPoints = json['points'];
+    List<Offset> offsetPoints  = [];
+
+    for (dynamic rawPoint in rawPoints){
+      double dx = (rawPoint['dx'] as num).toDouble(); //(json['dx'] as num).toDouble();
+      double dy = (rawPoint['dy'] as num).toDouble();
+      double fx = imageWidth - dx;
+      offsetPoints.add(Offset(fx, dy));
+    }
+
+    return Zone(
+      name : json['name'],
+      latin: json['latin'],
+      map: zoneMap,
+      points: offsetPoints,
+    );
+  }
+
 
   // Automatically generates the Path from your list of points
   Path get shape {
@@ -105,7 +125,6 @@ class TouchImage{
       zones:zonesFromJson,
     );
   }
-
 }
 
 class TouchImageFactory {

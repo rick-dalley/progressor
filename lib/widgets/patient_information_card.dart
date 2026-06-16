@@ -66,9 +66,10 @@ class PatientInformationCardState extends State<PatientInformationCard> {
           patient.height = newHeight;
           widget.patient.height = newHeight;
         });
-      } else {
-        debugPrint("Optimization: Height unchanged. Skipped write.");
       }
+      // else {
+      //   debugPrint("Optimization: Height unchanged. Skipped write.");
+      // }
     }
 
     // --- HANDLE WEIGHT FILTER ---
@@ -80,7 +81,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
         final Duration timeSinceLastLog = DateTime.now().difference(lastWeightMetric.recorded);
         if (lastWeightMetric.value == newWeight && timeSinceLastLog.inHours < 23) {
           shouldWriteWeight = false;
-          debugPrint("Optimization: Weight stable and logged within 23h. Skipped write.");
+          // debugPrint("Optimization: Weight stable and logged within 23h. Skipped write.");
         }
       }
 
