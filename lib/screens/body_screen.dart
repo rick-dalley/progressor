@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:triage/classes/patient_sentiment.dart';
 import '../classes/body_markers.dart';
 import '../classes/body_zone.dart';
 import '../classes/patient.dart';
 import '../widgets/body_marker_modal.dart';
 
 enum FlipDirection { none, flipX, flipY, flipXY }
+enum ZoneRequested { none, body, rightHand, leftHand, rightFoot, leftFoot, face}
 
 class BodyOutlineScreen extends StatefulWidget {
   final Patient patient;
@@ -24,9 +24,13 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
   FlipDirection imageOrientation = FlipDirection.none;
   TouchImage? touchImage;
   Widget? anatomyImage;
+  ZoneRequested zoneRequested = ZoneRequested.body;
+
   Offset orientOffset({
     required double height,
     required double width,
+    required double imageHeight,
+    required double imageWidth,
     required Offset offset,
     required FlipDirection flip,
     required ZoneMaps zoneMap,
@@ -49,62 +53,69 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
         : offset.dx;
 
     double dy = (flip == FlipDirection.flipY || flip == FlipDirection.flipXY)
-        ? height - offset.dy
+        ? height - offset.dy - ((height -imageHeight) * 0.5)
         : offset.dy;
 
     return Offset(dx, dy);
   }
 
-  Widget? orientImage({required Widget? image, required FlipDirection flip}) {
-    if (image == null) {
-      return image;
-    }
-    switch (flip) {
-      case FlipDirection.none:
-        return image;
-      case FlipDirection.flipX:
-        return Transform.flip(flipX: true, child: image);
-      case FlipDirection.flipY:
-        return Transform.flip(flipY: true, child: image);
-      case FlipDirection.flipXY:
-        return Transform.flip(flipX: true, flipY: true, child: image);
-    }
-  }
+  Zone _identifyZone(Offset tap) {
 
-  Zone _identifyZone(Offset tap, TouchImage touchImage) {
-    ZoneMaps tappedMap = selectedMap;
-    FlipDirection selectedImageOrientation = imageOrientation;
-
-    for (var zone in touchImage.zones) {
+    for (var zone in touchImage!.zones) {
       if (zone.isIn(tap.dx, tap.dy) && zone.map == selectedMap) {
         //did the user tap on a zone that should bring up a map?
-        if (selectedMap == ZoneMaps.bodyFront) {
-          if (zone.name == "right hand" || zone.name == "left hand") {
-            tappedMap = ZoneMaps.handFront;
-            selectedImageOrientation = zone.name == "right hand" && imageOrientation == FlipDirection.none
-                ? FlipDirection.flipX
-                : FlipDirection.none;
-          }
-          if (zone.name == "right foot" || zone.name == "left foot") {
-            tappedMap = ZoneMaps.footBottom;
-            selectedImageOrientation = zone.name == "right foot" && imageOrientation == FlipDirection.none
-                ? FlipDirection.flipX
-                : FlipDirection.none;
-          }
-          if (zone.name == "face") {
-            tappedMap = ZoneMaps.face;
-          }
-          setState(() {
-            selectedMap = tappedMap;
-            imageOrientation = selectedImageOrientation;
-            touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-            anatomyImage = orientImage(image: anatomyImage, flip: imageOrientation);
-          });
+        if(zone.isLink){
+          setImageMapFromZone(zone);
+          return touchImage!.zones.first;
+        } else {
+          return zone;
         }
-        return zone; // Returns the BodyZones enum
       }
     }
-    return touchImage.zones[0];
+    return touchImage!.zones.first;
+  }
+
+  bool setImageMapFromZone(Zone zone) {
+    ZoneMaps tappedMap = selectedMap;
+    ZoneRequested requested = zoneRequested;
+    bool isZoneAnImageHotspot = false;
+    FlipDirection selectedImageOrientation = imageOrientation;
+    //did the user tap on a zone that should bring up a map?
+      if(zone.name == "right hand"){
+        isZoneAnImageHotspot = true;
+        requested = ZoneRequested.rightHand;
+        tappedMap = selectedMap == ZoneMaps.bodyFront ? ZoneMaps.handFront : ZoneMaps.handBack;
+        selectedImageOrientation = FlipDirection.flipX;
+      } else if (zone.name == "left hand"){
+        isZoneAnImageHotspot = true;
+        requested = ZoneRequested.leftHand;
+        tappedMap = selectedMap == ZoneMaps.bodyFront ? ZoneMaps.handFront : ZoneMaps.handBack;
+        selectedImageOrientation = FlipDirection.none;
+      } else if (zone.name == "right foot"){
+        isZoneAnImageHotspot = true;
+        requested = ZoneRequested.rightFoot;
+        tappedMap = selectedMap == ZoneMaps.bodyFront ? ZoneMaps.footTop : ZoneMaps.footBottom;
+        selectedImageOrientation = FlipDirection.flipX;
+      } else if (zone.name == "left foot"){
+        isZoneAnImageHotspot = true;
+        requested = ZoneRequested.rightFoot;
+        tappedMap = selectedMap == ZoneMaps.bodyFront ? ZoneMaps.footTop : ZoneMaps.footBottom;
+        selectedImageOrientation = FlipDirection.none;
+      } else if (zone.name == "face") {
+        isZoneAnImageHotspot = true;
+        requested = ZoneRequested.face;
+        tappedMap = ZoneMaps.face;
+        selectedImageOrientation = FlipDirection.none;
+      }
+    setState(() {
+      zoneRequested = requested;
+      selectedMap = tappedMap;
+      imageOrientation = selectedImageOrientation;
+      touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
+      anatomyImage = touchImage!.flip(imageOrientation);
+      debugPrint("$selectedMap");
+    });
+    return isZoneAnImageHotspot;
   }
 
   @override
@@ -113,7 +124,8 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
     imageOrientation = FlipDirection.none;
     selectedMap = ZoneMaps.bodyFront;
     touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap);
-    anatomyImage = Image.asset(touchImage!.imagePath, fit: BoxFit.contain);
+    anatomyImage = touchImage?.flip(imageOrientation);
+
   }
 
   @override
@@ -149,37 +161,36 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                       icon: Icon(Symbols.accessibility, size: 30),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.body;
                           selectedMap = ZoneMaps.bodyFront;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = Image.asset(touchImage!.imagePath, fit: BoxFit.contain);
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
+                    //Right Hand
                     IconButton(
                       icon: Icon(Symbols.front_hand, size: 30),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.rightHand;
                           selectedMap = ZoneMaps.handFront;
                           imageOrientation = FlipDirection.flipX;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
+                    //Left Hand
                     IconButton(
                       icon: Transform.flip(flipX: true, child: Icon(Symbols.front_hand, size: 30)),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.leftHand;
                           selectedMap = ZoneMaps.handFront;
                           imageOrientation = FlipDirection.none;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
@@ -187,13 +198,11 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                       icon: Transform.flip(flipY: true, child: Icon(Symbols.barefoot, size: 30)),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.rightFoot;
                           selectedMap = ZoneMaps.footBottom;
                           imageOrientation = FlipDirection.flipX;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
@@ -201,13 +210,11 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                       icon: Transform.flip(flipX: true, flipY: true, child: Icon(Symbols.barefoot, size: 30)),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.leftFoot;
                           selectedMap = ZoneMaps.footBottom;
                           imageOrientation = FlipDirection.none;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
@@ -215,136 +222,143 @@ class _BodyOutlineScreenState extends State<BodyOutlineScreen> {
                       icon: Icon(Symbols.face, size: 30),
                       onPressed: () {
                         setState(() {
+                          zoneRequested = ZoneRequested.face;
                           selectedMap = ZoneMaps.face;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
                     Spacer(),
+
+                    //Flip
                     IconButton(
                       icon: Icon(Symbols.flip, size: 30),
                       onPressed: () {
                         ZoneMaps tappedMap = selectedMap;
-                        switch (selectedMap) {
-                          case ZoneMaps.bodyFront:
+                        switch (zoneRequested) {
+                          case ZoneRequested.body:
                             {
-                              imageOrientation = FlipDirection.flipX;
-                              tappedMap = ZoneMaps.bodyBack;
+                              imageOrientation = FlipDirection.none;
+                              tappedMap = selectedMap == ZoneMaps.bodyBack ? ZoneMaps.bodyFront : ZoneMaps.bodyBack;
                             }
-                          case ZoneMaps.bodyBack:
-                            {
-                              imageOrientation = FlipDirection.flipX;
-                              tappedMap = ZoneMaps.bodyFront;
-                            }
-                          case ZoneMaps.face:
+                          case ZoneRequested.face:
                             {
                               imageOrientation = FlipDirection.none;
                               tappedMap = ZoneMaps.face;
                             }
-                          case ZoneMaps.handFront:
+                          case ZoneRequested.rightHand:
                             {
-                              imageOrientation = selectedMap == ZoneMaps.handBack ? FlipDirection.flipX : FlipDirection.flipXY;
-                              tappedMap = ZoneMaps.handBack;
+                              imageOrientation = FlipDirection.flipX ;
+                              tappedMap = selectedMap == ZoneMaps.handBack ? ZoneMaps.handFront : ZoneMaps.handBack;
                             }
-                          case ZoneMaps.handBack:
+                          case ZoneRequested.leftHand:
                             {
-                              imageOrientation = selectedMap == ZoneMaps.handFront ? FlipDirection.flipXY : FlipDirection.flipX;
-                              tappedMap = ZoneMaps.handFront;
+                              imageOrientation = FlipDirection.none;
+                              tappedMap = selectedMap == ZoneMaps.handFront ? ZoneMaps.handBack : ZoneMaps.handFront;
                             }
-                          case ZoneMaps.footTop:
-                            {
-                              imageOrientation = FlipDirection.flipX;
-                              tappedMap = ZoneMaps.footBottom;
-                            }
-                          case ZoneMaps.footBottom:
+                          case ZoneRequested.rightFoot:
                             {
                               imageOrientation = FlipDirection.flipX;
-                              tappedMap = ZoneMaps.footTop;
+                              tappedMap = selectedMap == ZoneMaps.footBottom ? ZoneMaps.footTop : ZoneMaps.footBottom;
                             }
+                          case ZoneRequested.leftFoot:
+                            {
+                              imageOrientation = FlipDirection.none;
+                              tappedMap = selectedMap == ZoneMaps.footBottom ? ZoneMaps.footTop : ZoneMaps.footBottom;
+                            }
+                          case ZoneRequested.none:
+                            tappedMap == selectedMap;
                         }
                         setState(() {
                           selectedMap = tappedMap;
                           touchImage = TouchImageFactory.instance.getTouchImage(selection: selectedMap)!;
-                          anatomyImage = orientImage(
-                            image: Image.asset(touchImage!.imagePath, fit: BoxFit.contain),
-                            flip: imageOrientation,
-                          );
+                          anatomyImage = touchImage?.flip(imageOrientation);
                         });
                       },
                     ),
                   ],
                 ),
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: Stack(
-                    fit: StackFit.loose,
-                    children: [
-                      GestureDetector(
-                        onTapDown: (TapDownDetails details) {
-                          Offset tapPosition = details.localPosition;
-                          tapPosition = orientOffset(
-                            height: mq.size.height,
-                            width: mq.size.width,
-                            offset: tapPosition,
-                            flip: imageOrientation,
-                            zoneMap: selectedMap,
-                          );
-                          final zone = _identifyZone(tapPosition, touchImage!);
-                          if (zone.name == "none" || zone.name.isEmpty) {
-                            return;
-                          }
-
-                          setState(() {
-                            final newMarker = BodyMarker(
+          Flexible(
+              fit: FlexFit.loose,
+              child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // These are your TRUE dimensions for hit testing
+                    final double containerWidth = constraints.maxWidth;
+                    final double containerHeight = constraints.maxHeight;
+                    Size size = touchImage!.getSizeFromContainer();
+                    return Stack(
+                      fit: StackFit.loose,
+                      children: [
+                        GestureDetector(
+                          onTapDown: (TapDownDetails details) {
+                            Offset tapPosition = details.localPosition;
+                            tapPosition = orientOffset(
+                              height: containerHeight,
+                              width: containerWidth,
+                              imageHeight: size.height,
+                              imageWidth: size.width,
                               offset: tapPosition,
-                              emoji: Sentiment.neutral,
-                              name: zone.name,
-                              medicalName: zone.latin,
-                              zoneMap: zone.map,
+                              flip: imageOrientation,
+                              zoneMap: selectedMap,
                             );
+                            final zone = _identifyZone(tapPosition);
 
-                            // 3. Show the Modal
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              constraints: BoxConstraints(maxHeight: mq.size.height * 0.45),
-                              builder: (context) => BodyMarkerModal(
-                                initialMarker: newMarker,
-                                onSave: (updatedMarker) {
-                                  // 4. On Save, update the state to store the new marker
-                                  setState(() {
-                                    _markers.add(BodyMarker.fromOffset(tapPosition, zone.name, zone.latin, zone.map));
-                                    //_markers.add(updatedMarker);
-                                  });
-                                },
+                            if (zone.name == "none" || zone.name.isEmpty) {
+                              return;
+                            }
+                            setState(() {
+                              final newMarker = BodyMarker(
+                                offset: tapPosition,
+                                emoji: Sentiment.neutral,
+                                name: zone.name,
+                                medicalName: zone.latin,
+                                zoneMap: zone.map,
+                              );
+
+                              // Show the Modal
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                constraints: BoxConstraints(maxHeight: mq.size.height * 0.45),
+                                builder: (context) =>
+                                    BodyMarkerModal(
+                                      initialMarker: newMarker,
+                                      onSave: (updatedMarker) {
+                                        // On Save, update the state to store the new marker
+                                        setState(() {
+                                          _markers.add(
+                                              BodyMarker.fromOffset(tapPosition, zone.name, zone.latin, zone.map));
+                                        });
+                                      },
+                                    ),
+                              );
+                            });
+                            // Here you would trigger your "Hot Button" modal
+                          },
+                          child: Align(alignment: Alignment.center, child: anatomyImage),
+                        ),
+
+                        // Positioned.fill(
+                        //   child: CustomPaint(
+                        //     painter: PolygonPainter(touchImage!, imageOrientation, mq.size.width, mq.size.height, size.height)
+                        //   ),
+                        // ),
+
+                        ..._markers
+                            .where((marker) => marker.zoneMap == selectedMap)
+                            .map(
+                              (marker) =>
+                              Positioned(
+                                left: marker.offset.dx - 12,
+                                top: marker.offset.dy - 12,
+                                child: const Icon(Icons.circle, color: Colors.red, size: 24),
                               ),
-                            );
-                          });
-                          // Here you would trigger your "Hot Button" modal
-                        },
-                        child: Align(alignment: Alignment.center, child: anatomyImage),
-                      ),
-
-                      // Positioned.fill(
-                      //   child: CustomPaint(
-                      //     painter: PolygonPainter(touchImage!.zones),
-                      //   ),
-                      // ),
-                      ..._markers
-                          .where((marker) => marker.zoneMap == selectedMap)
-                          .map(
-                            (marker) => Positioned(
-                              left: marker.offset.dx - 12,
-                              top: marker.offset.dy - 12,
-                              child: const Icon(Icons.circle, color: Colors.red, size: 24),
-                            ),
-                          ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    );
+                  }
+              ),
                 ),
               ],
             ),
