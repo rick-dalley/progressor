@@ -144,8 +144,6 @@ class TouchImage{
         final double width = imageInfo.image.width.toDouble();
         final double height = imageInfo.image.height.toDouble();
         size = Size(width, height);
-
-        print('Width: $width, Height: $height');
       }),
     );
     return size;
