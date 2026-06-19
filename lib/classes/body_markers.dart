@@ -49,9 +49,10 @@ typedef Chips = List<TemplateText>;
 class BodyMarker {
   final Offset offset;
   final Sentiment emoji;
-  final ZoneMaps zoneMap;
+  final AnatomyZoneMaps zoneMap;
   final String name;
   final String medicalName;
+  final BodyMarkerGroup group;
   Chips? descriptions = [];
   VerbalSeverity? severity;
   Frequency? frequency;
@@ -67,6 +68,7 @@ class BodyMarker {
     required this.name,
     required this.medicalName,
     required this.zoneMap,
+    required this.group,
     this.descriptions,
     this.severity,
     this.frequency,
@@ -74,11 +76,10 @@ class BodyMarker {
     this.improvesWhen,
     this.worsensWhen,
     this.interventionsTried,
-    this.recorded
+    this.recorded,
   });
 
-  static Chips chipList(dynamic json){
-
+  static Chips chipList(dynamic json) {
     Chips chips = [];
     for (dynamic desc in json) {
       TemplateText tt = TemplateText.fromJson(desc);
@@ -87,28 +88,39 @@ class BodyMarker {
     return chips;
   }
 
-  factory BodyMarker.fromOffset(Offset offset, String name, String medicalName, ZoneMaps zoneMap, ){
-    return BodyMarker(offset: offset, emoji: Sentiment.stressed, name: name, medicalName: medicalName, zoneMap: zoneMap);
+  factory BodyMarker.fromOffset(
+    Offset offset,
+    String name,
+    String medicalName,
+    AnatomyZoneMaps zoneMap,
+    BodyMarkerGroup markerGroup,
+  ) {
+    return BodyMarker(
+      offset: offset,
+      emoji: Sentiment.stressed,
+      name: name,
+      medicalName: medicalName,
+      zoneMap: zoneMap,
+      group: markerGroup,
+    );
   }
   factory BodyMarker.fromJson(Map<String, dynamic> item) {
-
     int severityIndex = item["severity"];
     int emojiIndex = item["emoji"];
     int frequencyIndex = item["frequency"];
     int natureIndex = item["nature"];
-    ZoneMaps zoneMap = ZoneMaps.values[item["map"]];
+    AnatomyZoneMaps zoneMap = AnatomyZoneMaps.values[item["map"]];
     Zone zoneFromJson = Zone.fromJson(item["zone"], zoneMap);
     double dx = item["dx"];
     double dy = item["dy"];
     Chips descriptionChips = chipList(item["description"]);
     Chips improvesWhenChips = chipList(item["improves_when"]);
     Chips worsensWhenChips = chipList(item["worsens_when"]);
-    Chips interventionsTriedChips  = chipList(item["interventions_tried"]);
-
+    Chips interventionsTriedChips = chipList(item["interventions_tried"]);
 
     return BodyMarker(
       offset: Offset(dx, dy),
-        name: zoneFromJson.name,
+      name: zoneFromJson.name,
       medicalName: zoneFromJson.latin,
       descriptions: descriptionChips,
       severity: VerbalSeverity.values[severityIndex],
@@ -118,8 +130,9 @@ class BodyMarker {
       improvesWhen: improvesWhenChips,
       worsensWhen: worsensWhenChips,
       interventionsTried: interventionsTriedChips,
-      recorded:item["recorded"],
-        zoneMap: zoneFromJson.map,
+      recorded: item["recorded"],
+      group: BodyMarkerGroup.values[item['group']],
+      zoneMap: zoneFromJson.map,
     );
   }
 
@@ -137,11 +150,13 @@ class BodyMarker {
       "worsens_when": worsensWhen?.map((e) => e.toJson()).toList(),
       "interventions_tried": interventionsTried?.map((e) => e.toJson()).toList(),
       "descriptions": descriptions?.map((e) => e.toJson()).toList(),
-      "recorded":recorded
+      "recorded": recorded,
+      "zone": zoneMap,
+      "group": group,
     };
   }
 
-  Future<void> save({required String patientUuid, required BodyMarker marker}) async{
+  Future<void> save({required String patientUuid, required BodyMarker marker}) async {
     DatabaseManager().insertBodyMarker(patientUuid, marker.toJson());
   }
 }
@@ -151,7 +166,6 @@ class MarkerFactory {
   static final MarkerFactory instance = MarkerFactory._internal();
   factory MarkerFactory() => instance;
   MarkerFactory._internal();
-
 
   Future<List<BodyMarker>> getMarkersForPatient(String patientUuid) async {
     // 1. Fetch raw data from the actual database

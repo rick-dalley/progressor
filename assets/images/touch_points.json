@@ -535,106 +535,137 @@
     "image_path": "assets/images/face.png",
     "zones": [
       { "zone": { "name": "none", "latin": "", "points": [{ "dx": 0, "dy":0}, { "dx": 0, "dy":0}]}},
+      { "zone": { "name": "head", "latin": "cephalon", "points": [
+        { "dx": 110, "dy":180 },
+        { "dx": 144, "dy":155 },
+        { "dx": 280, "dy":150 },
+        { "dx": 320, "dy":180 },
+        { "dx": 340, "dy":240 },
+        { "dx":  95, "dy":240 }]}},
       { "zone": { "name": "forehead", "latin": "frons", "points": [
-        { "dx": 125, "dy":240},
-        { "dx": 305, "dy":240},
-        { "dx": 315, "dy":340},
-        { "dx": 115, "dy":340}]}},
-      { "zone": { "name": "right brow", "latin": "right superciliary arch", "points": [
-        { "dx": 110, "dy":340 },
-        { "dx": 220, "dy":340 },
-        { "dx": 220, "dy":355 },
-        { "dx": 110, "dy":355 }]}},
-      { "zone": { "name": "left brow", "latin": "left superciliary arch", "points": [
-        { "dx": 220, "dy":340},
-        { "dx": 320, "dy":340},
-        { "dx": 320, "dy":355},
-        { "dx": 220, "dy":355}]}},
-      { "zone": { "name": "right eyelid", "latin": "right superior palpebra", "points": [
-        { "dx": 110, "dy":355},
-        { "dx": 200, "dy":355},
-        { "dx": 200, "dy":375},
-        { "dx": 110, "dy":375}]}},
-      { "zone": { "name": "left eyelid", "latin": "left superior palpebra", "points": [
-        { "dx": 230, "dy":355},
-        { "dx": 320, "dy":355},
-        { "dx": 320, "dy":375},
-        { "dx": 230, "dy":375}]}},
-      { "zone": { "name": "right eye", "latin": "right oculus", "points": [
-        { "dx": 110, "dy":375},
-        { "dx": 200, "dy":375},
-        { "dx": 200, "dy":395},
-        { "dx": 110, "dy":395}]}},
-      { "zone": { "name": "left eye", "latin": "left oculus", "points": [
-        { "dx": 230, "dy":375},
-        { "dx": 320, "dy":375},
-        { "dx": 320, "dy":395},
-        { "dx": 230, "dy":395}]}},
-      { "zone": { "name": "right nostril", "latin": "right ala nasi", "points": [
-        { "dx": 190, "dy":415},
-        { "dx": 210, "dy":415},
-        { "dx": 210, "dy":435},
-        { "dx": 190, "dy":435}]}},
-      { "zone": { "name": "left nostril", "latin": "left ala nasi", "points": [
-        { "dx": 220, "dy":415},
-        { "dx": 240, "dy":415},
-        { "dx": 240, "dy":435},
-        { "dx": 220, "dy":435}]}},
-      { "zone": { "name": "nose", "latin": "nasus", "points": [
-        { "dx": 200, "dy":355},
-        { "dx": 230, "dy":355},
-        { "dx": 250, "dy":460},
-        { "dx": 180, "dy":460}]}},
-      {"zone":  { "name": "mouth", "latin": "os", "points": [
-        { "dx": 165, "dy":445},
-        { "dx": 270, "dy":445},
-        { "dx": 270, "dy":500},
-        { "dx": 165, "dy":500}]}},
-      { "zone": { "name": "chin", "latin": "mentum", "points": [
-        { "dx": 165, "dy":500},
-        { "dx": 270, "dy":500},
-        { "dx": 270, "dy":550},
-        { "dx": 165, "dy":550}]}},
-      { "zone": { "name": "right jaw", "latin": "right mandible", "points": [
-        { "dx": 110, "dy":460},
-        { "dx": 215, "dy":460},
-        { "dx": 215, "dy":535},
-        { "dx": 155, "dy":535}]}},
-      { "zone": { "name": "left jaw", "latin": "left mandible", "points": [
-        { "dx": 215, "dy":460},
-        { "dx": 320, "dy":460},
-        { "dx": 275, "dy":535},
-        { "dx": 215, "dy":535}]}},
-      { "zone": { "name": "right ear", "latin": "right auris", "points": [
-        { "dx": 70, "dy":320},
-        { "dx": 110, "dy":320},
-        { "dx": 110, "dy":435},
-        { "dx": 70, "dy":435}]}},
-      { "zone": { "name": "left ear", "latin": "left auris", "points": [
-        { "dx": 320, "dy":320},
-        { "dx": 360, "dy":320},
-        { "dx": 360, "dy":435},
-        { "dx": 320, "dy":435}]}},
-      { "zone": { "name": "right cheek", "latin": "right bucca", "points": [
-        { "dx": 110, "dy":395},
-        { "dx": 195, "dy":395},
-        { "dx": 190,"dy": 460},
-        { "dx": 110,"dy": 460}]}},
-      { "zone": { "name": "left cheek", "latin": "left bucca", "points": [
-        { "dx": 235, "dy":395},
-        { "dx": 320, "dy":395},
-        { "dx": 320, "dy":460},
-        { "dx": 240, "dy":460} ]}},
+        { "dx": 135, "dy":240 },
+        { "dx": 295, "dy":240 },
+        { "dx": 315, "dy":320 },
+        { "dx": 115, "dy":320 }]}},
       { "zone": { "name": "right temple", "latin": "right tempora", "points": [
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0}]}},
+        { "dx":  95, "dy":240 },
+        { "dx": 135, "dy":240 },
+        { "dx": 115, "dy":320 },
+        { "dx":  70, "dy":320 }]}},
       { "zone": { "name": "left temple", "latin": "left tempora", "points": [
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0},
-        { "dx": 0, "dy":0}]}}
+        { "dx": 295, "dy":240 },
+        { "dx": 335, "dy":240 },
+        { "dx": 360, "dy":320 },
+        { "dx": 315, "dy":320 }]}},
+      { "zone": { "name": "right brow", "latin": "right superciliary arch", "points": [
+        { "dx": 110, "dy":320 },
+        { "dx": 220, "dy":320 },
+        { "dx": 220, "dy":340 },
+        { "dx": 110, "dy":340 }]}},
+      { "zone": { "name": "left brow", "latin": "left superciliary arch", "points": [
+        { "dx": 220, "dy":320 },
+        { "dx": 320, "dy":320 },
+        { "dx": 320, "dy":340 },
+        { "dx": 220, "dy":340 }]}},
+      { "zone": { "name": "right eyelid", "latin": "right superior palpebra", "points": [
+        { "dx": 110, "dy":340 },
+        { "dx": 200, "dy":340 },
+        { "dx": 200, "dy":355 },
+        { "dx": 110, "dy":355 }]}},
+      { "zone": { "name": "left eyelid", "latin": "left superior palpebra", "points": [
+        { "dx": 230, "dy":340 },
+        { "dx": 320, "dy":340 },
+        { "dx": 320, "dy":355 },
+        { "dx": 230, "dy":355 }]}},
+      { "zone": { "name": "right eye", "latin": "right oculus", "points": [
+        { "dx": 110, "dy":355 },
+        { "dx": 200, "dy":355 },
+        { "dx": 200, "dy":375 },
+        { "dx": 110, "dy":375 }]}},
+      { "zone": { "name": "left eye", "latin": "left oculus", "points": [
+        { "dx": 230, "dy":355 },
+        { "dx": 320, "dy":355 },
+        { "dx": 320, "dy":375 },
+        { "dx": 230, "dy":375 }]}},
+      { "zone": { "name": "right nostril", "latin": "right ala nasi", "points": [
+        { "dx": 190, "dy":415 },
+        { "dx": 210, "dy":415 },
+        { "dx": 210, "dy":435 },
+        { "dx": 190, "dy":435 }]}},
+      { "zone": { "name": "left nostril", "latin": "left ala nasi", "points": [
+        { "dx": 220, "dy":415 },
+        { "dx": 240, "dy":415 },
+        { "dx": 240, "dy":435 },
+        { "dx": 220, "dy":435 }]}},
+      { "zone": { "name": "nose", "latin": "nasus", "points": [
+        { "dx": 200, "dy":340 },
+        { "dx": 230, "dy":340 },
+        { "dx": 250, "dy":435 },
+        { "dx": 180, "dy":435 }]}},
+      {"zone":  { "name": "under nose", "latin": "philtrun", "points": [
+        { "dx": 190, "dy":435 },
+        { "dx": 240, "dy":435 },
+        { "dx": 240, "dy":455 },
+        { "dx": 190, "dy":455 }]}},
+      { "zone": { "name": "right ear", "latin": "right auris", "points": [
+        { "dx":  70, "dy":320 },
+        { "dx": 110, "dy":320 },
+        { "dx": 110, "dy":435 },
+        { "dx":  90, "dy":435 },
+        { "dx":  70, "dy":415 }]}},
+      { "zone": { "name": "left ear", "latin": "left auris", "points": [
+        { "dx": 315, "dy":320 },
+        { "dx": 355, "dy":320 },
+        { "dx": 355, "dy":415 },
+        { "dx": 335, "dy":435 },
+        { "dx": 315, "dy":435 }]}},
+      {"zone":  { "name": "mouth", "latin": "os", "points": [
+        { "dx": 165, "dy":455 },
+        { "dx": 270, "dy":455 },
+        { "dx": 270, "dy":500 },
+        { "dx": 165, "dy":500 }]}},
+      { "zone": { "name": "chin", "latin": "mentum", "points": [
+        { "dx": 165, "dy":500 },
+        { "dx": 270, "dy":500 },
+        { "dx": 270, "dy":525 },
+        { "dx": 240, "dy":545 },
+        { "dx": 190, "dy":545 },
+        { "dx": 165, "dy":525 } ]}},
+      { "zone": { "name": "right jaw", "latin": "right mandible", "points": [
+        { "dx": 110, "dy":475 },
+        { "dx": 110, "dy":445 },
+        { "dx": 215, "dy":445 },
+        { "dx": 215, "dy":540 },
+        { "dx": 190, "dy":540 }]}},
+      { "zone": { "name": "left jaw", "latin": "left mandible", "points": [
+        { "dx": 215, "dy":445 },
+        { "dx": 320, "dy":445 },
+        { "dx": 320, "dy":475 },
+        { "dx": 240, "dy":540 },
+        { "dx": 215, "dy":540 }]}},
+      { "zone": { "name": "right cheek", "latin": "right bucca", "points": [
+        { "dx": 110, "dy":375 },
+        { "dx": 195, "dy":375 },
+        { "dx": 190,"dy": 445 },
+        { "dx": 110,"dy": 445 }]}},
+      { "zone": { "name": "left cheek", "latin": "left bucca", "points": [
+        { "dx": 235, "dy":375 },
+        { "dx": 320, "dy":375 },
+        { "dx": 320, "dy":445 },
+        { "dx": 240, "dy":445 } ]}},
+      { "zone": { "name": "wind pipe", "latin": "trachia", "points": [
+        { "dx": 190, "dy": 540 },
+        { "dx": 240, "dy": 540 },
+        { "dx": 240, "dy": 620 },
+        { "dx": 190, "dy": 620 }]}},
+      { "zone": { "name": "neck", "latin": "cervicis", "points": [
+        { "dx": 140, "dy": 500 },
+        { "dx": 215, "dy": 545 },
+        { "dx": 300, "dy": 495 },
+        { "dx": 315, "dy": 585 },
+        { "dx": 250, "dy": 625 },
+        { "dx": 180, "dy": 625 },
+        { "dx": 115, "dy": 590 }]}}
     ]
   },
   {

@@ -32,38 +32,73 @@ class _BodyMarkerModalState extends State<BodyMarkerModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(_currentMarker.name.toUpperCase()),
-            Row(children: [
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.happy]!.getIcon()),
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.content]!.getIcon()),
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.neutral]!.getIcon()),
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.dissatisfied]!.getIcon()),
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.sad]!.getIcon()),
-              IconButton(onPressed: (){Navigator.pop(context);}, icon: patientSentiments[Sentiment.stressed]!.getIcon())
-            ],),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.happy]!.getIcon(),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.content]!.getIcon(),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.neutral]!.getIcon(),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.dissatisfied]!.getIcon(),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.sad]!.getIcon(),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: patientSentiments[Sentiment.stressed]!.getIcon(),
+                ),
+              ],
+            ),
 
             // Text("Edit ${widget.initialMarker.bodyZone?.name}", style: Theme.of(context).textTheme.titleLarge),
-
             DropdownButton<VerbalSeverity>(
               isExpanded: true,
               value: _currentMarker.severity,
               // Increase itemHeight to accommodate two lines of text
               itemHeight: 70,
-              items: VerbalSeverity.values.map((s) => DropdownMenuItem(
-                value: s,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(
-                      severityExplanations[s]!,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2, // Ensures the text wraps
+              items: VerbalSeverity.values
+                  .map(
+                    (s) => DropdownMenuItem(
+                      value: s,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            severityExplanations[s]!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2, // Ensures the text wraps
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              )).toList(),
+                  )
+                  .toList(),
               onChanged: (val) => setState(() => _currentMarker = _updateMarker(severity: val)),
             ),
 
@@ -108,6 +143,7 @@ class _BodyMarkerModalState extends State<BodyMarkerModal> {
       medicalName: _currentMarker.medicalName,
       zoneMap: _currentMarker.zoneMap,
       severity: severity ?? _currentMarker.severity,
+      group: _currentMarker.group,
     );
   }
 }
