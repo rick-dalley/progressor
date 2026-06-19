@@ -9,8 +9,8 @@ import '../classes/triage.dart';
 import '../widgets/psychosis_assessment_widget.dart';
 import '../widgets/pulsing_chip.dart';
 import '../widgets/suicide_assessment_widget.dart';
+import 'assessment_screen.dart';
 import 'intake.dart';
-enum AssessmentType{toxidrome, psychosis, suicide, missing}
 
 class IncidentTriageScreen extends StatefulWidget {
   const IncidentTriageScreen({super.key});
@@ -20,7 +20,6 @@ class IncidentTriageScreen extends StatefulWidget {
 }
 
 class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
-
   void _launchIntakeScreen(BuildContext context) {
     Navigator.push(
       context,
@@ -56,16 +55,20 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
         children: [
           // 1. Quick Identity Header (Can be minimized or expanded)
           _buildIdentityHeader(context),
-          SizedBox(height: 16,),
-          Padding(padding: EdgeInsets.symmetric(horizontal: 16, ), child: PulsingChip(
-            iconData: AppTheme.acuityIcons[acuityLevel]!,
-            text: acuity != null ? "Acuity: ${acuity.statusName}" : "Acuity: pending",
-            textColor: AppTheme.lightTheme.disabledColor,
-            iconColor: AppTheme.acuityColors[acuityLevel],
-            backgroundColor: AppTheme.acuityBackgroundColors[acuityLevel],
-            pulse: acuityLevel == AcuityLevel.resuscitation,
-            shadowText: false, onTap: () {  },
-          ),),
+          SizedBox(height: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: PulsingChip(
+              iconData: AppTheme.acuityIcons[acuityLevel]!,
+              text: acuity != null ? "Acuity: ${acuity.statusName}" : "Acuity: pending",
+              textColor: AppTheme.lightTheme.disabledColor,
+              iconColor: AppTheme.acuityColors[acuityLevel],
+              backgroundColor: AppTheme.acuityBackgroundColors[acuityLevel],
+              pulse: acuityLevel == AcuityLevel.resuscitation,
+              shadowText: false,
+              onTap: () {},
+            ),
+          ),
 
           // 2. The Triage/Reason Selection Grid
           Expanded(
@@ -76,10 +79,62 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
               crossAxisSpacing: 16,
               childAspectRatio: 1.5,
               children: [
-                _buildReasonChip(context:context, title:"Toxidrome", icon:Symbols.mixture_med, color:Colors.red, assessment:AssessmentType.toxidrome),
-                _buildReasonChip(context:context,  title:"Psychotic Break",icon:Symbols.psychology, color:Colors.orange,assessment: AssessmentType.psychosis),
-                _buildReasonChip(context:context,  title:"Suicide Risk", icon:Symbols.skull, color:Colors.deepPurple, assessment:AssessmentType.suicide),
-                _buildReasonChip(context:context,  title:"Missing", icon:Symbols.flashlight_on, color:Colors.blue, assessment:AssessmentType.missing),
+                _buildReasonChip(
+                  context: context,
+                  title: "Toxidrome",
+                  icon: Symbols.mixture_med,
+                  color: Colors.teal,
+                  assessment: AssessmentType.toxidrome,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Psychotic Break",
+                  icon: Symbols.psychology,
+                  color: Colors.orange,
+                  assessment: AssessmentType.psychosis,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Suicide Risk",
+                  icon: Symbols.skull,
+                  color: Colors.black,
+                  assessment: AssessmentType.suicide,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Missing",
+                  icon: Symbols.flashlight_on,
+                  color: Colors.deepPurple,
+                  assessment: AssessmentType.missing,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Airway and Breathing",
+                  icon: Symbols.pulmonology,
+                  color: Colors.green,
+                  assessment: AssessmentType.breathing,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Circulation and Hemorrhage",
+                  icon: Symbols.hematology,
+                  color: Colors.red,
+                  assessment: AssessmentType.bleeding,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Consciousness",
+                  icon: Symbols.neurology,
+                  color: Colors.blue,
+                  assessment: AssessmentType.consciousness,
+                ),
+                _buildReasonChip(
+                  context: context,
+                  title: "Systemic and Environmental",
+                  icon: Symbols.body_system,
+                  color: Colors.brown,
+                  assessment: AssessmentType.systemic,
+                ),
               ],
             ),
           ),
@@ -115,11 +170,16 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
     );
   }
 
-  Widget _buildReasonChip({required BuildContext context, required String title, required IconData icon, required Color color, required AssessmentType assessment}) {
-
+  Widget _buildReasonChip({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required Color color,
+    required AssessmentType assessment,
+  }) {
     return ElevatedButton(
       onPressed: () {
-        switch(assessment){
+        switch (assessment) {
           case AssessmentType.toxidrome:
             _showAssessmentModal(context, ToxidromeAssessmentWidget());
           case AssessmentType.psychosis:
@@ -128,6 +188,14 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
             _showAssessmentModal(context, SuicideAssessmentWidget(subjectName: ""));
           case AssessmentType.missing:
             _showAssessmentModal(context, MissingPersonCaptureScreen());
+          case AssessmentType.breathing:
+            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.breathing));
+          case AssessmentType.bleeding:
+            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.bleeding));
+          case AssessmentType.consciousness:
+            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.consciousness));
+          case AssessmentType.systemic:
+            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.systemic));
         }
       },
       style: ElevatedButton.styleFrom(
@@ -149,45 +217,24 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
   void _handleAnonymousCapture(BuildContext context) {
     // Quick camera logic would go here
   }
+
   // Add this variable to your State to track the modal
   BuildContext? _modalContext;
 
   void _showAssessmentModal(BuildContext context, Widget assessmentWidget) {
+    // If a modal is open, close it before pushing the new route
     if (_modalContext != null) {
       Navigator.pop(_modalContext!);
+      _modalContext = null;
     }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    // Push as a full-screen dialog route
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(body: assessmentWidget),
+        fullscreenDialog: true, // This gives you the slide-up modal behavior
       ),
-      builder: (BuildContext modalContext) {
-        _modalContext = modalContext;
-
-        // The DraggableScrollableSheet acts as the container
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.4,
-          maxChildSize: 0.95,
-          expand: false, // Essential: prevents it from trying to fill the whole screen
-          builder: (_, scrollController) {
-            // Wrap your content here
-            return Container(
-              color: Theme.of(modalContext).scaffoldBackgroundColor,
-              child: ListView( // Or SingleChildScrollView
-                controller: scrollController, // Pass the controller here
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  assessmentWidget,
-                ],
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(() => _modalContext = null);
+    );
   }
 }

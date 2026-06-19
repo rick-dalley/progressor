@@ -17,18 +17,12 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
     super.initState();
 
     // 1. Setup the "Triage" slide animation
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 5), // Starts well below the screen
-      end: Offset.zero,          // Ends at its natural position
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+      end: Offset.zero, // Ends at its natural position
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _initializeSystem();
   }
@@ -62,7 +56,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "LUMINESCA",
+              "CWICare",
               style: TextStyle(
                 color: AppTheme.deepLogicViolet,
                 fontSize: 32,
@@ -70,11 +64,12 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
                 letterSpacing: 4,
               ),
             ),
-            ClipRect( // Ensures the text only appears as it slides into the frame
+            ClipRect(
+              // Ensures the text only appears as it slides into the frame
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Text(
-                  "TRIAGE",
+                  "ACUITAGE",
                   style: TextStyle(
                     color: AppTheme.clinicalCyan, // Your brand action color
                     fontSize: 16,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/database_manager.dart';
-import 'package:triage/screens/assessment_screen.dart';
+import 'package:triage/screens/observations_screen.dart';
 import 'package:triage/screens/physical_health.dart';
 
 import '../app_theme.dart';
@@ -154,7 +154,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       'assets/questions/phq9_score_guide.json',
                       completed["PHQ-9"] ?? false,
                       // The builder signature must match (String, dynamic, ScrollController)
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -173,7 +173,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "gad-7.json",
                       'assets/questions/gad7_score_guide.json',
                       completed["GAD-7"] ?? false,
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -192,7 +192,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "c-ssrs.json",
                       null,
                       completed["C-SSRS"] ?? false,
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -211,7 +211,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "dast-10.json",
                       'assets/questions/dast10_score_guide.json',
                       completed["DAST-10"] ?? false,
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -230,7 +230,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "asrs.json",
                       'assets/questions/asrs_score_guide.json',
                       completed["ASRS-V1.1"] ?? false,
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -249,7 +249,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       "pcl-5.json",
                       'assets/questions/pcl5_score_guide.json',
                       completed["PCL-5"] ?? false,
-                      (assessmentId, data, ctrl) => StandardizedAssessmentScreen(
+                      (assessmentId, data, ctrl) => QuestionnaireSelectorScreen(
                         assessmentId: data["assessmentId"],
                         patientUuid: data["patientUuid"],
                         scoreGuidePath: data["scoreGuidePath"],
@@ -473,20 +473,13 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                       Container(
                         width: 40,
                         height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
                       ),
                       // ✅ Unified Top-Right Dismiss Button
                       Align(
                         alignment: Alignment.centerRight,
                         child: IconButton(
-                          icon: const Icon(
-                            Icons.close,
-                            color: Colors.grey,
-                            size: 22,
-                          ),
+                          icon: const Icon(Icons.close, color: Colors.grey, size: 22),
                           onPressed: () => Navigator.pop(context, false),
                         ),
                       ),
@@ -496,10 +489,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                 const SizedBox(height: 4),
                 Expanded(
                   // ✅ Pass the controller into the screen
-                  child: ObservationScreen(
-                    patientUuid: widget.patientUuid,
-                    scrollController: scrollController,
-                  ),
+                  child: ObservationScreen(patientUuid: widget.patientUuid, scrollController: scrollController),
                 ),
               ],
             ),

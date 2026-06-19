@@ -8,7 +8,7 @@ import '../classes/database_manager.dart';
 import '../classes/patient.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
-import 'assessments.dart';
+import 'questionnaires.dart';
 import 'encounter_screen.dart';
 import 'meds.dart';
 
@@ -46,7 +46,7 @@ class PatientRosterState extends State<PatientRoster> {
     });
   }
 
-  void updatePatient({required int index, required Patient patient}){
+  void updatePatient({required int index, required Patient patient}) {
     setState(() {
       _patients[index] = patient;
     });
@@ -125,96 +125,94 @@ class PatientRosterState extends State<PatientRoster> {
                       // Add this to your decoration
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = ""; // Reset the query
-                            _searchController.clear();
-                          });
-                        },
-                      )
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _searchQuery = ""; // Reset the query
+                                  _searchController.clear();
+                                });
+                              },
+                            )
                           : null, // No icon if the field is empty
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onChanged: (value) {
                       setState(() {
                         _searchQuery = value;
                       });
                     },
-                  )
+                  ),
                 ),
               ],
             ),
           ),
-          Expanded(child:
-          filteredPatients.isEmpty
-              ? const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
-            ),
-          )
-              : ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 80),
-            // Added top padding for breathing room
-            itemCount: filteredPatients.length,
-            itemBuilder: (context, index) {
-              return FlippableCardController(
-                height: 352,
-                front: PatientMedicalCard(
-                  patient: filteredPatients[index],
-                  onPatientUpdate: ({required Patient patient}) {
-                    updatePatient(index: index, patient: patient);
-                  },
-                  onVitalsUpdate: ({required Patient patient}) {
-                    updatePatient(index: index, patient: patient);
-                  },
-                ),
-                back: PatientInformationCard(
-                  patient: filteredPatients[index],
-                  onInterviewTap: () => _launchInterviewModal(context, index),
-                  onAssessmentsTap: () => _showAssessmentsMenu(context, filteredPatients[index].patientUuid),
-                  onMedsTap: () async {
-                    final Map<String, dynamic>? result = await showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      useSafeArea: true,
-                      showDragHandle: true,
-                      builder: (context) => MedicationScreen(patient: filteredPatients[index]),
-                    );
+          Expanded(
+            child: filteredPatients.isEmpty
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(top: 8, bottom: 80),
+                    // Added top padding for breathing room
+                    itemCount: filteredPatients.length,
+                    itemBuilder: (context, index) {
+                      return FlippableCardController(
+                        height: 352,
+                        front: PatientMedicalCard(
+                          patient: filteredPatients[index],
+                          onPatientUpdate: ({required Patient patient}) {
+                            updatePatient(index: index, patient: patient);
+                          },
+                          onVitalsUpdate: ({required Patient patient}) {
+                            updatePatient(index: index, patient: patient);
+                          },
+                        ),
+                        back: PatientInformationCard(
+                          patient: filteredPatients[index],
+                          onInterviewTap: () => _launchInterviewModal(context, index),
+                          onAssessmentsTap: () => _showAssessmentsMenu(context, filteredPatients[index].patientUuid),
+                          onMedsTap: () async {
+                            final Map<String, dynamic>? result = await showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              showDragHandle: true,
+                              builder: (context) => MedicationScreen(patient: filteredPatients[index]),
+                            );
 
-                    if (result != null) {
-                      setState(() {
-                        // Create the writable copy to avoid read-only errors
-                        Patient updatedPatient = filteredPatients[index];
-                        // Map the returned values to our flat patient structure
-                        updatedPatient.medications = result['medications'];
-                        updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
-                        filteredPatients[index] = updatedPatient;
-                      });
-                    }
-                  },
-                  onPoliceTap: () async {
-                    // 1. Navigate and WAIT for the signal from the Save button
-                    final int? reportCount = await Navigator.push<int>(
-                      context,
-                      MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-                    );
+                            if (result != null) {
+                              setState(() {
+                                // Create the writable copy to avoid read-only errors
+                                Patient updatedPatient = filteredPatients[index];
+                                // Map the returned values to our flat patient structure
+                                updatedPatient.medications = result['medications'];
+                                updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
+                                filteredPatients[index] = updatedPatient;
+                              });
+                            }
+                          },
+                          onPoliceTap: () async {
+                            // 1. Navigate and WAIT for the signal from the Save button
+                            final int? reportCount = await Navigator.push<int>(
+                              context,
+                              MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
+                            );
 
-                    // 2. If the user hit "Save" (which returns true)
-                    // Use a standard null check instead of the ! operator
-                    if (reportCount != null && reportCount > 0) {
-                      setState(() {
-                        filteredPatients[index].policeReports = reportCount;
-                      });
-                    }
-                  },
-                ),
-              );
-            },
+                            // 2. If the user hit "Save" (which returns true)
+                            // Use a standard null check instead of the ! operator
+                            if (reportCount != null && reportCount > 0) {
+                              setState(() {
+                                filteredPatients[index].policeReports = reportCount;
+                              });
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
           ),
-          )
         ],
       ),
 

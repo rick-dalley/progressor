@@ -1,0 +1,47 @@
+{
+  "breathing_root": {
+    "question": "Is the patient showing signs of respiratory distress (e.g., accessory muscle use, tripod position)?",
+    "meta": {
+      "acuity_impact": 2.0,
+      "diagnosis": "Signs of Respiratory Compromise",
+      "steps": "Ensure airway patency; monitor SpO2."
+    },
+    "options": [
+      {
+        "label": "Yes",
+        "next": "breathing_severe"
+      },
+      {
+        "label": "No",
+        "next": "breathing_stable"
+      }
+    ]
+  },
+  "breathing_severe": {
+    "question": "Are lung sounds diminished or absent?",
+    "meta": {
+      "acuity_impact": 5.0,
+      "diagnosis": "Potential Pneumothorax or Severe Obstruction",
+      "steps": "Prepare for rapid transport; consider needle decompression if tension pneumo suspected."
+    },
+    "options": [
+      {
+        "label": "Yes",
+        "next": "terminal_critical"
+      },
+      {
+        "label": "No",
+        "next": "breathing_assessment_continue"
+      }
+    ]
+  },
+  "terminal_critical": {
+    "question": "Assessment Complete: Immediate Action Required.",
+    "meta": {
+      "acuity_impact": 10.0,
+      "diagnosis": "Life-Threatening Respiratory Failure",
+      "steps": "High-flow O2, prepare for intubation, immediate transport."
+    },
+    "options": []
+  }
+}
