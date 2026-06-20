@@ -1,4 +1,4 @@
-{
+[{
   "breathing_root": {
     "question": "Is the patient showing signs of respiratory distress (e.g., accessory muscle use, tripod position)?",
     "meta": {
@@ -44,4 +44,8 @@
     },
     "options": []
   }
-}
+},
+  {
+    "toxidrome_root":"Salivation, Lacrimation, Urination, Defecation, GI, Emesis."
+  }
+]

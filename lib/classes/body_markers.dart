@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:triage/classes/database_manager.dart';
 import 'package:triage/classes/date_time_utilities.dart';
+import 'package:triage/classes/patient_sentiment.dart';
 import 'package:triage/classes/template_text.dart';
 
 import 'body_zone.dart';
@@ -41,8 +42,6 @@ enum VerbalSeverity {
 enum Frequency { cyclical, chronic, acute }
 
 enum Nature { stinging, penetrating, dull, throbbing, achy, nagging, gnawing, sharp }
-
-enum Sentiment { happy, content, neutral, dissatisfied, sad, stressed }
 
 typedef Chips = List<TemplateText>;
 

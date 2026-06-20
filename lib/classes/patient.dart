@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
 import 'package:triage/classes/body_markers.dart';
+import 'package:triage/classes/patient_sentiment.dart';
 import 'package:triage/classes/vitals.dart';
 
 import 'database_manager.dart';
@@ -103,7 +104,6 @@ class Patient {
     this.isAWOL = false,
   });
 
-
   factory Patient.fromJson(Map<String, dynamic> item) {
     final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
     final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max: 95);
@@ -184,53 +184,53 @@ class Patient {
       //'Partner',
       narrativeHint: item['narrative_hint'] ?? "", //'Maecenas ut massa ...
       sentiment: sentiment,
-      eyeColor: "brown",//item["eye_color"],
+      eyeColor: "brown", //item["eye_color"],
     );
   }
-  factory Patient.copy({required Patient patient}){
+  factory Patient.copy({required Patient patient}) {
     return Patient(
-    patientUuid: patient.patientUuid,
-    firstName: patient.firstName,
-    lastName: patient.lastName,
-    phn: patient.phn,
-    phaseStepId: patient.phaseStepId,
-    email: patient.email,
-    ssn:patient.ssn,
-    title: patient.title,
-    city: patient.city,
-    country: patient.country,
-    streetAddress: patient.streetAddress,
-    state: patient.state,
-    postalCode: patient.postalCode,
-    dob: patient.dob,
-    admitted: patient.admitted,
-    acuityLevel: patient.acuityLevel,
-    policeReports: patient.policeReports,
-    assessments: patient.assessments,
-    medications: patient.medications,
-    medicationSafetyAudit: patient.medicationSafetyAudit,
-    status: patient.status,
-    path: patient.path,
-    flags: patient.flags,
-    phone: patient.phone,
-    familyDoctorPhone: patient.familyDoctorPhone,
-    contactPhone: patient.contactPhone,
-    pharmacyPhone: patient.pharmacyPhone,
-    pharmacyFax: patient.pharmacyFax,
-    familyDoctorName: patient.familyDoctorName,
-    contactName: patient.contactName,
-    relation: patient.relation,
-    height: patient.height,
-    weight: patient.weight,
-    age: patient.age,
-    vitals: patient.vitals,
-    narrativeHint: patient.narrativeHint,
+      patientUuid: patient.patientUuid,
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      phn: patient.phn,
+      phaseStepId: patient.phaseStepId,
+      email: patient.email,
+      ssn: patient.ssn,
+      title: patient.title,
+      city: patient.city,
+      country: patient.country,
+      streetAddress: patient.streetAddress,
+      state: patient.state,
+      postalCode: patient.postalCode,
+      dob: patient.dob,
+      admitted: patient.admitted,
+      acuityLevel: patient.acuityLevel,
+      policeReports: patient.policeReports,
+      assessments: patient.assessments,
+      medications: patient.medications,
+      medicationSafetyAudit: patient.medicationSafetyAudit,
+      status: patient.status,
+      path: patient.path,
+      flags: patient.flags,
+      phone: patient.phone,
+      familyDoctorPhone: patient.familyDoctorPhone,
+      contactPhone: patient.contactPhone,
+      pharmacyPhone: patient.pharmacyPhone,
+      pharmacyFax: patient.pharmacyFax,
+      familyDoctorName: patient.familyDoctorName,
+      contactName: patient.contactName,
+      relation: patient.relation,
+      height: patient.height,
+      weight: patient.weight,
+      age: patient.age,
+      vitals: patient.vitals,
+      narrativeHint: patient.narrativeHint,
       eyeColor: "brown",
     );
   }
 
   Patient copyWithAcuity({required Patient oldPatient, required AcuityLevel acuityLevel}) {
-    Patient patient = Patient.copy(patient:oldPatient);
+    Patient patient = Patient.copy(patient: oldPatient);
     patient.acuityLevel = acuityLevel;
     return patient;
   }
@@ -253,7 +253,13 @@ class PatientController extends ChangeNotifier {
 
     try {
       // await _db.insertAcuity(patientUuid: patient.patientUuid, acuity: newAcuity, rationale: rationale);
-      await DatabaseManager().insertAcuity(patientUuid: patient.patientUuid, acuityLevel: newAcuity.level, rationale: rationale, encounterId: '', setBu: '');
+      await DatabaseManager().insertAcuity(
+        patientUuid: patient.patientUuid,
+        acuityLevel: newAcuity.level,
+        rationale: rationale,
+        encounterId: '',
+        setBu: '',
+      );
       patient.acuityLevel = newAcuity.level;
     } catch (e) {
       // Handle or re-throw error if needed

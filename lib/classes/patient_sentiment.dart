@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import 'body_markers.dart';
+enum Sentiment { happy, content, neutral, dissatisfied, sad, stressed }
 
 class PatientSentiment {
   final IconData iconData;
@@ -25,14 +24,6 @@ Map<Sentiment, PatientSentiment> patientSentiments = {
     color: Colors.purpleAccent,
     diameter: 32,
   ),
-  Sentiment.sad: PatientSentiment(
-    iconData: Symbols.sentiment_sad,
-    color:Colors.orange,
-    diameter: 32,
-  ),
-  Sentiment.stressed: PatientSentiment(
-    iconData: Symbols.sentiment_stressed,
-    color: Colors.red.shade900,
-    diameter: 32,
-  ),
+  Sentiment.sad: PatientSentiment(iconData: Symbols.sentiment_sad, color: Colors.orange, diameter: 32),
+  Sentiment.stressed: PatientSentiment(iconData: Symbols.sentiment_stressed, color: Colors.red.shade900, diameter: 32),
 };

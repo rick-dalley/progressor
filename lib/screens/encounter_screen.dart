@@ -215,7 +215,17 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
   }
 
   void _handleAnonymousCapture(BuildContext context) {
-    // Quick camera logic would go here
+    if (_modalContext != null) {
+      Navigator.pop(_modalContext!);
+      _modalContext = null;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(body: IntakeScreen()),
+        fullscreenDialog: false, // This gives you the slide-up modal behavior
+      ),
+    );
   }
 
   // Add this variable to your State to track the modal

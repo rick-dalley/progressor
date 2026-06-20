@@ -6,6 +6,7 @@ import '../app_theme.dart';
 import '../classes/body_markers.dart';
 import '../classes/body_zone.dart';
 import '../classes/patient.dart';
+import '../classes/patient_sentiment.dart';
 import '../widgets/body_marker_modal.dart';
 
 enum FlipDirection { none, flipX, flipY, flipXY }
