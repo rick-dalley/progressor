@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/acuity.dart';
-import 'package:triage/screens/missing_person_screen.dart';
-import 'package:triage/widgets/toxidrome_test_widget.dart';
+import 'package:triage/classes/scanned_data.dart';
 
 import '../app_theme.dart';
 import '../classes/triage.dart';
-import '../widgets/psychosis_assessment_widget.dart';
 import '../widgets/pulsing_chip.dart';
-import '../widgets/suicide_assessment_widget.dart';
 import 'assessment_screen.dart';
 import 'intake.dart';
 
@@ -20,6 +17,8 @@ class IncidentTriageScreen extends StatefulWidget {
 }
 
 class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
+  late ScannedData scannedData = ScannedData();
+
   void _launchIntakeScreen(BuildContext context) {
     Navigator.push(
       context,
@@ -40,6 +39,21 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    scannedData.firstName = 'John';
+    scannedData.lastName = 'Doe';
+    scannedData.phn = 'unidentified';
+    scannedData.dob = '';
+  }
+
+  void onScannedData(ScannedData data) {
+    setState(() {
+      scannedData = data;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     AcuityLevel acuityLevel = AcuityLevel.notUrgent;
     Acuity? acuity = AcuityFactory.instance.getAcuity(level: acuityLevel);
@@ -51,10 +65,24 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
           IconButton(icon: const Icon(Icons.camera_alt), onPressed: () => _handleAnonymousCapture(context)),
         ],
       ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton.icon(
+          onPressed: () =>
+              _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.esi)), // Or a custom 'unknown' type
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.deepLogicViolet,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+          ),
+          icon: const Icon(Symbols.emergency, size: 32),
+          label: const Text("START NEUTRAL TRIAGE", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ),
+      ),
       body: Column(
         children: [
           // 1. Quick Identity Header (Can be minimized or expanded)
-          _buildIdentityHeader(context),
+          _buildIdentityHeader(context, scannedData),
           SizedBox(height: 16),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -143,7 +171,7 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
     );
   }
 
-  Widget _buildIdentityHeader(BuildContext context) {
+  Widget _buildIdentityHeader(BuildContext context, ScannedData data) {
     return Container(
       color: Colors.grey[200],
       padding: const EdgeInsets.all(12),
@@ -151,11 +179,17 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
         children: [
           const CircleAvatar(child: Icon(Icons.person_outline)),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Subject: John Doe", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text("Status: Unidentified", style: TextStyle(fontSize: 12)),
+              Text("Subject: ${data.firstName} ${data.lastName}", style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Text("PHN: ${data.phn}", style: TextStyle(fontSize: 12)),
+                  SizedBox(width: 32),
+                  Text("DOB:${data.dob}", style: TextStyle(fontSize: 12)),
+                ],
+              ),
             ],
           ),
           const Spacer(),
@@ -179,24 +213,7 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
   }) {
     return ElevatedButton(
       onPressed: () {
-        switch (assessment) {
-          case AssessmentType.toxidrome:
-            _showAssessmentModal(context, ToxidromeAssessmentWidget());
-          case AssessmentType.psychosis:
-            _showAssessmentModal(context, PsychosisAssessmentWidget(subjectName: "subject"));
-          case AssessmentType.suicide:
-            _showAssessmentModal(context, SuicideAssessmentWidget(subjectName: ""));
-          case AssessmentType.missing:
-            _showAssessmentModal(context, MissingPersonCaptureScreen());
-          case AssessmentType.breathing:
-            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.breathing));
-          case AssessmentType.bleeding:
-            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.bleeding));
-          case AssessmentType.consciousness:
-            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.consciousness));
-          case AssessmentType.systemic:
-            _showAssessmentModal(context, AssessmentScreen(type: AssessmentType.systemic));
-        }
+        _showAssessmentModal(context, AssessmentScreen(type: assessment));
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withValues(alpha: 0.1),
@@ -222,7 +239,7 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(body: IntakeScreen()),
+        builder: (context) => Scaffold(body: IntakeScreen(onScannedData: onScannedData)),
         fullscreenDialog: false, // This gives you the slide-up modal behavior
       ),
     );

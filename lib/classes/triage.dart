@@ -48,7 +48,7 @@ extension SeverityDescription on Severity {
       case Severity.mild:
         return "Very mild, barely noticeable; you don't think about it most of the time.";
       case Severity.minor:
-        return "Minor pain, annoying; may have occasional sharp twinges or twinges.";
+        return "Minor pain, annoying; may have occasional sharp twinges.";
       case Severity.distracting:
         return "Noticeable and distracting; however, you can adapt and get used to it.";
       case Severity.moderate:
@@ -94,9 +94,9 @@ extension OldCartsMapper on OldCarts {
   }
 }
 
-enum AssessmentType { toxidrome, psychosis, suicide, missing, breathing, bleeding, consciousness, systemic }
+enum AssessmentType { toxidrome, psychosis, suicide, missing, breathing, bleeding, consciousness, systemic, esi }
 
-extension AssessmentTypeMapper on AssessmentType {
+extension MapToRoot on AssessmentType {
   String get rootNodeId {
     switch (this) {
       case AssessmentType.toxidrome:
@@ -115,6 +115,33 @@ extension AssessmentTypeMapper on AssessmentType {
         return "neuro_root";
       case AssessmentType.systemic:
         return "systemic_root";
+      case AssessmentType.esi:
+        return "esi_root";
+    }
+  }
+}
+
+extension RequiresData on AssessmentType {
+  bool get needsData {
+    switch (this) {
+      case AssessmentType.toxidrome:
+        return false;
+      case AssessmentType.psychosis:
+        return false;
+      case AssessmentType.suicide:
+        return false;
+      case AssessmentType.missing:
+        return false;
+      case AssessmentType.breathing:
+        return true;
+      case AssessmentType.bleeding:
+        return true;
+      case AssessmentType.consciousness:
+        return true;
+      case AssessmentType.systemic:
+        return true;
+      case AssessmentType.esi:
+        return true;
     }
   }
 }
@@ -227,51 +254,53 @@ class Triage {
   }
 }
 
-class ESIQuestions {
-  List<String> questions = [];
-  ESIQuestions();
-  void addQuestions() {
-    questions.add(
-      "1. Does the patient need immediate life-saving help?The nurse looks at the patient right away to see if they are dying or need immediate rescue. ",
-    );
-    questions.add("[1]Questions they ask themselves: ");
-    questions.add("Is the airway open? ");
-    questions.add("Is the patient breathing? ");
-    questions.add("Do they have a pulse? ");
-    questions.add("Are they unconscious? ");
-    questions.add("[1]Result: If yes, the patient is Level 1 (Resuscitation). ");
-    questions.add("[1] This includes people with stopped hearts or severe gunshot wounds.");
-    questions.add("2. Is this a high-risk situation?");
-    questions.add("If the patient is stable but could get worse very fast, they are looked at next. ");
-    questions.add("[1]Questions they ask: Is the patient confused or disoriented? ");
-    questions.add("Are they in severe pain? Are they having chest pain that feels like a heart attack? ");
-    questions.add("[1]Result: If yes, the patient is Level 2 (Emergent). ");
-    questions.add("[1] These patients need to see a doctor within minutes.");
-    questions.add("3. How many hospital resources will this patient need?");
-    questions.add(
-      "For patients who are stable, the nurse counts how many tests or treatments the person will need before going home. ",
-    );
-    questions.add(
-      "[1]Questions they ask: Will this person need blood tests, X-rays, intravenous (IV) fluids, or stitches? ",
-    );
-    questions.add("[1]Result:Level 3 (Urgent): Needs two or more resources (like blood tests and a CT scan). ");
-    questions.add("[1] The nurse will also check their vital signs here. ");
-    questions.add("If their heart rate or breathing is too fast, they might move up to Level 2. ");
-    questions.add(
-      "[1]Level 4 (Less Urgent): Needs only one resource (like a single X-ray for a broken finger, or just stitches). ",
-    );
-    questions.add(
-      "[1]Level 5 (Non-Urgent): Needs no resources (like a prescription refill or a simple rash check). [1]",
-    );
-  }
-}
+Map<String, String> answers = {
+  ".ptrn": "The symptoms follow a pattern",
+  ".cnst": "The pain is constant",
+  ".h": "An hour ago",
+  ".h?": "? hours ago",
+  ".m": "a minute ago",
+  ".m?": "? minutes ago",
+  ".nbr": "not breathing",
+  ".np": "no pulse",
+  ".wp": "weak pulse",
+  ".hr?": "pluse rate is ?",
+  ".rr?": "respiratory rate is ?",
+  ".bp??": "blood pressure is ? over ?",
+  ".t?": "temperature is ?",
+  ".unc": "unconscious",
+  ".pin": "pinpoint pupils",
+  ".dil": "dilated pupils",
+  ".sa": "suicide attempt",
+  ".pn?": "pain severity is ?",
+  ".stom": "pain is in my stomach",
+  ".chst": "pain is in my chest",
+  ".fnt": "fainted",
+  ".syn": "syncope",
+  ".del": "delirium",
+  ".lth": "lethargic, the patient is drowsy but easily roused",
+  ".ob": "obtunded, the patient is in a deeper sleep and needs a loud voice or shake to rouse them",
+  "st": "stupor. the patient is unresponsive",
+  "cm": "the patient is unconscious and cannot be roused",
+};
 
 Map<String, SuggestedQuestion> suggestedQuestions = {
+  ".ptrn": SuggestedQuestion(oldCarts: OldCarts.timing, text: "Does the symptom follow a pattern?"),
+  ".recr": SuggestedQuestion(
+    oldCarts: OldCarts.timing,
+    text: " Is it constant (always present) or intermittent (comes and goes)?",
+  ),
   ".when": SuggestedQuestion(oldCarts: OldCarts.onset, text: "When did the symptoms start?"),
+  ".hs": SuggestedQuestion(oldCarts: OldCarts.onset, text: "Was it sudden or gradual?"),
   ".loc": SuggestedQuestion(oldCarts: OldCarts.location, text: "Where does it hurt?"),
-  ".dur": SuggestedQuestion(
-    oldCarts: OldCarts.duration,
-    text: "How long has the subject been experiencing these symptoms?",
+  ".locx": SuggestedQuestion(oldCarts: OldCarts.location, text: "Where exactly is the symptom located?"),
+  ".lspr": SuggestedQuestion(oldCarts: OldCarts.location, text: "Does it spread to anywhere else?"),
+
+  ".dur": SuggestedQuestion(oldCarts: OldCarts.duration, text: "How long have you been experiencing these symptoms?"),
+  ".last": SuggestedQuestion(oldCarts: OldCarts.duration, text: "Does it last seconds, minutes, or hours?"),
+  ".desc": SuggestedQuestion(
+    oldCarts: OldCarts.characteristic,
+    text: "How does the patient describe the feeling? (e.g., sharp, dull, aching, throbbing, burning)",
   ),
   ".breth": SuggestedQuestion(
     oldCarts: OldCarts.severity,
@@ -280,6 +309,14 @@ Map<String, SuggestedQuestion> suggestedQuestions = {
   ".diz": SuggestedQuestion(
     oldCarts: OldCarts.severity,
     text: "Have you fainted, felt severely dizzy, or lost consciousness?",
+  ),
+  ".ewrs": SuggestedQuestion(
+    oldCarts: OldCarts.aggravator,
+    text: "What activities or environments make the symptom worse? ",
+  ),
+  ".trd": SuggestedQuestion(
+    oldCarts: OldCarts.reliever,
+    text: "Have you tried any medications, treatments, or positions that provided relief?",
   ),
   ".nm": SuggestedQuestion(oldCarts: OldCarts.characteristic, text: "What is the subject's name?"),
   ".pls": SuggestedQuestion(oldCarts: OldCarts.characteristic, text: "Have you checked the pulse?"),

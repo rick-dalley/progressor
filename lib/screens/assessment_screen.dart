@@ -7,8 +7,12 @@ import '../classes/assessment_session.dart';
 import '../classes/triage.dart';
 import '../widgets/assessment_wizard.dart';
 import '../widgets/command_wizard_bar.dart';
+import '../widgets/psychosis_assessment_widget.dart';
+import '../widgets/suicide_assessment_widget.dart';
+import '../widgets/toxidrome_test_widget.dart';
 import '../widgets/triage_dagnostic_canvas.dart';
 import '../widgets/triage_history_drawer.dart';
+import 'missing_person_screen.dart';
 
 class CurrentNodeContent extends StatelessWidget {
   final Map<String, dynamic> nodeData;
@@ -49,48 +53,33 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
   void initState() {
     super.initState();
     _session = AssessmentSession();
-
     // Load data then initialize the wizard
-    _loadTriageJson().then((data) {
+    if (widget.type.needsData) {
+      _loadTriageJson().then((data) {
+        setState(() {
+          triageJSON = data;
+          _wizard = AssessmentWizard(triageFlow: data, currentNodeId: widget.type.rootNodeId);
+          isLoading = false;
+        });
+      });
+    } else {
       setState(() {
-        triageJSON = data;
-        _wizard = AssessmentWizard(triageFlow: data, currentNodeId: _getRootForType(widget.type));
         isLoading = false;
       });
-    });
-  }
-
-  String _getRootForType(AssessmentType type) {
-    switch (type) {
-      case AssessmentType.toxidrome:
-        return "toxidrome_root";
-      case AssessmentType.psychosis:
-        return "psychosis_root";
-      case AssessmentType.suicide:
-        return "suicide_root";
-      case AssessmentType.missing:
-        return "missing_root";
-      case AssessmentType.breathing:
-        return "breathing_root";
-      case AssessmentType.bleeding:
-        return "hemorrhage_root";
-      case AssessmentType.consciousness:
-        return "neuro_root";
-      case AssessmentType.systemic:
-        return "systemic_root";
     }
   }
 
   // 2. Implementation to load the JSON
   Future<Map<String, dynamic>> _loadTriageJson() async {
     final String response = await rootBundle.loadString('assets/assessment/triage.json');
-    return json.decode(response) as Map<String, dynamic>;
+    final decodedJSON = json.decode(response) as List<dynamic>;
+    return decodedJSON[widget.type.index] as Map<String, dynamic>;
   }
 
   // Inside AssessmentScreen build method
   @override
   Widget build(BuildContext context) {
-    if (isLoading || _wizard == null) {
+    if (isLoading || (widget.type.needsData && _wizard == null)) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -110,19 +99,31 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         child: Column(
           children: [
             Expanded(flex: 2, child: DiagnosticCanvas(session: _session)),
-            Expanded(
-              flex: 1,
-              child: CommandWizardBar(
-                wizard: _wizard!,
-                onAdvance: (label) => setState(() {
-                  _wizard!.advance(label);
-                  _session.processNodeResponse(_wizard!.currentNode['meta']);
-                }),
-                onBack: () => setState(() => _wizard!.goBack()),
-              ),
-            ),
+            if (widget.type == AssessmentType.toxidrome) ToxidromeAssessmentWidget(),
+            if (widget.type == AssessmentType.psychosis) PsychosisAssessmentWidget(subjectName: "subject"),
+            if (widget.type == AssessmentType.suicide) SuicideAssessmentWidget(subjectName: ""),
+            if (widget.type == AssessmentType.missing) MissingPersonCaptureScreen(),
+            if (widget.type == AssessmentType.breathing) buildExpandedAssessmentWidget(),
+            if (widget.type == AssessmentType.bleeding) buildExpandedAssessmentWidget(),
+            if (widget.type == AssessmentType.consciousness) buildExpandedAssessmentWidget(),
+            if (widget.type == AssessmentType.systemic) buildExpandedAssessmentWidget(),
+            if (widget.type == AssessmentType.esi) buildExpandedAssessmentWidget(),
           ],
         ),
+      ),
+    );
+  }
+
+  Expanded buildExpandedAssessmentWidget() {
+    return Expanded(
+      flex: 1,
+      child: CommandWizardBar(
+        wizard: _wizard!,
+        onAdvance: (label) => setState(() {
+          _wizard!.advance(label);
+          _session.processNodeResponse(_wizard!.currentNode['meta']);
+        }),
+        onBack: () => setState(() => _wizard!.goBack()),
       ),
     );
   }

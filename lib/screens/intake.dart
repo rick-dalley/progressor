@@ -4,33 +4,30 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:triage/classes/scanned_data.dart';
 import 'package:triage/widgets/scanner_widget.dart';
 
 import '../app_theme.dart';
 import '../widgets/text_scanner.dart';
 
 class IntakeScreen extends StatefulWidget {
-  final String? frontOfId;
-  final String? backOfId;
-  const IntakeScreen({super.key, this.backOfId, this.frontOfId});
+  final bool? isSimulation;
+  final Function(ScannedData data)? onScannedData;
+  const IntakeScreen({super.key, this.isSimulation, this.onScannedData});
 
   @override
   IntakeScreenState createState() => IntakeScreenState();
 }
 
 class IntakeScreenState extends State<IntakeScreen> {
-  late String? frontOfId = widget.frontOfId ?? 'assets/screen_captures/license_front.png';
-  late String? backOfId = widget.backOfId ?? 'assets/screen_captures/license_back.png';
+  late String frontOfId = 'assets/screen_captures/license_front.png';
+  late String backOfId = 'assets/screen_captures/license_back.png';
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phnController = TextEditingController();
   final _dobController = TextEditingController();
-
-  bool _isScanningFront = false; // Is the camera/scanner active right now?
-  bool _isScanningBack = false;
-  bool _frontAttached = false; // New: track front completion
-  bool _backAttached = false; // New: track back completion
-  bool _isSimulator = false;
+  late ScannedData scannedData = ScannedData();
+  late bool _isSimulator = widget.isSimulation ?? false;
 
   @override
   void initState() {
@@ -71,6 +68,10 @@ class IntakeScreenState extends State<IntakeScreen> {
             _firstNameController.text = lines[i + 1].trim().toUpperCase();
           }
         }
+        scannedData.firstName = _firstNameController.text;
+        scannedData.lastName = _lastNameController.text;
+        scannedData.phn = _phnController.text;
+        scannedData.dob = _dobController.text;
       }
     });
   }
@@ -112,7 +113,12 @@ class IntakeScreenState extends State<IntakeScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          if (widget.onScannedData != null) {
+                            widget.onScannedData!(scannedData);
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           fixedSize: const Size.fromHeight(50),
                           backgroundColor: AppTheme.deepLogicViolet,

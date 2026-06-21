@@ -1,51 +1,209 @@
-[{
-  "breathing_root": {
-    "question": "Is the patient showing signs of respiratory distress (e.g., accessory muscle use, tripod position)?",
-    "meta": {
-      "acuity_impact": 2.0,
-      "diagnosis": "Signs of Respiratory Compromise",
-      "steps": "Ensure airway patency; monitor SpO2."
-    },
-    "options": [
-      {
-        "label": "Yes",
-        "next": "breathing_severe"
-      },
-      {
-        "label": "No",
-        "next": "breathing_stable"
-      }
-    ]
-  },
-  "breathing_severe": {
-    "question": "Are lung sounds diminished or absent?",
-    "meta": {
-      "acuity_impact": 5.0,
-      "diagnosis": "Potential Pneumothorax or Severe Obstruction",
-      "steps": "Prepare for rapid transport; consider needle decompression if tension pneumo suspected."
-    },
-    "options": [
-      {
-        "label": "Yes",
-        "next": "terminal_critical"
-      },
-      {
-        "label": "No",
-        "next": "breathing_assessment_continue"
-      }
-    ]
-  },
-  "terminal_critical": {
-    "question": "Assessment Complete: Immediate Action Required.",
-    "meta": {
-      "acuity_impact": 10.0,
-      "diagnosis": "Life-Threatening Respiratory Failure",
-      "steps": "High-flow O2, prepare for intubation, immediate transport."
-    },
-    "options": []
-  }
-},
+[
   {
-    "toxidrome_root":"Salivation, Lacrimation, Urination, Defecation, GI, Emesis."
+    "toxidrome_root": {
+      "question": "Salivation, Lacrimation, Urination, Defecation, GI, Emesis.",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "psychosis_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "suicide_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "missing_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "breathing_root": {
+      "question": "Is the patient showing signs of respiratory distress (e.g., accessory muscle use, tripod position)?",
+      "meta": {
+        "acuity_impact": 2.0,
+        "diagnosis": "Signs of Respiratory Compromise",
+        "steps": "Ensure airway patency; monitor SpO2."
+      },
+      "options": [
+        {
+          "label": "Yes",
+          "next": "breathing_severe"
+        },
+        {
+          "label": "No",
+          "next": "breathing_stable"
+        }
+      ]
+    },
+    "breathing_severe": {
+      "question": "Are lung sounds diminished or absent?",
+      "meta": {
+        "acuity_impact": 5.0,
+        "diagnosis": "Potential Pneumothorax or Severe Obstruction",
+        "steps": "Prepare for rapid transport; consider needle decompression if tension pneumo suspected."
+      },
+      "options": [
+        {
+          "label": "Yes",
+          "next": "terminal_critical"
+        },
+        {
+          "label": "No",
+          "next": "breathing_assessment_continue"
+        }
+      ]
+    },
+    "terminal_critical": {
+      "question": "Assessment Complete: Immediate Action Required.",
+      "meta": {
+        "acuity_impact": 10.0,
+        "diagnosis": "Life-Threatening Respiratory Failure",
+        "steps": "High-flow O2, prepare for intubation, immediate transport."
+      },
+      "options": []
+    }
+  },
+  {
+    "hemorrhage_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "neuro_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "systemic_root": {
+      "question": "",
+      "options": [
+        {
+          "label": "Yes"
+        }
+      ]
+    }
+  },
+  {
+    "esi_root": {
+      "question": "Requires immediate life saving intervention?",
+      "meta": {
+        "acuity_impact": 10.0,
+        "diagnosis": "Life-Threatening Respiratory Failure",
+        "steps": "High-flow O2, prepare for intubation, immediate transport."
+      },
+      "options": [
+        {
+          "label": "Yes",
+          "next": ""
+        },
+        {
+          "label": "No",
+          "next": "high_risk"
+        }
+      ]
+    },
+    "high_risk": {
+      "question": "Is the patient confused, lethargic disoriented or in severe pain or distress?",
+      "meta": {
+        "acuity_impact": 8.0,
+        "diagnosis": "Life-Threatening Respiratory Failure",
+        "steps": "High-flow O2, prepare for intubation, immediate transport."
+      },
+      "options": [
+        {
+          "label": "Yes",
+          "next": ""
+        },
+        {
+          "label": "No",
+          "next": "resource_impact"
+        }
+      ]
+    },
+    "resource_impact": {
+      "question": "How many resources are needed?",
+      "meta": {
+        "acuity_impact": 8.0,
+        "diagnosis": "Life-Threatening Respiratory Failure",
+        "steps": "Check Danger Zone vitals."
+      },
+      "options": [
+        {
+          "label": "None",
+          "next": ""
+        },
+        {
+          "label": "One",
+          "next": ""
+        },
+        {
+          "label": "Many",
+          "next": "danger_zone_vitals"
+        }
+      ]
+    },
+    "danger_zone_vitals": {
+      "question": "Check the patient vitals and consider upgrading the acuity level to 2 if any of the vitals are in this range:",
+      "meta": {
+        "acuity_impact": 8.0,
+        "diagnosis": "",
+        "steps": ""
+      },
+      "options": [
+        {
+          "label": "Age < 3 months / HR > 180 / Respiration > 50 / SpO2 < 92%",
+          "next": ""
+        },
+        {
+          "label": "Age 3 months - 3 years / HR > 160 / Respiration > 40 / SpO2 < 92%",
+          "next": ""
+        },
+        {
+          "label": "Age 3 years - 8 years / HR > 140 / Respiration > 30 / SpO2 < 92%",
+          "next": ""
+        },
+        {
+          "label": "Age > 8 years / HR > 100 / Respiration > 20 / SpO2 < 92%",
+          "next": ""
+        },
+        {
+          "label": "No",
+          "next": ""
+        }
+      ]
+    }
   }
 ]
