@@ -9,6 +9,19 @@ import 'package:triage/classes/template_text.dart';
 
 import 'body_zone.dart';
 
+enum VerbalSeverity {
+  none, // = No pain.
+  mild, // = Pain is very mild, barely noticeable. Most of the time you don't think about it.,// = Minor pain. It's annoying. You may have sharp pain now and then.
+  minor, // = Noticeable pain. It may distract you, but you can get used to it.
+  moderate, // = Moderate pain. If you are involved in an activity, you're able to ignore the pain for a while. But it is still distracting.
+  moderatelyStrong, // = Moderately strong pain. You can't ignore it for more than a few minutes. But, with effort, you can still work or do some social activities.
+  moderatelyStronger, // = Moderately stronger pain. You avoid some of your normal daily activities. You have trouble concentrating.
+  strong, // = Strong pain. It keeps you from doing normal activities.
+  intense, // = Very strong pain. It's hard to do anything at all.
+  excruciating, // = Pain that is very hard to tolerate. You can't carry on a conversation.
+  worst, // = Worst pain possible.
+}
+
 Map<VerbalSeverity, String> severityExplanations = {
   VerbalSeverity.none: "No pain.",
   VerbalSeverity.mild:
@@ -25,19 +38,6 @@ Map<VerbalSeverity, String> severityExplanations = {
   VerbalSeverity.excruciating: "Pain that is very hard to tolerate. You can't carry on a conversation.",
   VerbalSeverity.worst: "Worst pain possible.",
 };
-
-enum VerbalSeverity {
-  none, // = No pain.
-  mild, // = Pain is very mild, barely noticeable. Most of the time you don't think about it.,// = Minor pain. It's annoying. You may have sharp pain now and then.
-  minor, // = Noticeable pain. It may distract you, but you can get used to it.
-  moderate, // = Moderate pain. If you are involved in an activity, you're able to ignore the pain for a while. But it is still distracting.
-  moderatelyStrong, // = Moderately strong pain. You can't ignore it for more than a few minutes. But, with effort, you can still work or do some social activities.
-  moderatelyStronger, // = Moderately stronger pain. You avoid some of your normal daily activities. You have trouble concentrating.
-  strong, // = Strong pain. It keeps you from doing normal activities.
-  intense, // = Very strong pain. It's hard to do anything at all.
-  excruciating, // = Pain that is very hard to tolerate. You can't carry on a conversation.
-  worst, // = Worst pain possible.
-}
 
 enum Frequency { cyclical, chronic, acute }
 

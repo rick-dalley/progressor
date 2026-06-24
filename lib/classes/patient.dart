@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
-import 'package:triage/classes/body_markers.dart';
 import 'package:triage/classes/patient_sentiment.dart';
 import 'package:triage/classes/vitals.dart';
 

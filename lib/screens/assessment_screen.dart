@@ -6,13 +6,9 @@ import 'package:flutter/services.dart';
 import '../classes/assessment_session.dart';
 import '../classes/triage.dart';
 import '../widgets/assessment_wizard.dart';
-import '../widgets/command_wizard_bar.dart';
-import '../widgets/psychosis_assessment_widget.dart';
-import '../widgets/suicide_assessment_widget.dart';
-import '../widgets/toxidrome_test_widget.dart';
+import '../widgets/hypothesis_widget.dart';
 import '../widgets/triage_dagnostic_canvas.dart';
 import '../widgets/triage_history_drawer.dart';
-import 'missing_person_screen.dart';
 
 class CurrentNodeContent extends StatelessWidget {
   final Map<String, dynamic> nodeData;
@@ -99,31 +95,9 @@ class _AssessmentScreenState extends State<AssessmentScreen> {
         child: Column(
           children: [
             Expanded(flex: 2, child: DiagnosticCanvas(session: _session)),
-            if (widget.type == AssessmentType.toxidrome) ToxidromeAssessmentWidget(),
-            if (widget.type == AssessmentType.psychosis) PsychosisAssessmentWidget(subjectName: "subject"),
-            if (widget.type == AssessmentType.suicide) SuicideAssessmentWidget(subjectName: ""),
-            if (widget.type == AssessmentType.missing) MissingPersonCaptureScreen(),
-            if (widget.type == AssessmentType.breathing) buildExpandedAssessmentWidget(),
-            if (widget.type == AssessmentType.bleeding) buildExpandedAssessmentWidget(),
-            if (widget.type == AssessmentType.consciousness) buildExpandedAssessmentWidget(),
-            if (widget.type == AssessmentType.systemic) buildExpandedAssessmentWidget(),
-            if (widget.type == AssessmentType.esi) buildExpandedAssessmentWidget(),
+            HypothesisWidget(assessmentType: widget.type),
           ],
         ),
-      ),
-    );
-  }
-
-  Expanded buildExpandedAssessmentWidget() {
-    return Expanded(
-      flex: 1,
-      child: CommandWizardBar(
-        wizard: _wizard!,
-        onAdvance: (label) => setState(() {
-          _wizard!.advance(label);
-          _session.processNodeResponse(_wizard!.currentNode['meta']);
-        }),
-        onBack: () => setState(() => _wizard!.goBack()),
       ),
     );
   }

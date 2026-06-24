@@ -42,9 +42,7 @@ class LuminescaApp extends StatelessWidget {
       // Change 'home' to StartupScreen
       home: const StartupScreen(),
       // Define a route for the roster so pushReplacementNamed works
-      routes: {
-        '/roster': (context) => const LuminescaHome(),
-      },
+      routes: {'/roster': (context) => const LuminescaHome()},
     );
   }
 }
@@ -87,17 +85,21 @@ class LuminescaHomeState extends State<LuminescaHome> {
             style: GoogleFonts.inclusiveSans(fontSize: 20, letterSpacing: 0.5),
             children: const [
               TextSpan(
-                text: 'LUMINESCA',
+                text: 'CWICare',
                 style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.deepLogicViolet, letterSpacing: 1.2),
               ),
-              TextSpan(text: ' — ', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300)),
-              TextSpan(text: 'Triage', style: TextStyle(fontWeight: FontWeight.w400, color: AppTheme.clinicalCyan)),
+              TextSpan(
+                text: ' — ',
+                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
+              ),
+              TextSpan(
+                text: 'Acuitage',
+                style: TextStyle(fontWeight: FontWeight.w400, color: AppTheme.clinicalCyan),
+              ),
             ],
           ),
         ),
-        actions: [
-          IconButton(onPressed: () => showStaff(context), icon: const Icon(Symbols.person))
-        ],
+        actions: [IconButton(onPressed: () => showStaff(context), icon: const Icon(Symbols.person))],
       ),
       // The Roster stays in the tree at all times (so it lays out),
       // and we only animate the loading overlay on top.
@@ -114,16 +116,13 @@ class LuminescaHomeState extends State<LuminescaHome> {
 
               return AnimatedSwitcher(
                 duration: const Duration(milliseconds: 600),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
+                transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
                 child: isWaiting
                     ? Container(
-                  key: const ValueKey('loading'),
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: const Center(child: CircularProgressIndicator()),
-                )
+                        key: const ValueKey('loading'),
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        child: const Center(child: CircularProgressIndicator()),
+                      )
                     : const SizedBox.shrink(key: ValueKey('loaded')),
               );
             },
@@ -142,5 +141,3 @@ class LuminescaHomeState extends State<LuminescaHome> {
     );
   }
 }
-
-

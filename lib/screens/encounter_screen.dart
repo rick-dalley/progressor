@@ -75,8 +75,8 @@ class _IncidentTriageScreenState extends State<IncidentTriageScreen> {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 20),
           ),
-          icon: const Icon(Symbols.emergency, size: 32),
-          label: const Text("START NEUTRAL TRIAGE", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          icon: const Icon(Symbols.crisis_alert, size: 32),
+          label: const Text("START TRIAGE", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
       ),
       body: Column(

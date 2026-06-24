@@ -6,9 +6,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/scanned_data.dart';
 import 'package:triage/widgets/scanner_widget.dart';
-
 import '../app_theme.dart';
-import '../widgets/text_scanner.dart';
 
 class IntakeScreen extends StatefulWidget {
   final bool? isSimulation;
