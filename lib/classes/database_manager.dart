@@ -30,20 +30,20 @@ class DatabaseManager {
   factory DatabaseManager() => _instance;
 
   Future<Database> get database async {
-    // 1. Double-checked locking
+    // Double-checked locking
     if (_db != null && _db!.isOpen) return _db!;
 
-    // 2. Return existing future if in progress
+    // Return existing future if in progress
     if (_dbCompleter != null) return _dbCompleter!.future;
 
-    // 3. Create the completer immediately
+    // Create the completer immediately
     _dbCompleter = Completer<Database>();
 
     try {
-      // 4. Perform the init
-      final db = await _init();
+      // Perform the init
+      final db = await _init(overwrite: false);
 
-      // 5. CRITICAL: Assign _db BEFORE completing the future
+      // CRITICAL: Assign _db BEFORE completing the future
       _db = db;
       _dbCompleter!.complete(db);
 
@@ -111,7 +111,7 @@ class DatabaseManager {
     }
   }
 
-  Future<String?> getTemplateTextForCode(String code) async{
+  Future<String?> getTemplateTextForCode(String code) async {
     final db = await database;
     return "";
   }
@@ -132,22 +132,15 @@ class DatabaseManager {
     row['interventions_tried'] = jsonEncode(row['interventions_tried'] ?? []);
 
     // Perform the insertion
-    await db.insert(
-      'markers',
-      row,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('markers', row, conflictAlgorithm: ConflictAlgorithm.replace);
   }
-// DatabaseManager now only cares about standard SQL operations
+
+  // DatabaseManager now only cares about standard SQL operations
   Future<void> insertMarkersBatch(String tableName, List<Map<String, dynamic>> rows) async {
     final db = await database;
     await db.transaction((txn) async {
       for (var row in rows) {
-        await txn.insert(
-          tableName,
-          row,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert(tableName, row, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }

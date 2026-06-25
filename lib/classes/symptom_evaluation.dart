@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:triage/classes/patient_sentiment.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
@@ -43,22 +44,20 @@ class Symptom {
   });
 
   factory Symptom.fromMap(Map<String, dynamic> item) {
-    int itemSymptomFlag = item["symptom_flag"] ?? 0;
-    int itemSentiment = item["sentiment"] ?? 0;
     String itemSymptomName = item["name"];
+    SymptomFlag itemSymptomFlag = SymptomFlagState.fromValue(itemSymptomName);
     String itemDescription = item["description"];
-    num itemLowerBound = item["trigger_point"] ?? 0;
+    num itemTriggerPoint = item["trigger_point"] ?? 0;
     int itemTriggerIf = item["trigger_if"] ?? 0;
     String itemUom = item["trigger_uom"];
-    bool itemCheckTrigger = item["trigger_check"];
-    List<String> itemDescriptors = item["keywords"];
-
-    return Symptom(
-      symptomFlag: SymptomFlag.values[itemSymptomFlag],
-      sentiment: Sentiment.values[itemSentiment],
+    bool itemCheckTrigger = item["check_trigger"];
+    List<String> itemDescriptors = (item["keywords"] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    Symptom symptom = Symptom(
+      symptomFlag: itemSymptomFlag,
+      sentiment: Sentiment.happy,
       name: itemSymptomName,
       description: itemDescription,
-      triggerPoint: itemLowerBound.toDouble(),
+      triggerPoint: itemTriggerPoint.toDouble(),
       triggerIf: itemTriggerIf > 0
           ? TriggerDirection.isGreaterThan
           : itemTriggerIf < 0
@@ -68,6 +67,7 @@ class Symptom {
       checkTrigger: itemCheckTrigger,
       descriptors: itemDescriptors,
     );
+    return symptom;
   }
 
   bool isTriggeredBy(double value) {
@@ -88,25 +88,42 @@ class Symptom {
 
 class SymptomFactory {
   // We use a Map for O(1) lookups by SymptomFlag
-  static Map<SymptomFlag, Symptom> _registry = {};
+  static final Map<SymptomFlag, Symptom> _registry = {};
+  SymptomFactory._();
+  static final SymptomFactory instance = SymptomFactory._();
 
-  // Load the JSON once from assets
-  static Future<void> loadFromAssets(String path) async {
+  // Initialization: Forces a wait until the data is actually ready
+  Future<void> initialize(String path) async {
     final String jsonString = await rootBundle.loadString(path);
     final List<dynamic> data = json.decode(jsonString);
 
-    _registry = {for (var item in data) SymptomFlag.values[item["symptom_flag"]]: Symptom.fromMap(item)};
+    for (var item in data) {
+      try {
+        String name = item["name"];
+        SymptomFlag flag = SymptomFlagState.fromValue(name);
+
+        // If you want "none" in your registry, remove the != check
+        if (flag != SymptomFlag.none) {
+          _registry[flag] = Symptom.fromMap(item);
+        }
+      } catch (e, stack) {
+        debugPrint("FAILED on item: ${item['name']}");
+        debugPrint("ERROR: $e");
+        debugPrint("STACK: $stack");
+      }
+    }
+    debugPrint("Registry populated. Size: ${_registry.length}");
   }
 
   // Access the registry
-  static Symptom? getSymptomByName(String name) {
+  Symptom? getSymptomByName(String name) {
     SymptomFlag symptomFlag = SymptomFlagState.fromValue(name);
     return _registry[symptomFlag];
   }
 
-  static Symptom? getSymptom(SymptomFlag flag) => _registry[flag];
+  Symptom? getSymptom(SymptomFlag flag) => _registry[flag];
 
-  static Symptom? findSymptomByDescriptor(String inputDescriptor) {
+  Symptom? findSymptomByDescriptor(String inputDescriptor) {
     String normalizedInput = inputDescriptor.trim().toLowerCase();
 
     // Look through every registered symptom
@@ -149,7 +166,7 @@ final Map<Hypothesis, List<SymptomFlag>> symptomRegistry = {
     SymptomFlag.miosis,
   ],
   Hypothesis.suicide: [
-    SymptomFlag.disappearance,
+    SymptomFlag.disappeared,
     SymptomFlag.suicideNote,
     SymptomFlag.accessToMeans,
     SymptomFlag.attempted,
@@ -185,17 +202,23 @@ class HypothesisClassification {
   }
 
   void addSymptom(SymptomFlag flag) {
-    // Check if this symptom is part of the "clinical signature" for this hypothesis
-    if (symptomRegistry[hypothesis]!.contains(flag)) {
+    // 1. Get the list safely. If hypothesis doesn't exist, this returns null.
+    final List<SymptomFlag>? clinicalSignature = symptomRegistry[hypothesis];
+
+    // 2. Perform the check only if the registry actually has data for this hypothesis
+    if (clinicalSignature != null && clinicalSignature.contains(flag)) {
       if (!sharedSymptoms.contains(flag)) {
         sharedSymptoms.add(flag);
-        score += 1; // You can make this a weighted value later
+        score += 1;
       }
+    } else {
+      // This will help you identify which hypothesis is missing from the registry
+      debugPrint("WARNING: Hypothesis '$hypothesis' not found in registry.");
     }
   }
 
   void addSymptomFromPatientDescription(String symptomDescription) {
-    Symptom? symptom = SymptomFactory.findSymptomByDescriptor(symptomDescription);
+    Symptom? symptom = SymptomFactory.instance.findSymptomByDescriptor(symptomDescription);
     if (symptom != null) {
       sharedSymptoms.add(symptom.symptomFlag);
       score += 1;
@@ -219,7 +242,8 @@ class EvaluateSymptoms {
 
   List<HypothesisClassification> hypothesesFromNewSymptom(String input) {
     // 1. Try to find the flag via exact name match or via descriptor keyword search
-    Symptom? symptom = SymptomFactory.getSymptomByName(input) ?? SymptomFactory.findSymptomByDescriptor(input);
+    Symptom? symptom =
+        SymptomFactory.instance.getSymptomByName(input) ?? SymptomFactory.instance.findSymptomByDescriptor(input);
 
     // If no match exists in the registry, return current list
     if (symptom == null || symptom.symptomFlag == SymptomFlag.none) {

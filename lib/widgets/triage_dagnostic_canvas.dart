@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
-
 import '../classes/assessment_session.dart';
+import '../classes/symptom_flag.dart';
+import '../classes/symptom_evaluation.dart';
 
 class DiagnosticCanvas extends StatelessWidget {
-  final AssessmentSession session;
-  final bool showAnatomyMap; // Toggle this from the parent
+  final List<SymptomFlag> activeSymptoms;
+  final List<HypothesisClassification> hypotheses;
+  final AssessmentSession session; // Included to access your existing session logic
 
-  const DiagnosticCanvas({super.key, required this.session, this.showAnatomyMap = false});
+  const DiagnosticCanvas({super.key, required this.activeSymptoms, required this.hypotheses, required this.session});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.grey[50],
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: showAnatomyMap ? _buildAnatomyView() : _buildSummaryView(),
-      ),
-    );
-  }
-
-  Widget _buildSummaryView() {
-    return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Acuity Display
           Text(
             "Acuity: ${session.acuityScore > 5 ? 'CRITICAL' : 'STABLE'}",
             style: TextStyle(
@@ -34,18 +28,24 @@ class DiagnosticCanvas extends StatelessWidget {
             ),
           ),
           const Divider(),
-          Text("Hypothesis:", style: const TextStyle(fontWeight: FontWeight.bold)),
-          ...session.differentialDiagnosis.map((d) => Text("• $d")),
+
+          // Top Hypothesis Display
+          const Text("Top Hypothesis:", style: TextStyle(fontWeight: FontWeight.bold)),
+          if (hypotheses.isNotEmpty) Text("• ${hypotheses.first.hypothesis.name} (${hypotheses.first.score} pts)"),
+          if (hypotheses.isEmpty) const Text("• Awaiting symptoms..."),
+
           const SizedBox(height: 10),
-          Text("Immediate Actions:", style: const TextStyle(fontWeight: FontWeight.bold)),
+
+          // Resuscitation Steps (Pulled from Session)
+          const Text("Immediate Actions:", style: TextStyle(fontWeight: FontWeight.bold)),
           ...session.resuscitationSteps.map((s) => Text("• $s")),
+
+          const SizedBox(height: 10),
+
+          // Debugging/Verification of Active Symptoms
+          Text("Symptoms Logged: ${activeSymptoms.length}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
     );
-  }
-
-  Widget _buildAnatomyView() {
-    // Placeholder for your Acuitage anatomy mapping logic
-    return Center(child: Text("Anatomy Map Layer Active"));
   }
 }

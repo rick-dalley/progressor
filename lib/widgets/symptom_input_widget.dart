@@ -20,7 +20,8 @@ class _SymptomInputWidgetState extends State<SymptomInputWidget> {
     if (input.isEmpty) return;
 
     // Use your existing Factory logic
-    final symptom = SymptomFactory.findSymptomByDescriptor(input);
+    final symptom =
+        SymptomFactory.instance.getSymptomByName(input) ?? SymptomFactory.instance.findSymptomByDescriptor(input);
 
     if (symptom != null) {
       widget.onSymptomAdded(symptom.symptomFlag);
@@ -32,6 +33,9 @@ class _SymptomInputWidgetState extends State<SymptomInputWidget> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
+      autocorrect: false, // Disables spelling correction
+      enableSuggestions: false, // Disables the keyboard suggestion bar
+      keyboardType: TextInputType.text,
       decoration: const InputDecoration(labelText: "Add Symptom/Keyword", suffixIcon: Icon(Symbols.search)),
       onSubmitted: _handleInput,
     );

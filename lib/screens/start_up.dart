@@ -59,7 +59,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
               "CWICare",
               style: TextStyle(
                 color: AppTheme.deepLogicViolet,
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 4,
               ),
@@ -69,7 +69,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Text(
-                  "ACUITAGE",
+                  "CONTINUANCE",
                   style: TextStyle(
                     color: AppTheme.clinicalCyan, // Your brand action color
                     fontSize: 16,

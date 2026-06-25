@@ -12,6 +12,7 @@ import 'classes/action.dart';
 import 'classes/drugs.dart';
 import 'classes/phase_state_handlers.dart';
 import 'classes/staff.dart';
+import 'classes/symptom_evaluation.dart';
 import 'generated/l10n.dart';
 import 'screens/patient_roster.dart';
 import 'app_theme.dart';
@@ -73,6 +74,7 @@ class LuminescaHomeState extends State<LuminescaHome> {
       TouchImageFactory.instance.initialize('assets/images/touch_points.json'),
       StaffFactory.instance.initialize(),
       DrugFactory.instance.initialize(),
+      SymptomFactory.instance.initialize('assets/assessment/symptoms.json'),
     ]);
   }
 
@@ -93,7 +95,7 @@ class LuminescaHomeState extends State<LuminescaHome> {
                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
               ),
               TextSpan(
-                text: 'Acuitage',
+                text: 'Continuance',
                 style: TextStyle(fontWeight: FontWeight.w400, color: AppTheme.clinicalCyan),
               ),
             ],
