@@ -59,7 +59,7 @@ class DatabaseManager {
     sqlConfig = json.decode(response);
 
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'triage_data.db');
+    final path = join(dbPath, 'progressor.db');
 
     if (overwrite) {
       await deleteDatabase(path);
