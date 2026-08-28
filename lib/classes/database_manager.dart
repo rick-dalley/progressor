@@ -362,6 +362,55 @@ class DatabaseManager {
     return rows.isEmpty ? null : rows.first;
   }
 
+  // --- Care orders — everything a physician prescribes beyond medications
+  // (nursing tasks, tests, therapy, restraints/devices, activity) — see
+  // care_order.dart. Medications keep their own specialized pipeline. ---
+
+  Future<void> insertCareOrder({
+    required String patientUuid,
+    required String category,
+    required String label,
+    String? directions,
+    String? frequency,
+    required String orderedBy,
+    required DateTime startedAt,
+    DateTime? plannedEndAt,
+  }) async {
+    final db = await database;
+    await db.insert('care_order', {
+      'id': uuid.v4(),
+      'patient_uuid': patientUuid,
+      'category': category,
+      'label': label,
+      'directions': directions,
+      'frequency': frequency,
+      'ordered_by': orderedBy,
+      'started_at': startedAt.toIso8601String(),
+      'planned_end_at': plannedEndAt?.toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getCareOrdersForPatient(String patientUuid) async {
+    final db = await database;
+    return await db.query(
+      'care_order',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      // active first (discontinued_at IS NULL sorts before non-null as 0/1), most recent first within each
+      orderBy: '(discontinued_at IS NOT NULL) ASC, started_at DESC',
+    );
+  }
+
+  Future<void> discontinueCareOrder({required String orderId}) async {
+    final db = await database;
+    await db.update(
+      'care_order',
+      {'discontinued_at': DateTime.now().toIso8601String()},
+      where: 'id = ?',
+      whereArgs: [orderId],
+    );
+  }
+
   // A stand-in for a real Acuitage handoff — see ems_handoff.dart.
   Future<void> insertEmsHandoff({
     required String patientUuid,
@@ -537,6 +586,15 @@ class DatabaseManager {
     LEFT JOIN patient_current_metrics m ON p.patient_uuid = m.patient_uuid
     WHERE p.archived_at IS NULL
   ''');
+  }
+
+  // Single-column inline edits from the card's "More Info" section — see
+  // PatientInformationCard. `column` is always one of a fixed, trusted set
+  // of contact/care-team columns, never user input, so this stays a plain
+  // parameterized update rather than needing a whitelist check.
+  Future<void> updatePatientField({required String patientUuid, required String column, required String value}) async {
+    final db = await database;
+    await db.update('patient', {column: value}, where: 'patient_uuid = ?', whereArgs: [patientUuid]);
   }
 
   Future<List<Map<String, dynamic>>> getPatientWithVitals({required String patientUuid}) async {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
@@ -8,6 +7,8 @@ import '../classes/patient.dart';
 import '../classes/phase_state_handlers.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
+import 'care_orders_screen.dart';
+import 'discharge_report_screen.dart';
 import 'questionnaires.dart';
 import 'intake.dart';
 import 'meds.dart';
@@ -222,43 +223,82 @@ class PatientRosterState extends State<PatientRoster> {
                       }
 
                       final Patient patient = item as Patient;
-                      return FlippableCardController(
-                        height: 352,
-                        front: PatientMedicalCard(
-                          patient: patient,
-                          onPatientUpdate: ({required Patient patient}) {
-                            updatePatient(patient: patient);
-                          },
-                          onVitalsUpdate: ({required Patient patient}) {
-                            updatePatient(patient: patient);
-                          },
-                        ),
-                        back: PatientInformationCard(
-                          patient: patient,
-                          onInterviewTap: () => _launchInterviewModal(context, patient),
-                          onAssessmentsTap: () => _showAssessmentsMenu(context, patient.patientUuid),
-                          onMedsTap: () async {
-                            final Map<String, dynamic>? result = await showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              useSafeArea: true,
-                              showDragHandle: true,
-                              builder: (context) => MedicationScreen(patient: patient),
-                            );
+                      return Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            PatientMedicalCard(
+                              patient: patient,
+                              onPatientUpdate: ({required Patient patient}) {
+                                updatePatient(patient: patient);
+                              },
+                              onVitalsUpdate: ({required Patient patient}) {
+                                updatePatient(patient: patient);
+                              },
+                            ),
+                            Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+                            Theme(
+                              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                              child: ExpansionTile(
+                                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text(
+                                  "More Info",
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.deepCharcoal),
+                                ),
+                                leading: const Icon(Icons.info_outline, color: AppTheme.deepLogicViolet),
+                                children: [
+                                  PatientInformationCard(
+                                    patient: patient,
+                                    onInterviewTap: () => _launchInterviewModal(context, patient),
+                                    onAssessmentsTap: () => _showAssessmentsMenu(context, patient.patientUuid),
+                                    onMedsTap: () async {
+                                      final Map<String, dynamic>? result = await showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        showDragHandle: true,
+                                        builder: (context) => MedicationScreen(patient: patient),
+                                      );
 
-                            // `patient` is the same object referenced by _patients, so
-                            // mutating it in place is enough to persist the change.
-                            if (result != null) {
-                              setState(() {
-                                patient.medications = result['medications'];
-                                patient.medicationSafetyAudit = result['medication_safety_audit'];
-                              });
-                            }
-                          },
-                          onArchiveTap: () async {
-                            await DatabaseManager().archivePatient(patientUuid: patient.patientUuid);
-                            await _loadPatientData();
-                          },
+                                      // `patient` is the same object referenced by _patients, so
+                                      // mutating it in place is enough to persist the change.
+                                      if (result != null) {
+                                        setState(() {
+                                          patient.medications = result['medications'];
+                                          patient.medicationSafetyAudit = result['medication_safety_audit'];
+                                        });
+                                      }
+                                    },
+                                    onOrdersTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        showDragHandle: true,
+                                        builder: (context) => CareOrdersScreen(patient: patient),
+                                      );
+                                    },
+                                    onDischargeReportTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        showDragHandle: true,
+                                        builder: (context) => DischargeReportScreen(patient: patient),
+                                      );
+                                    },
+                                    onArchiveTap: () async {
+                                      await DatabaseManager().archivePatient(patientUuid: patient.patientUuid);
+                                      await _loadPatientData();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },

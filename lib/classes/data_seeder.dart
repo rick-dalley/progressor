@@ -23,6 +23,7 @@ class DataSeeder {
     await _seedObservations(db);
     await _seedConditionsCatalog(db);
     await _seedStaff(db);
+    await _seedCareOrders(db);
     await _seedDispositionDecisions(db);
     await _seedInteractions(db);
     debugPrint('--- Seeding Complete ---');
@@ -407,6 +408,48 @@ class DataSeeder {
     });
   }
 
+  // Example care orders (see care_order.dart) for a subset of seeded
+  // patients — demonstrates the non-medication side of what a physician
+  // prescribes. Needs real staff ids to exist first.
+  static Future<void> _seedCareOrders(Database db) async {
+    final String rawJsonString = await rootBundle.loadString('assets/patients/patients.json');
+    final List<dynamic> decodedData = jsonDecode(rawJsonString);
+    final List<Map<String, dynamic>> staffRows = await db.query('staff');
+    if (staffRows.isEmpty) return;
+    const List<(String, String, String?)> orderTemplates = [
+      ('observation', '1:1 supervised observation', 'Continuous'),
+      ('diagnostic', 'Daily urinalysis', 'Daily, 0600'),
+      ('exercise', 'Physical therapy consult', '3x weekly'),
+      ('activity', 'Bedrest with bathroom privileges', null),
+      ('restraintOrDevice', 'Soft wrist restraints — agitation risk', 'PRN, reassess q2h'),
+    ];
+
+    await db.transaction((txn) async {
+      for (int i = 0; i < decodedData.length; i++) {
+        final dynamic item = decodedData[i];
+        if (item is! Map<String, dynamic>) continue;
+        if (i % 4 != 0) continue; // only a subset have recorded orders
+
+        final String patientUuid = item['patient_uuid'];
+        final DateTime admitted = DTUtilities.sqliteToDart(item['admitted']);
+        final (String category, String label, String? frequency) = orderTemplates[i % orderTemplates.length];
+        final String orderedBy = staffRows[i % staffRows.length]['id'] as String;
+
+        await txn.insert('care_order', {
+          'id': '${patientUuid}_order_1',
+          'patient_uuid': patientUuid,
+          'category': category,
+          'label': label,
+          'directions': label,
+          'frequency': frequency,
+          'ordered_by': orderedBy,
+          'started_at': admitted.add(const Duration(hours: 2)).toIso8601String(),
+          'discontinued_at': null,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    });
+  }
+
   // Example disposition decisions (see dispositional.dart/journey_stage.dart)
   // for a realistic subset of seeded patients — varies outcome and
   // deliberately skips ~1-in-5 patients entirely so CountdownTimer's solid-red
@@ -489,6 +532,13 @@ class DataSeeder {
     {
       'id': 8, 'name': 'Weight', 'symbol': 'WT', 'category': 'Vitals', 'unit': 'kg',
       'color_index': 7, 'healthy_lower_limit': null, 'healthy_upper_limit': null,
+    },
+    {
+      // Height/weight/BMI used to live in a one-off widget on the card's
+      // back; both now belong here instead, alongside every other metric a
+      // clinician might track, with the same trend-chart/history support.
+      'id': 9, 'name': 'Height', 'symbol': 'HT', 'category': 'Vitals', 'unit': 'cm',
+      'color_index': 8, 'healthy_lower_limit': null, 'healthy_upper_limit': null,
     },
   ];
 

@@ -101,6 +101,10 @@
    "query": "CREATE TABLE IF NOT EXISTS police_handoff (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, disposition_decision_id TEXT, agency TEXT NOT NULL, badge_or_name TEXT, file_number TEXT, narrative TEXT, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(disposition_decision_id) REFERENCES disposition_decision(id) ON DELETE CASCADE);"
   },
   {
+   "table": "care_order",
+   "query": "CREATE TABLE IF NOT EXISTS care_order (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, category TEXT NOT NULL, label TEXT NOT NULL, directions TEXT, frequency TEXT, ordered_by TEXT NOT NULL, started_at DATETIME NOT NULL, planned_end_at DATETIME, discontinued_at DATETIME, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(ordered_by) REFERENCES staff(id));"
+  },
+  {
    "table": "ems_handoff",
    "query": "CREATE TABLE IF NOT EXISTS ems_handoff (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, incident_name TEXT, dispatch_code TEXT, crew TEXT, on_scene_acuity INTEGER, assessment_type_index INTEGER, destination_facility TEXT, narrative TEXT, delivered_at DATETIME NOT NULL, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
   },

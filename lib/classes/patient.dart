@@ -34,13 +34,14 @@ class Patient {
   final String path; //'Custody',
   final int flags; //'Involuntary',
   final String phone; //'443-449-5848',
-  final String familyDoctorPhone; //'857-582-7784',
-  final String contactPhone; //'364-303-6922',
-  final String pharmacyPhone; //'433-729-8681',
-  final String pharmacyFax; //'509-196-1665',
-  final String familyDoctorName; //'Silvain Saulter',
+  // Mutable — editable inline from the card's "More Info" section.
+  String familyDoctorPhone; //'857-582-7784',
+  String contactPhone; //'364-303-6922',
+  String pharmacyPhone; //'433-729-8681',
+  String pharmacyFax; //'509-196-1665',
+  String familyDoctorName; //'Silvain Saulter',
   final String relation; //'Partner',
-  final String contactName; //'Silvain Saulter',
+  String contactName; //'Silvain Saulter',
   String eyeColor;
   Sentiment sentiment;
   int assessments; //279,

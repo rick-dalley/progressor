@@ -212,16 +212,9 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
         final String fullName = '${patient.firstName} ${patient.lastName}';
         final String patientUuid = patient.patientUuid;
         Icon sentimentIcon = patientSentiments[patient.sentiment]?.getIcon() ?? Icon(Symbols.sentiment_neutral);
-        return Card(
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            // side: BorderSide(color: statusColor, width: 3),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
@@ -376,9 +369,9 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 ),
               ],
             ),
-          ),
-        );
+          );
       },
     );
   }
 }
+

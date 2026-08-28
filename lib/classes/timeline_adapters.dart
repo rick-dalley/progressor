@@ -4,6 +4,7 @@ import 'package:carbon_ui/carbon_ui.dart';
 
 import '../app_theme.dart';
 import 'action.dart';
+import 'care_order.dart';
 import 'database_manager.dart';
 import 'dispositional.dart';
 import 'phase_state_handlers.dart';
@@ -162,6 +163,8 @@ Future<TherapyComparisonData> loadTherapyComparisonData(String patientUuid) asyn
   }
   final List<Map<String, dynamic>> therapySpanRows = await DatabaseManager().getTherapySpansForPatient(patientUuid);
   spans.addAll(therapySpanRows.map(TherapySpan.new));
+  final List<Map<String, dynamic>> careOrderRows = await DatabaseManager().getCareOrdersForPatient(patientUuid);
+  spans.addAll(careOrderRows.map(Therapy.fromJson));
   spans.sort((a, b) => b.startDate.compareTo(a.startDate));
 
   final DateTime now = DateTime.now();
