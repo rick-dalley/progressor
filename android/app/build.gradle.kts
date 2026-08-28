@@ -35,6 +35,13 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // See acuitage's build.gradle.kts — Flutter's Gradle plugin enables R8 by
+            // default for release builds, and with no proguard-rules.pro to keep it,
+            // R8 strips MainActivity (only referenced from the manifest, never called
+            // from Dart/Kotlin) and the app crashes with ClassNotFoundException on
+            // launch. No size/obfuscation requirement here is worth that risk.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.triage
+package com.example.progressor
 
 import io.flutter.embedding.android.FlutterActivity
 
