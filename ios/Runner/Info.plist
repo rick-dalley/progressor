@@ -49,5 +49,16 @@
     <array>
       <string>mailto</string>
     </array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.cwicare.progressor.import</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>progressor</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

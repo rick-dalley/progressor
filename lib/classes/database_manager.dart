@@ -411,7 +411,53 @@ class DatabaseManager {
     );
   }
 
-  // A stand-in for a real Acuitage handoff — see ems_handoff.dart.
+  // Creates a brand-new patient from an incoming EMS handoff (see
+  // ems_handoff_import.dart) — the moment a patient actually arrives, mirroring how
+  // IntakeScreen's scan-based flow would if it were fully wired. Starts them at the
+  // very beginning of the ward's phase blueprint (Arrival, step 1) via the same
+  // startPhaseStep path every other phase transition uses, rather than hand-writing a
+  // phase_step row here.
+  Future<String> createPatientFromEmsHandoff({
+    required String firstName,
+    required String lastName,
+    String? phn,
+    DateTime? dob,
+    required int acuityIndex,
+    String? contactName,
+    String? contactPhone,
+    String? familyDoctorName,
+    String? familyDoctorPhone,
+  }) async {
+    final db = await database;
+    final String patientUuid = uuid.v4();
+    await db.insert('patient', {
+      'patient_uuid': patientUuid,
+      'first_name': firstName,
+      'last_name': lastName,
+      'acuity': acuityIndex,
+      'phn': phn,
+      'phase_step_id': 1,
+      'dob': dob?.toIso8601String(),
+      'admitted': DateTime.now().toIso8601String(),
+      'contact_name': contactName,
+      'contact_phone': contactPhone,
+      'family_doctor_name': familyDoctorName,
+      'family_doctor_phone': familyDoctorPhone,
+    });
+    await startPhaseStep(
+      patientUuid: patientUuid,
+      phaseId: 0,
+      stepId: 1,
+      criticality: 1,
+      category: 'clinical',
+      resolvedByUserId: 'ems_import',
+    );
+    return patientUuid;
+  }
+
+  // Real Acuitage handoffs land here now via ImportEmsHandoffScreen — see
+  // ems_handoff_import.dart and ems_handoff_export.dart (Acuitage side). Seeded demo
+  // data (data_seeder.dart) still uses this same path for fake handoffs.
   Future<void> insertEmsHandoff({
     required String patientUuid,
     String? incidentName,

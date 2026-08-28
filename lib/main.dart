@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -6,6 +9,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/acuity.dart';
 import 'package:triage/classes/body_zone.dart';
 import 'package:triage/classes/database_manager.dart';
+import 'package:triage/classes/ems_handoff_import.dart';
+import 'package:triage/screens/import_ems_handoff_screen.dart';
 import 'package:triage/screens/staff_screen.dart';
 import 'package:triage/screens/start_up.dart';
 import 'classes/action.dart';
@@ -24,12 +29,52 @@ Future<void> main() async {
   runApp(const LuminescaApp());
 }
 
-class LuminescaApp extends StatelessWidget {
+class LuminescaApp extends StatefulWidget {
   const LuminescaApp({super.key});
+
+  @override
+  State<LuminescaApp> createState() => _LuminescaAppState();
+}
+
+class _LuminescaAppState extends State<LuminescaApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForEmsHandoffLinks();
+  }
+
+  // progressor://import?data=... — an EMS handoff from a sibling app (Acuitage today)
+  // with no shared backend. Covers both a cold start (app wasn't running yet) and a
+  // warm one.
+  Future<void> _listenForEmsHandoffLinks() async {
+    final Uri? initial = await _appLinks.getInitialLink();
+    if (initial != null) _handleLink(initial);
+    _linkSubscription = _appLinks.uriLinkStream.listen(_handleLink);
+  }
+
+  void _handleLink(Uri uri) {
+    if (uri.scheme != 'progressor' || uri.host != 'import') return;
+    final EmsHandoffImportPayload? payload = EmsHandoffImportPayload.tryParse(uri);
+    if (payload == null) return;
+    _navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (context) => ImportEmsHandoffScreen(payload: payload)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       // ... your localization and theme config ...
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
