@@ -99,10 +99,12 @@ class VitalsHistoryBuilder {
     int currentReading = 0;
     VitalsRecord? activeVitalsRecord;
     for (dynamic item in json){
-      int thisReading = item['reading_id'];
-      if (item == null){
+      // The history query is a LEFT JOIN so a patient with no vitals yet still
+      // returns one row, with every metric column (including reading_id) null.
+      if (item == null || item['reading_id'] == null){
         continue;
       }
+      int thisReading = item['reading_id'];
       Metric metric = Metric.fromJson(item);
       if((currentReading != thisReading)){
         activeVitalsRecord = VitalsRecord(thisReading: thisReading, recordedAt: metric.recorded);

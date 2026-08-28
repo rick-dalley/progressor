@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../app_theme.dart';
+import '../classes/database_manager.dart';
 import '../widgets/text_scanner.dart';
 
+// BC Mental Health Act "Section 28" police handoff — restored from earlier
+// deletion (it wasn't EMS-flavored cruft, just never wired to persistence or
+// a patient). Reached from the journey stepper's admittance circle whenever a
+// disposition decision was recorded as an involuntary admission.
 class PoliceReportScreen extends StatefulWidget {
-  const PoliceReportScreen({super.key});
+  final String patientUuid;
+  final String? dispositionDecisionId;
+
+  const PoliceReportScreen({super.key, required this.patientUuid, this.dispositionDecisionId});
 
   @override
   State<PoliceReportScreen> createState() => _PoliceReportScreenState();
@@ -19,7 +27,28 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
 
   bool _isScanning = false;
   bool _documentAttached = false;
+  bool _saving = false;
+  String? _existingHandoffId;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadExisting();
+  }
+
+  Future<void> _loadExisting() async {
+    if (widget.dispositionDecisionId == null) return;
+    final existing = await DatabaseManager().getPoliceHandoffForDecision(widget.dispositionDecisionId!);
+    if (!mounted || existing == null) return;
+    setState(() {
+      _existingHandoffId = existing['id'] as String;
+      _selectedAgency = existing['agency'] as String? ?? 'RCMP';
+      _badgeController.text = existing['badge_or_name'] as String? ?? '';
+      _fileNumberController.text = existing['file_number'] as String? ?? '';
+      _narrativeController.text = existing['narrative'] as String? ?? '';
+      _documentAttached = true;
+    });
+  }
 
   void _onTextDetected(RecognizedText recognizedText) {
     final String fullText = recognizedText.text;
@@ -96,7 +125,6 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
                 _buildNarrativeSection(),
                 const SizedBox(height: 8),
 
-                // 🟢 FIXED: Changed abstract EdgeInsetsGeometry to concrete const EdgeInsets
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: _buildSaveButton(),
@@ -125,8 +153,8 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
         Positioned(
           bottom: 10,
           right: 10,
-          width: 120, // 🟢 FIXED: Forcing a finite layout width directly on the Positioned container bounds!
-          height: 40, // Keeps the vertical height locked cleanly
+          width: 120,
+          height: 40,
           child: ElevatedButton.icon(
             onPressed: () => setState(() => _isScanning = true),
             icon: const Icon(Icons.reorder, size: 16),
@@ -134,7 +162,7 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
-              padding: EdgeInsets.zero, // 💡 Clears internal button padding so text wraps/fits cleanly inside 120px
+              padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
@@ -189,8 +217,8 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
       color: Colors.black, // Dark background for contrast
       child: _isScanning
           ? SizedBox(
-        width: MediaQuery.of(context).size.width, // 🟢 Forces a definitive, finite width constraint
-        height: lockedHeight, // Matches the parent hero box bounds
+        width: MediaQuery.of(context).size.width,
+        height: lockedHeight,
         child: TextScanner(
           onTextDetected: _onTextDetected,
           mockImagePath: form9Report,
@@ -206,11 +234,10 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Wrap the Dropdown inside a clean layout constraint block
         SizedBox(
-          width: double.infinity, // Forces a fixed boundary relative to the ListView width
+          width: double.infinity,
           child: DropdownButtonFormField<String>(
-            initialValue: _selectedAgency, // 🟢 Fixed property name from initialValue to value
+            initialValue: _selectedAgency,
             items: ['RCMP', 'VPD', 'Transit Police', 'Other'].map((String value) {
               return DropdownMenuItem<String>(value: value, child: Text(value));
             }).toList(),
@@ -260,12 +287,11 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
   }
 
   Widget _buildSaveButton() {
-    // 🟢 FIXED: Wrapped in SizedBox to stop the button layout expansion from inflating to Infinity inside the ListView
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _savePoliceReport,
+        onPressed: _saving ? null : _savePoliceReport,
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -274,10 +300,19 @@ class _PoliceReportScreenState extends State<PoliceReportScreen> {
     );
   }
 
-  void _savePoliceReport() {
-    int reportCount = 1; // later count the number of reports and add them to a list.
-    Navigator.pop(context, reportCount);
-
+  Future<void> _savePoliceReport() async {
+    setState(() => _saving = true);
+    await DatabaseManager().insertPoliceHandoff(
+      id: _existingHandoffId,
+      patientUuid: widget.patientUuid,
+      dispositionDecisionId: widget.dispositionDecisionId,
+      agency: _selectedAgency,
+      badgeOrName: _badgeController.text.trim(),
+      fileNumber: _fileNumberController.text.trim(),
+      narrative: _narrativeController.text.trim(),
+    );
+    if (!mounted) return;
+    Navigator.pop(context, true);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Handoff record synchronized with Triage Timeline.")),
     );

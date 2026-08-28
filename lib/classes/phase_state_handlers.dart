@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 enum EventRequirement { mandatory, advised, discretionary, none }
 
@@ -8,9 +10,22 @@ enum EventRequirementType { medical, administrative, legal, none }
 
 enum Impetus { voluntary, involuntary, unknown }
 
-enum PhaseIdentifier { arrival, identification, registration, triage, intervention, holding, disposition, unknown }
+enum PhaseIdentifier { arrival, registration, triage, intervention, holding, disposition, unknown }
 
 enum PhaseState {started, pending, completed, aborted, unknown}
+
+// Was defined in the now-deleted patient_state.dart (superseded by
+// JourneyStepperWidget) — kept here, PhaseIdentifier's natural home, since
+// patient_roster.dart/patient_timeline_screen.dart/timeline_adapters.dart
+// all still need a PhaseIdentifier -> icon lookup.
+const Map<PhaseIdentifier, IconData> phaseIdentifierIcons = {
+  PhaseIdentifier.arrival: Symbols.emergency,
+  PhaseIdentifier.registration: Symbols.conditions,
+  PhaseIdentifier.triage: Symbols.diagnosis,
+  PhaseIdentifier.intervention: Symbols.stethoscope,
+  PhaseIdentifier.holding: Symbols.bed,
+  PhaseIdentifier.disposition: Symbols.arrow_split,
+};
 
 class Event {
   String id;

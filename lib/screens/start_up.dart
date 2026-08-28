@@ -56,7 +56,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "CWICare",
+              "Progressor",
               style: TextStyle(
                 color: AppTheme.deepLogicViolet,
                 fontSize: 36,
@@ -69,7 +69,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Text(
-                  "CONTINUANCE",
+                  "CASELOAD, INTAKE TO RELEASE",
                   style: TextStyle(
                     color: AppTheme.clinicalCyan, // Your brand action color
                     fontSize: 16,

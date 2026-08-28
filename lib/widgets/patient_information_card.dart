@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/database_manager.dart';
 import '../app_theme.dart';
+import '../classes/journey_stage.dart';
 import '../classes/medication_services.dart';
 import '../classes/metric_value.dart';
 import '../classes/patient.dart';
@@ -23,18 +24,18 @@ class Tuple {
 
 class PatientInformationCard extends StatefulWidget {
   final Patient patient;
-  final VoidCallback? onPoliceTap;
   final VoidCallback? onAssessmentsTap;
   final VoidCallback onInterviewTap; // <--- Add this
   final VoidCallback? onMedsTap;
+  final VoidCallback? onArchiveTap;
 
   const PatientInformationCard({
     super.key,
     required this.patient,
-    this.onPoliceTap,
     this.onAssessmentsTap,
     required this.onInterviewTap,
     this.onMedsTap,
+    this.onArchiveTap,
   });
 
   @override
@@ -258,7 +259,6 @@ class PatientInformationCardState extends State<PatientInformationCard> {
   @override
   Widget build(BuildContext context) {
     final String name = '${patient.firstName} ${patient.lastName}';
-    bool hasReports = patient.policeReports > 0;
     Color? medColor;
     if (patient.medications > 0) {
       switch (patient.medicationSafetyAudit) {
@@ -342,13 +342,17 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                   onTap: widget.onMedsTap ?? () {},
                   color: medColor,
                 ),
-                _buildCompactButton(
-                  context: context,
-                  label: "Police",
-                  icon: Icons.local_police,
-                  onTap: widget.onPoliceTap ?? () {},
-                  color: hasReports ? Colors.greenAccent : null,
-                ),
+                // Fallback archive affordance — the primary path is the archive
+                // checkbox on DispositionDecisionSheet at the moment a terminal
+                // outcome is recorded; this covers a physician who skipped that.
+                if (terminalJourneyStages.contains(patient.journeyStage) && !patient.isArchived)
+                  _buildCompactButton(
+                    context: context,
+                    label: "Archive",
+                    icon: Symbols.archive,
+                    onTap: widget.onArchiveTap ?? () {},
+                    color: Colors.redAccent,
+                  ),
               ],
             ),
             SizedBox(height: 8),
@@ -458,7 +462,7 @@ class PatientInformationCardState extends State<PatientInformationCard> {
   }) {
     double availableWidth = MediaQuery.of(context).size.width - 80; // Adjusted for margins
     return SizedBox(
-      width: availableWidth / 4,
+      width: availableWidth / 3,
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(

@@ -1,56 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:triage/widgets/vertical_range_indicator.dart';
-import '../classes/vitals.dart';
+import 'package:carbon_ui/carbon_ui.dart';
+import '../classes/tracked_metric.dart';
 
 class CurrentMetrics extends StatelessWidget {
-  final CurrentVitalsRecord? vitals;
+  final List<TrackedMetricSummary> metrics;
   final double? height;
 
   const CurrentMetrics({
     super.key,
-    required this.vitals,
+    required this.metrics,
     this.height,
   });
 
   @override
   Widget build(BuildContext context) {
-    double sanitizedHeight = height ?? 108;
+    if (metrics.isEmpty) return const SizedBox();
+    final double sanitizedHeight = height ?? 108;
 
-    return  vitals == null
-    ? SizedBox()
-    : Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: vitals!.mapValues.entries.map((entry) {
-        final MetricType type = entry.key;
-        final MetricInstance data = entry.value;
-        final Limits limits = vitalsLimits[type]!;
-        final String label = metricDisplayLabels[type] ?? "value";
+    return Row(
+      children: metrics.map((m) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 4.0),
           child: VerticalRangeIndicator(
             height: sanitizedHeight,
-            current: data.current,
-            min: data.min,
-            max: data.max,
-            clinicalMin: limits.lower,
-            clinicalMax: limits.upper,
-            label: label.toUpperCase(),
-            color: _getColorForType(type),
+            current: m.current,
+            min: m.min,
+            max: m.max,
+            clinicalMin: m.definition.healthyLower ?? m.min,
+            clinicalMax: m.definition.healthyUpper ?? m.max,
+            label: m.definition.symbol,
+            color: m.definition.color,
           ),
         );
       }).toList(),
     );
-  }
-
-  Color _getColorForType(MetricType type) {
-    // Basic color mapping logic
-    switch (type) {
-      case MetricType.systolic: return Colors.blue;
-      case MetricType.diastolic: return Colors.blueGrey;
-      case MetricType.pulse: return Colors.purple;
-      case MetricType.spo2: return Colors.green;
-      case MetricType.temperature: return Colors.brown;
-      default: return Colors.grey;
-    }
   }
 }

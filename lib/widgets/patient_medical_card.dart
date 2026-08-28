@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/vitals.dart';
 import 'package:triage/screens/patient_timeline_screen.dart';
-import 'package:triage/widgets/patient_state.dart';
+import 'package:triage/screens/tracked_metrics_screen.dart';
+import 'package:triage/screens/tracked_metrics_trend_screen.dart';
+import 'package:triage/screens/therapy_comparison_screen.dart';
+import 'package:triage/widgets/journey_stepper_widget.dart';
 import 'package:triage/widgets/pulsing_chip.dart';
 import 'package:triage/widgets/current_metrics.dart';
 import 'package:triage/widgets/vitals_history.dart';
@@ -10,8 +13,12 @@ import '../app_theme.dart';
 import '../classes/action.dart';
 import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
+import '../classes/dispositional.dart';
+import '../classes/ems_handoff.dart';
+import '../classes/journey_stage.dart';
 import '../classes/patient.dart';
 import '../classes/patient_sentiment.dart';
+import '../classes/tracked_metric.dart';
 import '../screens/acuity_viewer_screen.dart';
 import '../screens/body_screen.dart';
 import 'countdown_timer.dart';
@@ -36,11 +43,46 @@ class PatientMedicalCard extends StatefulWidget {
 
 class PatientMedicalCardState extends State<PatientMedicalCard> {
   late PatientController patientController;
+  List<TrackedMetricSummary> _trackedMetrics = [];
+  List<DispositionDecision> _decisions = [];
+  Map<String, dynamic>? _admittancePoliceHandoff;
+  EmsHandoff? _emsHandoff;
 
   @override
   void initState() {
     super.initState();
     patientController = PatientController(widget.patient);
+    _loadTrackedMetrics();
+    _loadDispositionDecisions();
+    _loadEmsHandoff();
+  }
+
+  Future<void> _loadEmsHandoff() async {
+    final row = await DatabaseManager().getEmsHandoffForPatient(patientController.patient.patientUuid);
+    if (mounted) setState(() => _emsHandoff = row == null ? null : EmsHandoff.fromJson(row));
+  }
+
+  Future<void> _loadTrackedMetrics() async {
+    final metrics = await TrackedMetrics.summariesForPatient(patientController.patient.patientUuid);
+    if (mounted) setState(() => _trackedMetrics = metrics);
+  }
+
+  Future<void> _loadDispositionDecisions() async {
+    final rows = await DatabaseManager().getDispositionDecisionsForPatient(patientController.patient.patientUuid);
+    final decisions = rows.map(DispositionDecision.fromJson).toList();
+
+    Map<String, dynamic>? handoff;
+    final admittanceDecisions = decisions.where((d) => d.stageAfter == JourneyStage.admittance);
+    if (admittanceDecisions.isNotEmpty) {
+      handoff = await DatabaseManager().getPoliceHandoffForDecision(admittanceDecisions.first.id);
+    }
+
+    if (mounted) {
+      setState(() {
+        _decisions = decisions;
+        _admittancePoliceHandoff = handoff;
+      });
+    }
   }
 
   @override
@@ -65,6 +107,8 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
       });
       widget.onPatientUpdate(patient:patientController.patient);
     }
+    await _loadTrackedMetrics();
+    await _loadDispositionDecisions();
   }
 
   void updateAcuity() {
@@ -107,16 +151,52 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
     );
   }
 
+  Future<void> showTrackedMetricsScreen(BuildContext context, String patientUuid, String patientName) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.clinicalWhite,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (context) => TrackedMetricsScreen(patientUuid: patientUuid, patientName: patientName),
+    );
+    await _loadTrackedMetrics();
+  }
+
+  Future<void> showTrackedMetricsTrendScreen(BuildContext context, String patientUuid, String patientName) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.clinicalWhite,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (context) => TrackedMetricsTrendScreen(patientUuid: patientUuid, patientName: patientName),
+    );
+    await _loadTrackedMetrics();
+  }
+
+  Future<void> showTherapyComparisonScreen(BuildContext context, String patientUuid, String patientName) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 1.0,
+        child: TherapyComparisonScreen(patientUuid: patientUuid, patientName: patientName),
+      ),
+    );
+  }
+
   Future<void> showTimeLineScreen(BuildContext context, String uuid, String patientName) async {
     // Assuming this returns a List or an empty list
     final actions = PatientActionFactory.instance.getActionsForPatient(uuid);
+    final phaseSteps = await DatabaseManager().getPhaseStepsForPatient(uuid);
+    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => FractionallySizedBox(
         heightFactor: 1.0, // Near full screen
-        child: PatientTimelineScreen(actions: actions, patientName: patientName),
+        child: PatientTimelineScreen(actions: actions, phaseSteps: phaseSteps, patientName: patientName),
       ),
     );
   }
@@ -161,7 +241,16 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                       ),
                       const Spacer(),
                       // Replace the old monitor_heart button with this:
-                      CountdownTimer(admittedAt: patient.admitted),
+                      CountdownTimer(
+                        admittedAt: patient.admitted,
+                        firstDecisionOutcome: _decisions.isEmpty ? null : _decisions.first.stageAfter,
+                      ),
+                      SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Symbols.compare_arrows),
+                        tooltip: "Compare therapies against events",
+                        onPressed: () => showTherapyComparisonScreen(context, patientUuid, fullName),
+                      ),
                       SizedBox(width: 4),
                       IconButton(
                         icon:sentimentIcon,
@@ -228,21 +317,17 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                       height: 148, // Increased height to comfortably fit stacked icon buttons
                       child: Row(
                         children: [
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              "at: 12:35 pm",
-                              style: TextStyle(fontSize: 12, color: AppTheme.deepLogicViolet),
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline, color: AppTheme.deepLogicViolet),
+                            tooltip: "Add a metric to track",
+                            onPressed: () => showTrackedMetricsScreen(context, patientUuid, fullName),
                           ),
-                          //Text(""),
-                          SizedBox(width: 24.0),
-                          // Graph: Expanded to fill remaining width
+                          // Row itself: tap to see the trend across everything tracked.
                           Expanded(
                             child: InkWell(
-                              child: CurrentMetrics(vitals: patient.vitals, height: 108),
+                              child: CurrentMetrics(metrics: _trackedMetrics, height: 108),
                               onTap: () {
-                                showVitalsHistory(context: context, patientUuid: patientUuid, vitals: patient.vitals);
+                                showTrackedMetricsTrendScreen(context, patientUuid, fullName);
                               },
                             ),
                           ),
@@ -268,16 +353,26 @@ class PatientMedicalCardState extends State<PatientMedicalCard> {
                 //     ),
                 //   ],
                 // ),
-                InkWell(
-                  onTap: () => showTimeLineScreen(context, patientUuid, fullName),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // The Macro Linear Rail — tracks active phase block seamlessly
-                      PatientStateWidget(prompts: ["Previous", "Current", "Next"]),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: JourneyStepperWidget(
+                        patient: patient,
+                        decisions: _decisions,
+                        admittancePoliceHandoff: _admittancePoliceHandoff,
+                        emsHandoff: _emsHandoff,
+                        onDecisionRecorded: () async {
+                          await _loadDispositionDecisions();
+                          await refreshPatientData();
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Symbols.history),
+                      tooltip: "Detailed history",
+                      onPressed: () => showTimeLineScreen(context, patientUuid, fullName),
+                    ),
+                  ],
                 ),
               ],
             ),

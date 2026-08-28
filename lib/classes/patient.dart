@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:triage/classes/acuity.dart';
 import 'package:triage/classes/patient_sentiment.dart';
+import 'package:triage/classes/phase_state_handlers.dart';
 import 'package:triage/classes/vitals.dart';
+import 'package:triage/classes/journey_stage.dart';
 
 import 'database_manager.dart';
 import 'date_time_utilities.dart';
@@ -56,6 +58,18 @@ class Patient {
   int age;
   CurrentVitalsRecord? vitals;
   bool isAWOL;
+  final String journeyStageRaw; // patient.journey_stage — see JourneyStage/DispositionDecision
+  final DateTime? archivedAt;
+
+  // phaseStepId denormalizes phase_step's (phase_id, step_id) as phaseId*100+stepId
+  // — see DatabaseManager._recomputeCurrentPhaseStep, the only writer of this scheme.
+  int get currentPhaseId => phaseStepId ~/ 100;
+  int get currentStepId => phaseStepId % 100;
+  PhaseIdentifier get currentPhase =>
+      PhaseIdentifier.values[currentPhaseId.clamp(0, PhaseIdentifier.values.length - 1)];
+
+  JourneyStage get journeyStage => journeyStageFromDbValue(journeyStageRaw);
+  bool get isArchived => archivedAt != null;
 
   Patient({
     required this.patientUuid,
@@ -101,11 +115,13 @@ class Patient {
     this.sentiment = Sentiment.neutral,
     this.eyeColor = "",
     this.isAWOL = false,
+    this.journeyStageRaw = "triage",
+    this.archivedAt,
   });
 
   factory Patient.fromJson(Map<String, dynamic> item) {
-    final DateTime adm = DTUtilities.randomHrsAgo(max: 48);
-    final DateTime birth = DTUtilities.randomYrsAgo(min: 17, max: 95);
+    final DateTime adm = DTUtilities.sqliteToDart(item['admitted']);
+    final DateTime birth = DTUtilities.sqliteToDart(item['dob']);
     CurrentVitalsRecord vitalsRecord = CurrentVitalsRecord.fromPatientJson(item);
     int sentimentIndex = Random().nextInt(5);
     Sentiment sentiment = Sentiment.values[sentimentIndex];
@@ -184,6 +200,8 @@ class Patient {
       narrativeHint: item['narrative_hint'] ?? "", //'Maecenas ut massa ...
       sentiment: sentiment,
       eyeColor: "brown", //item["eye_color"],
+      journeyStageRaw: item['journey_stage'] ?? "triage",
+      archivedAt: item['archived_at'] != null ? DTUtilities.sqliteToDart(item['archived_at']) : null,
     );
   }
   factory Patient.copy({required Patient patient}) {
@@ -225,6 +243,8 @@ class Patient {
       vitals: patient.vitals,
       narrativeHint: patient.narrativeHint,
       eyeColor: "brown",
+      journeyStageRaw: patient.journeyStageRaw,
+      archivedAt: patient.archivedAt,
     );
   }
 

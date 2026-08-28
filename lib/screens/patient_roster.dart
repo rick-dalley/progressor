@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:triage/screens/police_report.dart';
 import 'package:triage/widgets/card_flipper.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/patient.dart';
+import '../classes/phase_state_handlers.dart';
 import '../widgets/interview_transcriber.dart';
 import '../widgets/patient_medical_card.dart';
 import 'questionnaires.dart';
-import 'encounter_screen.dart';
+import 'intake.dart';
 import 'meds.dart';
 
 class PatientRoster extends StatefulWidget {
@@ -46,9 +46,13 @@ class PatientRosterState extends State<PatientRoster> {
     });
   }
 
-  void updatePatient({required int index, required Patient patient}) {
+  // Looks the patient up by uuid rather than a list position — positions no
+  // longer correspond to _patients once the roster is grouped with section
+  // headers interleaved (see _buildGroupedItems).
+  void updatePatient({required Patient patient}) {
     setState(() {
-      _patients[index] = patient;
+      final int idx = _patients.indexWhere((p) => p.patientUuid == patient.patientUuid);
+      if (idx != -1) _patients[idx] = patient;
     });
   }
 
@@ -61,18 +65,21 @@ class PatientRosterState extends State<PatientRoster> {
     );
   }
 
-  void _launchEncounterScreen(BuildContext context) {
+  // TODO(next-milestone): replace with a real admission form. IntakeScreen is
+  // presently just a 4-field ID-scan capture, kept reachable here as a
+  // stopgap now that the old "New Intervention" EMS screen is cut.
+  void _launchIntakeScreen(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IncidentTriageScreen(),
+        builder: (context) => const IntakeScreen(),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
       ),
     );
   }
 
-  void _launchInterviewModal(BuildContext context, int index) async {
+  void _launchInterviewModal(BuildContext context, Patient patient) async {
     // 1. Trigger the modal
     final bool? didSave = await showModalBottomSheet<bool>(
       context: context,
@@ -81,32 +88,78 @@ class PatientRosterState extends State<PatientRoster> {
       useSafeArea: true,
       showDragHandle: true,
       backgroundColor: Colors.white,
-      builder: (context) => InterviewModal(patient: _patients[index]),
+      builder: (context) => InterviewModal(patient: patient),
     );
 
-    // 2. If the user hit "Finalize & Summarize", update the roster
+    // 2. If the user hit "Finalize & Summarize", update the roster. `patient`
+    // is the same object referenced by _patients, so mutating it in place
+    // (inside setState, to trigger a rebuild) is enough — no list surgery.
     if (didSave == true) {
       setState(() {
-        // Create our writable copy
-        Patient updatedPatient = _patients[index];
-
-        // Increment the assessment count
-        int currentCount = updatedPatient.assessments;
-        updatedPatient.assessments = currentCount + 1;
-
-        // Update the master list
-        _patients[index] = updatedPatient;
+        patient.assessments = patient.assessments + 1;
       });
     }
+  }
+
+  // Groups patients by their real current phase (blueprint order), sorted
+  // within each group by admission time (longest-waiting first). Returns a
+  // flat list mixing PhaseIdentifier header sentinels and Patient items, for
+  // a single ListView.builder — matches the rest of the app's list patterns
+  // rather than introducing slivers for the first time.
+  List<Object> _buildGroupedItems(List<Patient> patients) {
+    final Map<PhaseIdentifier, List<Patient>> grouped = {};
+    for (final Patient patient in patients) {
+      grouped.putIfAbsent(patient.currentPhase, () => []).add(patient);
+    }
+
+    final List<Object> items = [];
+    // Iterate the enum directly (always fully defined) rather than
+    // PhasesFactory.instance.allPhases, which may still be loading — see
+    // main.dart's _initializeApp race with this screen's own patient load.
+    for (final PhaseIdentifier phase in PhaseIdentifier.values) {
+      final List<Patient>? group = grouped[phase];
+      if (group == null || group.isEmpty) continue;
+      group.sort((a, b) => a.admitted.compareTo(b.admitted));
+      items.add(phase);
+      items.addAll(group);
+    }
+    return items;
+  }
+
+  String _phaseLabel(PhaseIdentifier phase) {
+    final String label = PhasesFactory.instance.getPhase(phase).label;
+    return label.isNotEmpty ? label : phase.name;
+  }
+
+  Widget _buildPhaseHeader(PhaseIdentifier phase, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Icon(phaseIdentifierIcons[phase] ?? Symbols.local_police, size: 18, color: AppTheme.deepLogicViolet),
+          const SizedBox(width: 8),
+          Text(
+            '${_phaseLabel(phase).toUpperCase()} ($count)',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.deepLogicViolet,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     // We remove the AppBar here because it's now handled by LuminescaHome in main.dart
-    final filteredPatients = _patients.where((p) {
+    final List<Patient> filteredPatients = _patients.cast<Patient>().where((p) {
       final name = "${p.firstName} ${p.lastName}".toLowerCase();
       return name.contains(_searchQuery.toLowerCase());
     }).toList();
+    final List<Object> groupedItems = _buildGroupedItems(filteredPatients);
 
     return Scaffold(
       // Keeping the body as the main focus
@@ -156,57 +209,55 @@ class PatientRosterState extends State<PatientRoster> {
                 : ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 80),
                     // Added top padding for breathing room
-                    itemCount: filteredPatients.length,
+                    itemCount: groupedItems.length,
                     itemBuilder: (context, index) {
+                      final Object item = groupedItems[index];
+                      if (item is PhaseIdentifier) {
+                        // Count is everything until the next header (or the list's end).
+                        int count = 0;
+                        for (int i = index + 1; i < groupedItems.length && groupedItems[i] is Patient; i++) {
+                          count++;
+                        }
+                        return _buildPhaseHeader(item, count);
+                      }
+
+                      final Patient patient = item as Patient;
                       return FlippableCardController(
                         height: 352,
                         front: PatientMedicalCard(
-                          patient: filteredPatients[index],
+                          patient: patient,
                           onPatientUpdate: ({required Patient patient}) {
-                            updatePatient(index: index, patient: patient);
+                            updatePatient(patient: patient);
                           },
                           onVitalsUpdate: ({required Patient patient}) {
-                            updatePatient(index: index, patient: patient);
+                            updatePatient(patient: patient);
                           },
                         ),
                         back: PatientInformationCard(
-                          patient: filteredPatients[index],
-                          onInterviewTap: () => _launchInterviewModal(context, index),
-                          onAssessmentsTap: () => _showAssessmentsMenu(context, filteredPatients[index].patientUuid),
+                          patient: patient,
+                          onInterviewTap: () => _launchInterviewModal(context, patient),
+                          onAssessmentsTap: () => _showAssessmentsMenu(context, patient.patientUuid),
                           onMedsTap: () async {
                             final Map<String, dynamic>? result = await showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
                               useSafeArea: true,
                               showDragHandle: true,
-                              builder: (context) => MedicationScreen(patient: filteredPatients[index]),
+                              builder: (context) => MedicationScreen(patient: patient),
                             );
 
+                            // `patient` is the same object referenced by _patients, so
+                            // mutating it in place is enough to persist the change.
                             if (result != null) {
                               setState(() {
-                                // Create the writable copy to avoid read-only errors
-                                Patient updatedPatient = filteredPatients[index];
-                                // Map the returned values to our flat patient structure
-                                updatedPatient.medications = result['medications'];
-                                updatedPatient.medicationSafetyAudit = result['medication_safety_audit'];
-                                filteredPatients[index] = updatedPatient;
+                                patient.medications = result['medications'];
+                                patient.medicationSafetyAudit = result['medication_safety_audit'];
                               });
                             }
                           },
-                          onPoliceTap: () async {
-                            // 1. Navigate and WAIT for the signal from the Save button
-                            final int? reportCount = await Navigator.push<int>(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PoliceReportScreen()),
-                            );
-
-                            // 2. If the user hit "Save" (which returns true)
-                            // Use a standard null check instead of the ! operator
-                            if (reportCount != null && reportCount > 0) {
-                              setState(() {
-                                filteredPatients[index].policeReports = reportCount;
-                              });
-                            }
+                          onArchiveTap: () async {
+                            await DatabaseManager().archivePatient(patientUuid: patient.patientUuid);
+                            await _loadPatientData();
                           },
                         ),
                       );
@@ -217,8 +268,7 @@ class PatientRosterState extends State<PatientRoster> {
       ),
 
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _launchEncounterScreen(context),
-        // New dedicated screen
+        onPressed: () => _launchIntakeScreen(context),
         label: const Text("+", style: TextStyle(letterSpacing: 1.0, fontWeight: FontWeight.w600)),
         icon: const Icon(Symbols.frame_person),
         // Signals scanning capability

@@ -87,7 +87,7 @@ class LuminescaHomeState extends State<LuminescaHome> {
             style: GoogleFonts.inclusiveSans(fontSize: 20, letterSpacing: 0.5),
             children: const [
               TextSpan(
-                text: 'CWICare',
+                text: 'Progressor',
                 style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.deepLogicViolet, letterSpacing: 1.2),
               ),
               TextSpan(
@@ -95,7 +95,7 @@ class LuminescaHomeState extends State<LuminescaHome> {
                 style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w300),
               ),
               TextSpan(
-                text: 'Continuance',
+                text: 'Caseload',
                 style: TextStyle(fontWeight: FontWeight.w400, color: AppTheme.clinicalCyan),
               ),
             ],

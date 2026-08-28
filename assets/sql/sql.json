@@ -2,7 +2,7 @@
  "CREATE": [
   {
    "table": "patient",
-   "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP);"
+   "query": "CREATE TABLE IF NOT EXISTS patient (patient_uuid TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, acuity INTEGER NOT NULL, phn int UNIQUE, phase_step_id INTEGER NOT NULL, email TEXT, ssn TEXT, title TEXT, country TEXT, dob DATETIME, admitted DATETIME DEFAULT CURRENT_TIMESTAMP, police_reports INTEGER DEFAULT 0, assessments INTEGER DEFAULT 0, status TEXT, path TEXT, street_address TEXT, city TEXT, province TEXT, postal_code TEXT, phone TEXT, contact_name TEXT, relation TEXT, contact_phone TEXT, family_doctor_name TEXT, family_doctor_phone TEXT, pharmacy_name TEXT, pharmacy_phone TEXT, pharmacy_fax TEXT, narrative_hint TEXT, last_update DATETIME DEFAULT CURRENT_TIMESTAMP, journey_stage TEXT NOT NULL DEFAULT 'triage', archived_at DATETIME);"
   },
   {
    "table": "patient",
@@ -75,6 +75,34 @@
   {
    "table": "phase_step",
    "query": "CREATE TABLE phase_step (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, blueprint_id TEXT NOT NULL, version TEXT NOT NULL, phase_id INTEGER NOT NULL, step_id INTEGER NOT NULL, criticality INTEGER NOT NULL, status TEXT NOT NULL, category TEXT NOT NULL, deadline DATETIME, started_at DATETIME, completed_at DATETIME, resolved_by_user_id TEXT NOT NULL, logged DATETIME DEFAULT CURRENT_TIMESTAMP);"
+  },
+  {
+   "table": "tracked_metric_definition",
+   "query": "CREATE TABLE IF NOT EXISTS tracked_metric_definition (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, symbol TEXT NOT NULL, category TEXT NOT NULL, unit TEXT NOT NULL, description TEXT, color_index INTEGER NOT NULL DEFAULT 0, healthy_lower_limit REAL, healthy_upper_limit REAL);"
+  },
+  {
+   "table": "patient_tracked_metric",
+   "query": "CREATE TABLE IF NOT EXISTS patient_tracked_metric (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT NOT NULL, metric_id INTEGER NOT NULL, started_tracking DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(metric_id) REFERENCES tracked_metric_definition(id) ON DELETE CASCADE);"
+  },
+  {
+   "table": "tracked_metric_reading",
+   "query": "CREATE TABLE IF NOT EXISTS tracked_metric_reading (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, metric_id INTEGER NOT NULL, value REAL NOT NULL, measured DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(metric_id) REFERENCES tracked_metric_definition(id) ON DELETE CASCADE);"
+  },
+  {
+   "table": "therapy_span",
+   "query": "CREATE TABLE IF NOT EXISTS therapy_span (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, category TEXT NOT NULL, label TEXT NOT NULL, started_at DATETIME NOT NULL, ended_at DATETIME, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
+  },
+  {
+   "table": "disposition_decision",
+   "query": "CREATE TABLE IF NOT EXISTS disposition_decision (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, status_before TEXT NOT NULL, status_after TEXT NOT NULL, decider_id TEXT NOT NULL, decided_at DATETIME NOT NULL, notes TEXT, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(decider_id) REFERENCES staff(id));"
+  },
+  {
+   "table": "police_handoff",
+   "query": "CREATE TABLE IF NOT EXISTS police_handoff (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, disposition_decision_id TEXT, agency TEXT NOT NULL, badge_or_name TEXT, file_number TEXT, narrative TEXT, recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE, FOREIGN KEY(disposition_decision_id) REFERENCES disposition_decision(id) ON DELETE CASCADE);"
+  },
+  {
+   "table": "ems_handoff",
+   "query": "CREATE TABLE IF NOT EXISTS ems_handoff (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, incident_name TEXT, dispatch_code TEXT, crew TEXT, on_scene_acuity INTEGER, assessment_type_index INTEGER, destination_facility TEXT, narrative TEXT, delivered_at DATETIME NOT NULL, FOREIGN KEY(patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
   },
   {
    "table": "action",

@@ -221,7 +221,7 @@ class TimeLineWidgetState extends State<TimeLineWidget> {
               ButtonSegment(value: 'H', label: Text('Hour')),
               ButtonSegment(value: 'D', label: Text('Day')),
               ButtonSegment(value: 'W', label: Text('Week')),
-              ButtonSegment(value: 'M', label: Text('Month')),
+              ButtonSegment(value: 'M', label: Text('Mth')),
               ButtonSegment(value: 'Y', label: Text('Year')),
               ButtonSegment(value: 'A', label: Text('All')),
             ],

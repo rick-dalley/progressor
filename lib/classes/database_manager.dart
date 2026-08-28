@@ -182,6 +182,339 @@ class DatabaseManager {
     }
   }
 
+  // Only one blueprint/version exists today (assets/process/phases.json) — no
+  // versioning UI, so these stay constants rather than threaded parameters.
+  static const String _phaseBlueprintId = 'psych_unit_v1';
+  static const String _phaseBlueprintVersion = '1';
+
+  // Records a patient entering a phase/event — one phase_step row per
+  // (patient, phase, event), which is where criticality/category/deadline
+  // actually apply meaningfully (a single per-phase row can't carry a real
+  // started_at/completed_at pair for something like "restraints applied").
+  Future<void> startPhaseStep({
+    required String patientUuid,
+    required int phaseId,
+    required int stepId,
+    required int criticality,
+    required String category,
+    required String resolvedByUserId,
+    DateTime? deadline,
+  }) async {
+    final db = await database;
+    await db.insert('phase_step', {
+      'id': uuid.v4(),
+      'patient_uuid': patientUuid,
+      'blueprint_id': _phaseBlueprintId,
+      'version': _phaseBlueprintVersion,
+      'phase_id': phaseId,
+      'step_id': stepId,
+      'criticality': criticality,
+      'status': 'started',
+      'category': category,
+      'deadline': deadline?.toIso8601String(),
+      'started_at': DateTime.now().toIso8601String(),
+      'resolved_by_user_id': resolvedByUserId,
+      'logged': DateTime.now().toIso8601String(),
+    });
+    await _recomputeCurrentPhaseStep(patientUuid);
+  }
+
+  // Marks an in-progress phase/event complete (or aborted).
+  Future<void> completePhaseStep({
+    required String patientUuid,
+    required int phaseId,
+    required int stepId,
+    String status = 'completed',
+  }) async {
+    final db = await database;
+    await db.update(
+      'phase_step',
+      {'status': status, 'completed_at': DateTime.now().toIso8601String()},
+      where: 'patient_uuid = ? AND phase_id = ? AND step_id = ? AND status = ?',
+      whereArgs: [patientUuid, phaseId, stepId, 'started'],
+    );
+    await _recomputeCurrentPhaseStep(patientUuid);
+  }
+
+  // Full phase/event history for a patient, oldest phase/step first.
+  Future<List<Map<String, dynamic>>> getPhaseStepsForPatient(String patientUuid) async {
+    final db = await database;
+    return await db.query(
+      'phase_step',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'phase_id, step_id',
+    );
+  }
+
+  // Medication/physical-therapy episodes for a patient — period spans for the
+  // therapy-comparison timeline, most recently started first.
+  Future<List<Map<String, dynamic>>> getTherapySpansForPatient(String patientUuid) async {
+    final db = await database;
+    return await db.query(
+      'therapy_span',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'started_at DESC',
+    );
+  }
+
+  // --- Disposition decisions — the coarse triage/admittance/ward/treatment
+  // journey and its terminal outcomes (released/transferred/deceased). See
+  // dispositional.dart/journey_stage.dart. Deliberately separate from
+  // phase_step above — a different, coarser, branch-aware concept. ---
+
+  Future<void> insertDispositionDecision({
+    required String patientUuid,
+    required String statusBefore,
+    required String statusAfter,
+    required String deciderId,
+    required DateTime decidedAt,
+    String? notes,
+  }) async {
+    final db = await database;
+    await db.insert('disposition_decision', {
+      'id': uuid.v4(),
+      'patient_uuid': patientUuid,
+      'status_before': statusBefore,
+      'status_after': statusAfter,
+      'decider_id': deciderId,
+      'decided_at': decidedAt.toIso8601String(),
+      'notes': notes,
+    });
+    await _recomputeJourneyStage(patientUuid);
+  }
+
+  // Full decision history for a patient, oldest first — this IS the walked
+  // path (see JourneyStepperWidget), not just an audit log.
+  Future<List<Map<String, dynamic>>> getDispositionDecisionsForPatient(String patientUuid) async {
+    final db = await database;
+    return await db.query(
+      'disposition_decision',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'decided_at ASC',
+    );
+  }
+
+  Future<void> archivePatient({required String patientUuid}) async {
+    final db = await database;
+    await db.update(
+      'patient',
+      {'archived_at': DateTime.now().toIso8601String()},
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+    );
+  }
+
+  // Denormalizes the latest disposition_decision.status_after onto
+  // patient.journey_stage — same "recompute the derived current value after
+  // every write" pattern as _recomputeCurrentPhaseStep below.
+  Future<void> _recomputeJourneyStage(String patientUuid) async {
+    final db = await database;
+    final latest = await db.query(
+      'disposition_decision',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'decided_at DESC',
+      limit: 1,
+    );
+    final String stage = latest.isEmpty ? 'triage' : latest.first['status_after'] as String;
+    await db.update('patient', {'journey_stage': stage}, where: 'patient_uuid = ?', whereArgs: [patientUuid]);
+  }
+
+  // A police_handoff row's mere existence for a decision IS the Section 28
+  // marker — no separate boolean flag anywhere.
+  Future<void> insertPoliceHandoff({
+    String? id,
+    required String patientUuid,
+    String? dispositionDecisionId,
+    required String agency,
+    String? badgeOrName,
+    String? fileNumber,
+    String? narrative,
+  }) async {
+    final db = await database;
+    await db.insert('police_handoff', {
+      'id': id ?? uuid.v4(),
+      'patient_uuid': patientUuid,
+      'disposition_decision_id': dispositionDecisionId,
+      'agency': agency,
+      'badge_or_name': badgeOrName,
+      'file_number': fileNumber,
+      'narrative': narrative,
+      'recorded_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.rawUpdate(
+      'UPDATE patient SET police_reports = police_reports + 1 WHERE patient_uuid = ?',
+      [patientUuid],
+    );
+  }
+
+  Future<Map<String, dynamic>?> getPoliceHandoffForDecision(String dispositionDecisionId) async {
+    final db = await database;
+    final rows = await db.query(
+      'police_handoff',
+      where: 'disposition_decision_id = ?',
+      whereArgs: [dispositionDecisionId],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  // A stand-in for a real Acuitage handoff — see ems_handoff.dart.
+  Future<void> insertEmsHandoff({
+    required String patientUuid,
+    String? incidentName,
+    String? dispatchCode,
+    String? crew,
+    required int onSceneAcuity,
+    required int assessmentTypeIndex,
+    String? destinationFacility,
+    String? narrative,
+    required DateTime deliveredAt,
+  }) async {
+    final db = await database;
+    await db.insert('ems_handoff', {
+      'id': uuid.v4(),
+      'patient_uuid': patientUuid,
+      'incident_name': incidentName,
+      'dispatch_code': dispatchCode,
+      'crew': crew,
+      'on_scene_acuity': onSceneAcuity,
+      'assessment_type_index': assessmentTypeIndex,
+      'destination_facility': destinationFacility,
+      'narrative': narrative,
+      'delivered_at': deliveredAt.toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<Map<String, dynamic>?> getEmsHandoffForPatient(String patientUuid) async {
+    final db = await database;
+    final rows = await db.query('ems_handoff', where: 'patient_uuid = ?', whereArgs: [patientUuid], limit: 1);
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  // The single most relevant "where are they right now" row — the latest
+  // started step, falling back to the latest completed one if nothing is
+  // currently in progress (e.g. right after a phase completes).
+  Future<Map<String, dynamic>?> getCurrentPhaseStep(String patientUuid) async {
+    final db = await database;
+    final started = await db.query(
+      'phase_step',
+      where: 'patient_uuid = ? AND status = ?',
+      whereArgs: [patientUuid, 'started'],
+      orderBy: 'phase_id DESC, step_id DESC',
+      limit: 1,
+    );
+    if (started.isNotEmpty) return started.first;
+
+    final completed = await db.query(
+      'phase_step',
+      where: 'patient_uuid = ? AND status = ?',
+      whereArgs: [patientUuid, 'completed'],
+      orderBy: 'phase_id DESC, step_id DESC',
+      limit: 1,
+    );
+    return completed.isEmpty ? null : completed.first;
+  }
+
+  // Denormalizes the current phase_step back onto patient.phase_step_id as
+  // phaseId*100+stepId (see Patient.currentPhaseId/currentStepId), so the
+  // roster can group/sort without an extra query per patient. This is now the
+  // real write path — updatePatientProcessStep above is kept only for
+  // backward compatibility and no longer drives phase_step itself.
+  Future<void> _recomputeCurrentPhaseStep(String patientUuid) async {
+    final current = await getCurrentPhaseStep(patientUuid);
+    if (current == null) return;
+    final int phaseId = current['phase_id'] as int;
+    final int stepId = current['step_id'] as int;
+    await updatePatientProcessStep(uuid: patientUuid, targetStepId: phaseId * 100 + stepId);
+  }
+
+  // --- Generic per-patient tracked metrics — the clinician's own choice of
+  // what to watch for a patient, separate from the fixed 5-vital pipeline
+  // below (patient_current_metrics / patient_metrics). See tracked_metric.dart. ---
+
+  Future<List<Map<String, dynamic>>> getAllTrackedMetricDefinitions() async {
+    final db = await database;
+    return await db.query('tracked_metric_definition', orderBy: 'category, name');
+  }
+
+  Future<List<int>> getTrackedMetricIdsForPatient(String patientUuid) async {
+    final db = await database;
+    final rows = await db.query(
+      'patient_tracked_metric',
+      columns: ['metric_id'],
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+    );
+    return rows.map((r) => r['metric_id'] as int).toList();
+  }
+
+  Future<void> trackMetricForPatient({required String patientUuid, required int metricId}) async {
+    final db = await database;
+    await db.insert('patient_tracked_metric', {'patient_uuid': patientUuid, 'metric_id': metricId});
+  }
+
+  Future<void> untrackMetricForPatient({required String patientUuid, required int metricId}) async {
+    final db = await database;
+    await db.delete(
+      'patient_tracked_metric',
+      where: 'patient_uuid = ? AND metric_id = ?',
+      whereArgs: [patientUuid, metricId],
+    );
+  }
+
+  Future<void> insertTrackedMetricReading({
+    required String patientUuid,
+    required int metricId,
+    required double value,
+  }) async {
+    final db = await database;
+    await db.insert('tracked_metric_reading', {
+      'id': uuid.v4(),
+      'patient_uuid': patientUuid,
+      'metric_id': metricId,
+      'value': value,
+      'measured': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getTrackedMetricReadings({
+    required String patientUuid,
+    required int metricId,
+  }) async {
+    final db = await database;
+    return await db.query(
+      'tracked_metric_reading',
+      where: 'patient_uuid = ? AND metric_id = ?',
+      whereArgs: [patientUuid, metricId],
+      orderBy: 'measured',
+    );
+  }
+
+  // Current/min/max/last-measured per tracked metric_id, keyed for easy
+  // lookup — computed on read rather than via a trigger-maintained sidecar
+  // table, since readings are logged one at a time through a UI action, not
+  // batch-captured like the fixed vitals pipeline.
+  Future<Map<int, Map<String, dynamic>>> getTrackedMetricRangesForPatient(String patientUuid) async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      '''
+    SELECT metric_id, MIN(value) AS min_value, MAX(value) AS max_value, MAX(measured) AS last_measured,
+           (SELECT value FROM tracked_metric_reading r2
+            WHERE r2.metric_id = r.metric_id AND r2.patient_uuid = r.patient_uuid
+            ORDER BY measured DESC LIMIT 1) AS current_value
+    FROM tracked_metric_reading r
+    WHERE patient_uuid = ?
+    GROUP BY metric_id
+  ''',
+      [patientUuid],
+    );
+    return {for (final row in rows) row['metric_id'] as int: row};
+  }
+
   // The New Patient Retrieval Function
   // The Clean Patient Retrieval Function
   Future<List<Map<String, dynamic>>> getAllPatients() async {
@@ -194,11 +527,15 @@ class DatabaseManager {
   Future<List<Map<String, dynamic>>> getAllPatientsWithVitals() async {
     final db = await database;
 
-    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet
+    // Use a LEFT JOIN to ensure we get the patient even if they have no vitals yet.
+    // Archived patients (disposed of, off the active caseload) are excluded here
+    // but not from getPatientWithVitals below — an already-open card should still
+    // be able to refresh itself right up through archiving.
     return await db.rawQuery('''
     SELECT p.*, m.*
     FROM patient p
     LEFT JOIN patient_current_metrics m ON p.patient_uuid = m.patient_uuid
+    WHERE p.archived_at IS NULL
   ''');
   }
 
