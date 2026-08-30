@@ -19,6 +19,7 @@ class PatientInformationCard extends StatefulWidget {
   final VoidCallback? onMedsTap;
   final VoidCallback? onOrdersTap;
   final VoidCallback? onDischargeReportTap;
+  final VoidCallback? onSendQuestionnaireTap;
   final VoidCallback? onArchiveTap;
 
   const PatientInformationCard({
@@ -29,6 +30,7 @@ class PatientInformationCard extends StatefulWidget {
     this.onMedsTap,
     this.onOrdersTap,
     this.onDischargeReportTap,
+    this.onSendQuestionnaireTap,
     this.onArchiveTap,
   });
 
@@ -100,6 +102,12 @@ class PatientInformationCardState extends State<PatientInformationCard> {
                 label: "Orders",
                 icon: Symbols.assignment,
                 onTap: widget.onOrdersTap ?? () {},
+              ),
+              _buildCompactButton(
+                context: context,
+                label: "Send Questionnaire",
+                icon: Symbols.checklist,
+                onTap: widget.onSendQuestionnaireTap ?? () {},
               ),
               // Shows once the journey has actually reached a terminal
               // outcome — before that there isn't a discharge to report yet.

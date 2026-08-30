@@ -10,7 +10,9 @@ import 'package:triage/classes/acuity.dart';
 import 'package:triage/classes/body_zone.dart';
 import 'package:triage/classes/database_manager.dart';
 import 'package:triage/classes/ems_handoff_import.dart';
+import 'package:triage/classes/questionnaire_result_import.dart';
 import 'package:triage/screens/import_ems_handoff_screen.dart';
+import 'package:triage/screens/import_questionnaire_result_screen.dart';
 import 'package:triage/screens/staff_screen.dart';
 import 'package:triage/screens/start_up.dart';
 import 'classes/action.dart';
@@ -47,9 +49,10 @@ class _LuminescaAppState extends State<LuminescaApp> {
     _listenForEmsHandoffLinks();
   }
 
-  // progressor://import?data=... — an EMS handoff from a sibling app (Acuitage today)
-  // with no shared backend. Covers both a cold start (app wasn't running yet) and a
-  // warm one.
+  // progressor://import?data=... (an EMS handoff, Acuitage today) and
+  // progressor://questionnaireResult?data=... (a completed clinician-requested
+  // questionnaire, Ally today) — both with no shared backend. Covers both a cold
+  // start (app wasn't running yet) and a warm one.
   Future<void> _listenForEmsHandoffLinks() async {
     final Uri? initial = await _appLinks.getInitialLink();
     if (initial != null) _handleLink(initial);
@@ -57,12 +60,20 @@ class _LuminescaAppState extends State<LuminescaApp> {
   }
 
   void _handleLink(Uri uri) {
-    if (uri.scheme != 'progressor' || uri.host != 'import') return;
-    final EmsHandoffImportPayload? payload = EmsHandoffImportPayload.tryParse(uri);
-    if (payload == null) return;
-    _navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (context) => ImportEmsHandoffScreen(payload: payload)),
-    );
+    if (uri.scheme != 'progressor') return;
+    if (uri.host == 'import') {
+      final EmsHandoffImportPayload? payload = EmsHandoffImportPayload.tryParse(uri);
+      if (payload == null) return;
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (context) => ImportEmsHandoffScreen(payload: payload)),
+      );
+    } else if (uri.host == 'questionnaireResult') {
+      final QuestionnaireResultPayload? payload = QuestionnaireResultPayload.tryParse(uri);
+      if (payload == null) return;
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (context) => ImportQuestionnaireResultScreen(payload: payload)),
+      );
+    }
   }
 
   @override

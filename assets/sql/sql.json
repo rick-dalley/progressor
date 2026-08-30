@@ -175,6 +175,10 @@
   {
    "table": "missing_persons",
    "query": "CREATE TABLE missing_persons (id INTEGER PRIMARY KEY AUTOINCREMENT, patient_uuid TEXT, last_seen_ms INTEGER, clothing TEXT, identifying_marks TEXT, last_location TEXT,  travelling TEXT, photo_path TEXT, id_path TEXT, access_to_means INTEGER, disappeared_before INTEGER, financial_anomalies_idx INTEGER, created_at_ms INTEGER);"
+  },
+  {
+   "table": "questionnaire_result",
+   "query": "CREATE TABLE IF NOT EXISTS questionnaire_result (id TEXT PRIMARY KEY, patient_uuid TEXT NOT NULL, template_id TEXT NOT NULL, score INTEGER NOT NULL, summary TEXT NOT NULL, action TEXT, answered_at DATETIME NOT NULL, received_at DATETIME NOT NULL, FOREIGN KEY (patient_uuid) REFERENCES patient(patient_uuid) ON DELETE CASCADE);"
   }
  ],
  "INSERT": [

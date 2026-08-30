@@ -20,12 +20,52 @@ class AssessmentsScreen extends StatefulWidget {
 
 class _AssessmentsScreenState extends State<AssessmentsScreen> {
   late Future<Map<String, int>> _assessmentCountsFuture;
+  late Future<List<Map<String, dynamic>>> _questionnaireResultsFuture;
 
   @override
   void initState() {
     super.initState();
     // Initialize the future once
     _assessmentCountsFuture = DatabaseManager().countCompletedAssessments(widget.patientUuid);
+    _questionnaireResultsFuture = DatabaseManager().getQuestionnaireResults(widget.patientUuid);
+  }
+
+  // A self-administered instrument the patient completed on their own Ally profile
+  // (see SendQuestionnaireScreen) — distinct from the "PHYSICAL HEALTH"/clinician-
+  // administered sections below, this is the one place the actual score/
+  // interpretation is visible to anyone, deliberately never to the patient.
+  Widget _buildQuestionnaireResultsSection() {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _questionnaireResultsFuture,
+      builder: (context, snapshot) {
+        final results = snapshot.data ?? [];
+        if (results.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader("SELF-ADMINISTERED (SENT FROM ALLY)"),
+            for (final r in results)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Card(
+                  elevation: 0,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: AppTheme.cardBorder, width: 1.5),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Symbols.checklist, color: AppTheme.deepLogicViolet),
+                    title: Text('${r['template_id']} — score ${r['score']}'),
+                    subtitle: Text('${r['summary']}${(r['action'] as String?)?.isNotEmpty ?? false ? '\n${r['action']}' : ''}'),
+                    isThreeLine: (r['action'] as String?)?.isNotEmpty ?? false,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -72,6 +112,7 @@ class _AssessmentsScreenState extends State<AssessmentsScreen> {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
+                    _buildQuestionnaireResultsSection(),
                     // --- SECTION: PHYSICAL HEALTH (The "Total Picture") ---
                     _buildSectionHeader("PHYSICAL HEALTH"),
                     Padding(

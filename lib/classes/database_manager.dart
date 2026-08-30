@@ -68,12 +68,21 @@ class DatabaseManager {
     // CRITICAL: You must await this call.
     final db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         // 4. Ensure Foreign Keys are enabled for the session
         await db.execute('PRAGMA foreign_keys = ON;');
         await createSqlObjects(db);
         await DataSeeder.seed(db);
+      },
+      // Existing installs never re-run onCreate, so a table added to sql.json after a
+      // device's db file was first created would otherwise never exist on that
+      // device — createSqlObjects' CREATE TABLE IF NOT EXISTS statements make
+      // re-running it here safe (see Ally's database_manager.dart for the same
+      // pattern, used there since schema v1).
+      onUpgrade: (db, oldVersion, newVersion) async {
+        await db.execute('PRAGMA foreign_keys = ON;');
+        await createSqlObjects(db);
       },
     );
     return db;
@@ -84,11 +93,19 @@ class DatabaseManager {
     // 2. Extract the CREATE array
     final List<dynamic> createScripts = sqlConfig?['CREATE'];
 
-    // 3. Execute each query in the order provided in the JSON
+    // 3. Execute each query in the order provided in the JSON. Tolerate "already
+    // exists" so this can safely re-run against a db that already has some (but not
+    // all) of these objects — most existing entries here predate schema versioning
+    // and don't say "IF NOT EXISTS" themselves, so the catch does the idempotency
+    // work instead (mirrors Ally's database_manager.dart, same reasoning).
     for (var entry in createScripts) {
       final String query = entry['query'];
       if (query.isNotEmpty) {
-        await db.execute(query);
+        try {
+          await db.execute(query);
+        } on DatabaseException catch (e) {
+          if (!e.toString().toLowerCase().contains('already exists')) rethrow;
+        }
       }
     }
   }
@@ -114,6 +131,42 @@ class DatabaseManager {
   Future<String?> getTemplateTextForCode(String code) async {
     final db = await database;
     return "";
+  }
+
+  // A completed, clinician-requested questionnaire's results, handed back from Ally
+  // (see that app's questionnaire_result_export.dart) — the raw score/interpretation
+  // the patient themselves never saw. See ImportQuestionnaireResultScreen for the
+  // receiving half of this handoff.
+  Future<void> insertQuestionnaireResult({
+    required String id,
+    required String patientUuid,
+    required String templateId,
+    required int score,
+    required String summary,
+    String? action,
+    required DateTime answeredAt,
+  }) async {
+    final db = await database;
+    await db.insert('questionnaire_result', {
+      'id': id,
+      'patient_uuid': patientUuid,
+      'template_id': templateId,
+      'score': score,
+      'summary': summary,
+      'action': action,
+      'answered_at': answeredAt.toIso8601String(),
+      'received_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getQuestionnaireResults(String patientUuid) async {
+    final db = await database;
+    return await db.query(
+      'questionnaire_result',
+      where: 'patient_uuid = ?',
+      whereArgs: [patientUuid],
+      orderBy: 'answered_at DESC',
+    );
   }
 
   Future<void> insertBodyMarker(String patientUuid, Map<String, dynamic> marker) async {

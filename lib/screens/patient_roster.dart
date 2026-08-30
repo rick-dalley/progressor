@@ -10,6 +10,7 @@ import '../widgets/patient_medical_card.dart';
 import 'care_orders_screen.dart';
 import 'discharge_report_screen.dart';
 import 'questionnaires.dart';
+import 'send_questionnaire_screen.dart';
 import 'intake.dart';
 import 'meds.dart';
 
@@ -288,6 +289,12 @@ class PatientRosterState extends State<PatientRoster> {
                                         useSafeArea: true,
                                         showDragHandle: true,
                                         builder: (context) => DischargeReportScreen(patient: patient),
+                                      );
+                                    },
+                                    onSendQuestionnaireTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => SendQuestionnaireScreen(patient: patient)),
                                       );
                                     },
                                     onArchiveTap: () async {
