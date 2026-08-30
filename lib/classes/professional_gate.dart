@@ -34,6 +34,7 @@ class ProfessionalGate {
                   builder: (_) => ProfessionalProfileScreen(
                     profile: profile ?? const ProfessionalProfile(name: '', clinicName: '', specialty: '', designation: ''),
                     onSave: (updated) => DatabaseManager().saveProfessionalProfile(updated),
+                    onNewlyVerified: () => handleNewlyVerified(context),
                   ),
                 ),
               );
@@ -44,5 +45,17 @@ class ProfessionalGate {
       ),
     );
     return result ?? false;
+  }
+
+  // Shows CarbonPreparingAppScreen for exactly as long as the demo-data wipe actually
+  // takes, then dismisses it — called the moment a professional's verification lands,
+  // whether from a status check, an org code, or completing onboarding already
+  // verified. Pushed on the root navigator so it covers everything regardless of which
+  // screen triggered it, and survives that screen popping out from under it.
+  static Future<void> handleNewlyVerified(BuildContext context) async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    navigator.push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const CarbonPreparingAppScreen()));
+    await DatabaseManager().wipeDemoDataForLicensedInstall();
+    navigator.pop();
   }
 }

@@ -19,6 +19,7 @@ import 'package:triage/screens/start_up.dart';
 import 'classes/action.dart';
 import 'classes/drugs.dart';
 import 'classes/phase_state_handlers.dart';
+import 'classes/professional_gate.dart';
 import 'classes/staff.dart';
 import 'classes/symptom_evaluation.dart';
 import 'generated/l10n.dart';
@@ -105,6 +106,9 @@ class _LuminescaAppState extends State<LuminescaApp> {
         '/onboarding': (context) => ProfessionalOnboardingWizard(
           onComplete: (profile) async {
             await DatabaseManager().saveProfessionalProfile(profile);
+            if (profile.verificationStatus.grantsFullAccess && context.mounted) {
+              await ProfessionalGate.handleNewlyVerified(context);
+            }
             _navigatorKey.currentState?.pushReplacementNamed('/roster');
           },
         ),
@@ -185,6 +189,7 @@ class LuminescaHomeState extends State<LuminescaHome> {
                 setState(() => _professionalProfile = updated);
                 DatabaseManager().saveProfessionalProfile(updated);
               },
+              onNewlyVerified: () => ProfessionalGate.handleNewlyVerified(context),
             ),
         ],
       ),

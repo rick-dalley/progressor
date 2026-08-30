@@ -1445,15 +1445,25 @@ class DatabaseManager {
     await db.insert('professional_profile', row, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  // Tables to keep once a real license lands — empty by design. No professional or
-  // user profile survives the wipe, professional_profile included: the signed license
-  // grant from the Go server (plus the DeviceIdentity keys in secure storage) is the
-  // real source of truth for who this professional is going forward, not whatever was
-  // entered locally before the license existed. Kept as a named allowlist rather than
-  // deleted outright so a future real exception (if one ever turns out to be needed)
-  // has an obvious place to go, and so this stays structurally identical to Ally's/
-  // Acuitage's copy of this method.
-  static const Set<String> _preserveOnLicenseWipe = {};
+  // Tables to keep once a real license lands — genuine reference/catalog data with no
+  // link (direct or via foreign key) to any patient/incident, derived from the actual
+  // schema in assets/sql/sql.json rather than guessed. `staff` deliberately does NOT
+  // appear here despite having no such link: it's seeded fake colleagues, not a real
+  // universal catalog. No professional or user profile survives the wipe,
+  // professional_profile included: the signed license grant from the Go server (plus
+  // the DeviceIdentity keys in secure storage) is the real source of truth for who
+  // this professional is going forward, not whatever was entered locally before the
+  // license existed.
+  static const Set<String> _preserveOnLicenseWipe = {
+    'action',
+    'assessment',
+    'condition',
+    'datasheet',
+    'drug_name',
+    'interaction',
+    'question',
+    'tracked_metric_definition',
+  };
 
   // Called once a license grant lands from the Go server — the free trial lets someone
   // wander the seeded demo data but never enter their own (see the license-gated entry
