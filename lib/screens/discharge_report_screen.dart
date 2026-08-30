@@ -125,10 +125,15 @@ class _DischargeReportScreenState extends State<DischargeReportScreen> {
   }
 
   Future<void> _send() async {
+    // Guarded by the button's own disabled state below (email == null/empty), but
+    // checked again here too — this is the one place a null would otherwise reach
+    // Uri's non-nullable path parameter.
+    final String? email = widget.patient.email;
+    if (email == null || email.isEmpty) return;
     final String body = '${_buildReportText()}\n\nHave the Ally app? Tap this link to import your care plan:\n${_buildAllyImportLink()}';
     final Uri mailUri = Uri(
       scheme: 'mailto',
-      path: widget.patient.email,
+      path: email,
       queryParameters: {'subject': 'Your Care Plan', 'body': body},
     );
     if (await canLaunchUrl(mailUri)) {
@@ -224,10 +229,10 @@ class _DischargeReportScreenState extends State<DischargeReportScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: widget.patient.email.isEmpty ? null : _send,
+                    onPressed: (widget.patient.email?.isEmpty ?? true) ? null : _send,
                     icon: const Icon(Icons.email_outlined, color: Colors.white),
                     label: Text(
-                      widget.patient.email.isEmpty ? "No email on file" : "Review & Send to ${widget.patient.email}",
+                      (widget.patient.email?.isEmpty ?? true) ? "No email on file" : "Review & Send to ${widget.patient.email}",
                       style: const TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(backgroundColor: AppTheme.deepLogicViolet),

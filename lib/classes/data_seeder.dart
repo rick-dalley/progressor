@@ -10,22 +10,33 @@ import 'ems_handoff.dart';
 class DataSeeder {
   /// Entry point for seeding data.
   /// Only executes in debug mode to prevent data pollution in release builds.
-  static Future<void> seed(Database db) async {
+  /// [onProgress], if given, is called after each batch finishes with
+  /// (batches completed so far, total batches) — see StartupScreen, which uses this
+  /// to show real progress instead of an indefinite spinner during the one-time
+  /// first-install seed (onCreate only; an already-seeded install never re-runs this).
+  static Future<void> seed(Database db, {void Function(int completed, int total)? onProgress}) async {
     if (!kDebugMode) return;
 
     debugPrint('--- Starting Database Seeding ---');
 
-    await _seedPatientData(db);
-    await _seedPhaseSteps(db);
-    await _seedTrackedMetrics(db);
-    await _seedTherapySpans(db);
-    await _seedEmsHandoffs(db);
-    await _seedObservations(db);
-    await _seedConditionsCatalog(db);
-    await _seedStaff(db);
-    await _seedCareOrders(db);
-    await _seedDispositionDecisions(db);
-    await _seedInteractions(db);
+    final List<Future<void> Function(Database)> batches = [
+      _seedPatientData,
+      _seedPhaseSteps,
+      _seedTrackedMetrics,
+      _seedTherapySpans,
+      _seedEmsHandoffs,
+      _seedObservations,
+      _seedConditionsCatalog,
+      _seedStaff,
+      _seedCareOrders,
+      _seedDispositionDecisions,
+      _seedInteractions,
+    ];
+
+    for (int i = 0; i < batches.length; i++) {
+      await batches[i](db);
+      onProgress?.call(i + 1, batches.length);
+    }
     debugPrint('--- Seeding Complete ---');
   }
 

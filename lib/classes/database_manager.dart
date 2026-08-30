@@ -18,6 +18,12 @@ class DatabaseManager {
   Database? _db;
   static const uuid = Uuid();
 
+  // Null whenever nothing is seeding (the common case — an already-seeded install
+  // opens its existing db file in milliseconds and this never moves) — a fraction
+  // 0.0-1.0 only during the one-time first-install seed inside onCreate. StartupScreen
+  // listens to this to show real progress instead of an indefinite spinner.
+  static final ValueNotifier<double?> seedProgress = ValueNotifier(null);
+
   // The Gatekeeper: This prevents multiple calls to init()
   Completer<Database>? _dbCompleter;
 
@@ -73,7 +79,12 @@ class DatabaseManager {
         // 4. Ensure Foreign Keys are enabled for the session
         await db.execute('PRAGMA foreign_keys = ON;');
         await createSqlObjects(db);
-        await DataSeeder.seed(db);
+        seedProgress.value = 0.0;
+        await DataSeeder.seed(
+          db,
+          onProgress: (completed, total) => seedProgress.value = completed / total,
+        );
+        seedProgress.value = null;
       },
       // Existing installs never re-run onCreate, so a table added to sql.json after a
       // device's db file was first created would otherwise never exist on that

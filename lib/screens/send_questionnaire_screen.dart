@@ -48,9 +48,14 @@ class _SendQuestionnaireScreenState extends State<SendQuestionnaireScreen> {
     return 'ally://assignQuestionnaire?data=$encoded';
   }
 
-  bool get _canSend => _providerNameController.text.trim().isNotEmpty && _providerEmailController.text.trim().isNotEmpty;
+  bool get _patientHasEmail => widget.patient.email?.isNotEmpty ?? false;
+
+  bool get _canSend =>
+      _patientHasEmail && _providerNameController.text.trim().isNotEmpty && _providerEmailController.text.trim().isNotEmpty;
 
   Future<void> _send() async {
+    final String? patientEmail = widget.patient.email;
+    if (patientEmail == null || patientEmail.isEmpty) return;
     final String body =
         'Hi ${widget.patient.firstName},\n\n'
         '${_providerNameController.text.trim()} would like you to complete a short ${_selected.name} '
@@ -58,7 +63,7 @@ class _SendQuestionnaireScreenState extends State<SendQuestionnaireScreen> {
         'Have the Ally app? Tap this link to open it:\n${_buildAllyAssignLink()}';
     final Uri mailUri = Uri(
       scheme: 'mailto',
-      path: widget.patient.email,
+      path: patientEmail,
       queryParameters: {'subject': 'A quick questionnaire from ${_providerNameController.text.trim()}', 'body': body},
     );
     if (await canLaunchUrl(mailUri)) {
@@ -121,6 +126,13 @@ class _SendQuestionnaireScreenState extends State<SendQuestionnaireScreen> {
           "Sending to ${widget.patient.firstName} ${widget.patient.lastName}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
+        if (!_patientHasEmail) ...[
+          const SizedBox(height: 4),
+          const Text(
+            "No email on file for this patient — add one before sending.",
+            style: TextStyle(fontSize: 12, color: Colors.redAccent),
+          ),
+        ],
         const SizedBox(height: 16),
         const Text("QUESTIONNAIRE", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.grey)),
         const SizedBox(height: 6),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
+import '../classes/database_manager.dart';
 
 class StartupScreen extends StatefulWidget {
   const StartupScreen({super.key});
@@ -31,7 +32,12 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
     _controller.forward(); // Start the "Triage" slide animation
 
     await Future.wait([
-      // Load ML Engine here if needed
+      // Actually opening (and, on a genuinely fresh install, seeding) the database
+      // now — rather than letting PatientRoster's own initState discover the need to
+      // seed later with no visible progress — so the one-time seed happens here,
+      // under a real progress readout (see build()'s ValueListenableBuilder), and by
+      // the time the roster appears its own query is already instant.
+      DatabaseManager().database,
       Future.delayed(const Duration(seconds: 2)), // Minimum time to show your branding
     ]);
 
@@ -78,6 +84,36 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
                   ),
                 ),
               ),
+            ),
+            // Only ever appears during a genuinely fresh install's one-time seed
+            // (DatabaseManager.seedProgress stays null otherwise, every other launch)
+            // — an indefinite spinner with no explanation is exactly what read as "the
+            // app is frozen" before this existed.
+            ValueListenableBuilder<double?>(
+              valueListenable: DatabaseManager.seedProgress,
+              builder: (context, progress, _) {
+                if (progress == null) return const SizedBox(height: 32);
+                return Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Preparing Progressor for Use",
+                        style: TextStyle(
+                          color: AppTheme.deepCharcoal,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Preparing Database ${(progress * 100).round()}%",
+                        style: const TextStyle(color: AppTheme.deepCharcoal, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
