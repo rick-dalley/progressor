@@ -95,44 +95,56 @@ class StaffIdCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         // Placeholder for Barcode/QR
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               height: 40,
                               width: 40,
                               color: Colors.black12, // Replace with your QR/Barcode widget
                             ),
-                            Container(
-                              padding: EdgeInsets.all(8.0),
-                              alignment: Alignment.centerLeft,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  InkWell(
-                                    onTap: () async {
-                                      final Uri emailLaunchUri = Uri(
-                                        scheme: 'mailto',
-                                        path: email,
-                                        query: 'subject=Hello&body=Regarding your inquiry...', // Optional
-                                      );
+                            // Was an unconstrained Container in a Row with no
+                            // Expanded/Flexible — a long email address (or phone/pager
+                            // string) had nowhere to wrap and just overflowed the
+                            // card's right edge instead of clipping or wrapping.
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    InkWell(
+                                      onTap: () async {
+                                        final Uri emailLaunchUri = Uri(
+                                          scheme: 'mailto',
+                                          path: email,
+                                          query: 'subject=Hello&body=Regarding your inquiry...', // Optional
+                                        );
 
-                                      if (await canLaunchUrl(emailLaunchUri)) {
-                                        await launchUrl(emailLaunchUri);
-                                      } else {
-                                        // Handle the error (e.g., show a snackbar saying no email app is configured)
-                                      }
-                                    },
-                                    child: Text(
-                                      email,
-                                      style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                        if (await canLaunchUrl(emailLaunchUri)) {
+                                          await launchUrl(emailLaunchUri);
+                                        } else {
+                                          // Handle the error (e.g., show a snackbar saying no email app is configured)
+                                        }
+                                      },
+                                      child: Text(
+                                        email,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                      ),
                                     ),
-                                  ),
-                                  Text("Ph: $phone"),
-                                  if(pager != null || pager!.isNotEmpty)
-                                    Text("Pg: $pager"),
-                                ],)
-                              ,
-                            )
-
+                                    Text("Ph: $phone", overflow: TextOverflow.ellipsis, maxLines: 1),
+                                    // Was `pager != null || pager!.isNotEmpty` — with
+                                    // `||`, a null pager still evaluates the right-hand
+                                    // pager!.isNotEmpty and throws a null-assertion
+                                    // error; this needed `&&` to short-circuit on null.
+                                    if (pager != null && pager!.isNotEmpty)
+                                      Text("Pg: $pager", overflow: TextOverflow.ellipsis, maxLines: 1),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ],
