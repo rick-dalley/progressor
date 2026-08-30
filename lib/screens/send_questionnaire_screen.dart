@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../app_theme.dart';
 import '../classes/patient.dart';
+import '../classes/professional_gate.dart';
 import '../classes/questionnaire_catalog.dart';
 
 // The push-button half of Ally's assigned-questionnaire model — no paperwork, no
@@ -54,6 +55,8 @@ class _SendQuestionnaireScreenState extends State<SendQuestionnaireScreen> {
       _patientHasEmail && _providerNameController.text.trim().isNotEmpty && _providerEmailController.text.trim().isNotEmpty;
 
   Future<void> _send() async {
+    if (!await ProfessionalGate.ensureVerified(context)) return;
+    if (!mounted) return;
     final String? patientEmail = widget.patient.email;
     if (patientEmail == null || patientEmail.isEmpty) return;
     final String body =

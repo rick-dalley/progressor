@@ -10,6 +10,7 @@ import '../classes/database_manager.dart';
 import '../classes/dispositional.dart';
 import '../classes/journey_stage.dart';
 import '../classes/patient.dart';
+import '../classes/professional_gate.dart';
 
 // The provider-reviewed report handed to a patient at discharge — active
 // take-home orders, medications, and care-team contacts. Sent via the
@@ -125,6 +126,8 @@ class _DischargeReportScreenState extends State<DischargeReportScreen> {
   }
 
   Future<void> _send() async {
+    if (!await ProfessionalGate.ensureVerified(context)) return;
+    if (!mounted) return;
     // Guarded by the button's own disabled state below (email == null/empty), but
     // checked again here too — this is the one place a null would otherwise reach
     // Uri's non-nullable path parameter.

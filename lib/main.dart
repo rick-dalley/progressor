@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:carbon_ui/carbon_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -99,7 +100,15 @@ class _LuminescaAppState extends State<LuminescaApp> {
       // Change 'home' to StartupScreen
       home: const StartupScreen(),
       // Define a route for the roster so pushReplacementNamed works
-      routes: {'/roster': (context) => const LuminescaHome()},
+      routes: {
+        '/roster': (context) => const LuminescaHome(),
+        '/onboarding': (context) => ProfessionalOnboardingWizard(
+          onComplete: (profile) async {
+            await DatabaseManager().saveProfessionalProfile(profile);
+            _navigatorKey.currentState?.pushReplacementNamed('/roster');
+          },
+        ),
+      },
     );
   }
 }
@@ -114,11 +123,21 @@ class LuminescaHome extends StatefulWidget {
 class LuminescaHomeState extends State<LuminescaHome> {
   // We make the initialization a Future that we can listen to
   late Future<void> _initFuture;
+  ProfessionalProfile? _professionalProfile;
 
   @override
   void initState() {
     super.initState();
     _initFuture = _initializeApp();
+    _loadProfile();
+  }
+
+  // The wizard guarantees a profile exists by the time this screen is ever reached
+  // (StartupScreen routes to /onboarding first when none is on file), so this is just
+  // populating the avatar button, never gating access to the roster itself.
+  Future<void> _loadProfile() async {
+    final profile = await DatabaseManager().getProfessionalProfile();
+    if (mounted) setState(() => _professionalProfile = profile);
   }
 
   Future<void> _initializeApp() async {
@@ -157,7 +176,17 @@ class LuminescaHomeState extends State<LuminescaHome> {
             ],
           ),
         ),
-        actions: [IconButton(onPressed: () => showStaff(context), icon: const Icon(Symbols.person))],
+        actions: [
+          IconButton(onPressed: () => showStaff(context), icon: const Icon(Symbols.person)),
+          if (_professionalProfile != null)
+            ProfessionalAvatarButton(
+              profile: _professionalProfile!,
+              onSave: (updated) {
+                setState(() => _professionalProfile = updated);
+                DatabaseManager().saveProfessionalProfile(updated);
+              },
+            ),
+        ],
       ),
       // The Roster stays in the tree at all times (so it lays out),
       // and we only animate the loading overlay on top.

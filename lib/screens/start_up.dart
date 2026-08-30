@@ -41,10 +41,12 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
       Future.delayed(const Duration(seconds: 2)), // Minimum time to show your branding
     ]);
 
-    if (mounted) {
-      // Navigate to the actual home screen and remove the splash from history
-      Navigator.of(context).pushReplacementNamed('/roster');
-    }
+    if (!mounted) return;
+    // Skip the wizard entirely once a profile is on file — it's a one-time setup
+    // step, not something shown on every launch.
+    final profile = await DatabaseManager().getProfessionalProfile();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(profile == null ? '/onboarding' : '/roster');
   }
 
   @override

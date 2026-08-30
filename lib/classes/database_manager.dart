@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:carbon_ui/carbon_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -74,7 +75,7 @@ class DatabaseManager {
     // CRITICAL: You must await this call.
     final db = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         // 4. Ensure Foreign Keys are enabled for the session
         await db.execute('PRAGMA foreign_keys = ON;');
@@ -1425,5 +1426,23 @@ class DatabaseManager {
   ''',
       [id],
     );
+  }
+
+  // The device's own professional profile — one row per install, fixed id, whether or
+  // not credential verification has completed. Null before the onboarding wizard has
+  // ever run.
+  static const String _professionalProfileId = 'self';
+
+  Future<ProfessionalProfile?> getProfessionalProfile() async {
+    final db = await database;
+    final rows = await db.query('professional_profile', where: 'id = ?', whereArgs: [_professionalProfileId], limit: 1);
+    return rows.isEmpty ? null : ProfessionalProfile.fromRow(rows.first);
+  }
+
+  Future<void> saveProfessionalProfile(ProfessionalProfile profile) async {
+    final db = await database;
+    final row = profile.toRow();
+    row['id'] = _professionalProfileId;
+    await db.insert('professional_profile', row, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }

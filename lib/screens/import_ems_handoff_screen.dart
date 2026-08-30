@@ -7,6 +7,7 @@ import '../classes/acuity.dart';
 import '../classes/database_manager.dart';
 import '../classes/ems_handoff.dart';
 import '../classes/ems_handoff_import.dart';
+import '../classes/professional_gate.dart';
 
 // The receiving end of Acuitage's EMS handoff deep link — a paramedic's on-scene
 // summary, previewed here before anything writes to the database. Unlike the
@@ -46,6 +47,8 @@ class _ImportEmsHandoffScreenState extends State<ImportEmsHandoffScreen> {
 
   Future<void> _import() async {
     if (_importing) return;
+    if (!await ProfessionalGate.ensureVerified(context)) return;
+    if (!mounted) return;
     setState(() => _importing = true);
 
     final db = DatabaseManager();

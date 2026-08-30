@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/patient.dart';
+import '../classes/professional_gate.dart';
 import '../classes/questionnaire_result_import.dart';
 
 // The receiving end of Ally's progressor://questionnaireResult deep link — mirrors
@@ -54,6 +55,8 @@ class _ImportQuestionnaireResultScreenState extends State<ImportQuestionnaireRes
   Future<void> _save() async {
     final Patient? patient = _selectedPatient;
     if (patient == null) return;
+    if (!await ProfessionalGate.ensureVerified(context)) return;
+    if (!mounted) return;
     setState(() => _saving = true);
 
     await DatabaseManager().insertQuestionnaireResult(
