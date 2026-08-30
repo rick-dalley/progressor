@@ -141,7 +141,6 @@ class DatabaseManager {
   }
 
   Future<String?> getTemplateTextForCode(String code) async {
-    final db = await database;
     return "";
   }
 
@@ -1444,5 +1443,41 @@ class DatabaseManager {
     final row = profile.toRow();
     row['id'] = _professionalProfileId;
     await db.insert('professional_profile', row, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  // Tables to keep once a real license lands — empty by design. No professional or
+  // user profile survives the wipe, professional_profile included: the signed license
+  // grant from the Go server (plus the DeviceIdentity keys in secure storage) is the
+  // real source of truth for who this professional is going forward, not whatever was
+  // entered locally before the license existed. Kept as a named allowlist rather than
+  // deleted outright so a future real exception (if one ever turns out to be needed)
+  // has an obvious place to go, and so this stays structurally identical to Ally's/
+  // Acuitage's copy of this method.
+  static const Set<String> _preserveOnLicenseWipe = {};
+
+  // Called once a license grant lands from the Go server — the free trial lets someone
+  // wander the seeded demo data but never enter their own (see the license-gated entry
+  // points), so there is nothing of real value to lose. Clears every table, including
+  // professional_profile, so a licensed install starts from a genuinely clean slate.
+  // Deliberately not a delete-and-recreate of the db file: onCreate calls
+  // DataSeeder.seed, so that path would just reseed the exact fake data this is meant
+  // to remove. Foreign keys are toggled off around the wipe rather than deleting in
+  // dependency order, since sqflite/SQLite
+  // won't let the pragma change take effect mid-transaction anyway.
+  Future<void> wipeDemoDataForLicensedInstall() async {
+    final db = await database;
+    final List<dynamic> createScripts = sqlConfig?['CREATE'] ?? [];
+    final List<String> tables = [
+      for (final entry in createScripts)
+        if (entry['table'] is String) entry['table'] as String,
+    ];
+    await db.execute('PRAGMA foreign_keys = OFF;');
+    await db.transaction((txn) async {
+      for (final table in tables) {
+        if (_preserveOnLicenseWipe.contains(table)) continue;
+        await txn.delete(table);
+      }
+    });
+    await db.execute('PRAGMA foreign_keys = ON;');
   }
 }

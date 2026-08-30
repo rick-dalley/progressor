@@ -18,7 +18,7 @@ class _PendingOrder {
   String? frequency;
   int? durationDays; // null = ongoing, no end date
 
-  _PendingOrder({required this.label, required this.category, required this.directions, this.frequency, this.durationDays});
+  _PendingOrder({required this.label, required this.category, required this.directions});
 }
 
 // Jumps straight to composing orders — no list-first screen in the way.

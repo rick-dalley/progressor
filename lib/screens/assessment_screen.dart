@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../classes/assessment_session.dart';
 import '../classes/symptom_evaluation.dart';

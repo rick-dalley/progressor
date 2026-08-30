@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:triage/classes/assessment_logic.dart';
-import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
 class ASRSAssessmentScreen extends StatefulWidget {
@@ -31,7 +30,6 @@ class ASRSAssessmentScreenState extends State<ASRSAssessmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = S.of(context);
     final String instructionText = widget.template['column_headers'][0];
     final List questions = widget.template['questions_score'];
 

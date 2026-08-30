@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -25,16 +22,6 @@ class IntakeScreenState extends State<IntakeScreen> {
   final _phnController = TextEditingController();
   final _dobController = TextEditingController();
   late ScannedData scannedData = ScannedData();
-  late bool _isSimulator = widget.isSimulation ?? false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Simple check: most desktop/web builds for mobile dev act like the simulator
-    // for camera purposes. If you're on iOS/Android, we check if it's a real device.
-    // For now, let's stick to a manual flag or a basic check:
-    _isSimulator = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
-  }
 
   void onTextDetected(RecognizedText recognizedText) {
     final String fullText = recognizedText.text;

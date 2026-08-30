@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import '../app_theme.dart';
 import '../classes/assessment_logic.dart';
 import '../classes/database_manager.dart';
-import '../generated/l10n.dart';
 import '../widgets/likert_question.dart';
 
 class QuestionnaireSelectorScreen extends StatefulWidget {
@@ -91,7 +90,6 @@ class QuestionnaireSelectorScreenState extends State<QuestionnaireSelectorScreen
 
   @override
   Widget build(BuildContext context) {
-    final l10n = S.of(context);
     final String instructionText = widget.template['column_headers'][0];
     final List questions = widget.template['questions_score'];
     final bool isFormComplete = widget.logic!.isComplete(answers, questions);
@@ -230,8 +228,6 @@ class QuestionnaireSelectorScreenState extends State<QuestionnaireSelectorScreen
   }
 
   Widget _buildImpactSelector(List<dynamic> options) {
-    final l10n = S.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

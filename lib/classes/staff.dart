@@ -86,11 +86,6 @@ class StaffFactory {
     return _cachedKeys!;
   }
 
-  // Call this whenever you add/remove staff to invalidate the cache
-  void _invalidateCache() {
-    _cachedKeys = null;
-  }
-
   // 4. Initialization method (call this once at app startup)
   Future<void> initialize() async {
     dynamic staffData = await DatabaseManager().getStaff();
