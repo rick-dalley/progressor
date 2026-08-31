@@ -2,6 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Permits cleartext HTTP to the local network only, so a debug build can talk to
+	     a verifyd running on the developer's Mac (http://127.0.0.1:8090). This is not
+	     NSAllowsArbitraryLoads: ATS stays fully enforced for every real host, so a
+	     shipping build cannot be downgraded to plaintext. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

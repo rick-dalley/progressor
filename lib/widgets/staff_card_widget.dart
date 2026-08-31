@@ -1,9 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/staff.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StaffIdCard extends StatelessWidget {
-  final String photoPath;
+  // Null (or empty) means this person hasn't set a real photo yet — render an
+  // empty avatar with a pencil affordance instead of guessing one, per the
+  // 2026-08-30 fix: the license holder's own auto-seeded record used to get a
+  // random canned demo face that plainly wasn't them.
+  final String? photoPath;
   final String name;
   final String position;
   final String department;
@@ -14,6 +21,9 @@ class StaffIdCard extends StatelessWidget {
   final String? pager;
   final DepartmentColors departmentColor;
   final int index;
+  final VoidCallback? onPhotoTap;
+  final String? clinicName;
+  final String? specialty;
 
   const StaffIdCard({
     super.key,
@@ -28,27 +38,54 @@ class StaffIdCard extends StatelessWidget {
     this.pager,
     required this.departmentColor,
     required this.index,
+    this.onPhotoTap,
+    this.clinicName,
+    this.specialty,
   });
+
+  Widget _photo() {
+    final path = photoPath;
+    final Widget image;
+    if (path == null || path.isEmpty) {
+      image = Container(
+        color: Colors.black12,
+        alignment: Alignment.center,
+        child: const Icon(Symbols.person, color: Colors.black26, size: 48),
+      );
+    } else if (path.startsWith('assets/')) {
+      image = Image.asset(path, width: 100, height: 100, fit: BoxFit.cover);
+    } else {
+      image = Image.file(File(path), width: 100, height: 100, fit: BoxFit.cover);
+    }
+
+    return SizedBox(
+      width: 100,
+      height: 100,
+      child: Stack(
+        children: [
+          Positioned.fill(child: ClipRRect(borderRadius: BorderRadius.circular(8), child: image)),
+          if (onPhotoTap != null)
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: GestureDetector(
+                onTap: onPhotoTap,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                  child: const Icon(Symbols.edit, color: Colors.white, size: 14),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     Map<DepartmentColors, Color> departmentColorList= {DepartmentColors.blue:Colors.blue, DepartmentColors.green:Colors.green, DepartmentColors.cyan:Colors.cyan, DepartmentColors.purple: Colors.purple};
-    Map<int, String> photos = {
-      0:"assets/images/faces/dr_face_1.png",
-      1:"assets/images/faces/dr_face_2.png",
-      2:"assets/images/faces/emerg_face_1.png",
-      3:"assets/images/faces/emerg_face_2.png",
-      4:"assets/images/faces/nurse_face_1.png",
-      5:"assets/images/faces/nurse_face_2.png",
-      6:"assets/images/faces/police_face_1.png",
-      7:"assets/images/faces/police_face_2.png",
-      8:"assets/images/faces/psych_face_1.png",
-      9:"assets/images/faces/psych_face_2.png",
-      10:"assets/images/faces/psych_nurse_1.png",
-      11:"assets/images/faces/psych_nurse_2.png",
-      // 11:"assets/images/faces/dr_face_2.png",
-      // 11:"assets/images/faces/dr_face_1.png",
-    };
 
     return Card(
       elevation: 4,
@@ -63,7 +100,16 @@ class StaffIdCard extends StatelessWidget {
               width: double.infinity,
               alignment: Alignment.center,
               color: departmentColorList[DepartmentColors.values[index % 4]],
-              child: Text("University Hospital - $department", style: TextStyle(color: Colors.white,fontWeight:FontWeight.bold)),
+              // A real record carries its own clinic + specialty from onboarding
+              // (e.g. "Fraser Health - Psychiatry"); demo staff have neither column
+              // set, so they keep the fictional "University Hospital - <department>"
+              // banner as before.
+              child: Text(
+                (clinicName != null && clinicName!.isNotEmpty)
+                    ? '$clinicName${(specialty != null && specialty!.isNotEmpty) ? ' - $specialty' : ''}'
+                    : "University Hospital - $department",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
             Container(
               padding: EdgeInsets.all(16),
@@ -72,15 +118,7 @@ class StaffIdCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Left Side: Photo
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      photos[index % 12]!,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  _photo(),
                   const SizedBox(width: 16),
                   // Right Side: Info
                   Expanded(

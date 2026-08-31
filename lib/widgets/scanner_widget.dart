@@ -41,51 +41,51 @@ class ScannerWidgetState extends State<ScannerWidget> {
       child: Column(
         children: [
           // FRONT SLOT (Top)
+          // ScannerCardSlot already wraps itself in Expanded — wrapping it again here
+          // gave the same RenderObject two competing Expanded ancestors (FlexParentData
+          // written twice), which threw "Incorrect use of ParentDataWidget" the first
+          // time this path ever actually got exercised.
           if (scanFront)
-            Expanded(
-              child: ScannerCardSlot(
-                label: "FRONT OF ID",
-                isScanning: isScanningFront,
-                isAttached: frontAttached,
-                imagePath: frontScannerPath,
-                onTap: () => setState(() {
-                  isScanningFront = true;
-                  isScanningBack = false;
-                }),
-                onTextDetected: (RecognizedText text) {
-                  setState(() {
-                    isScanningFront = false; // Stop the scanner
-                    frontAttached = true; // Mark as done
-                  });
-                  if (widget.onTextDetected != null) {
-                    widget.onTextDetected!(text);
-                  }
-                },
-              ),
+            ScannerCardSlot(
+              label: "FRONT OF ID",
+              isScanning: isScanningFront,
+              isAttached: frontAttached,
+              imagePath: frontScannerPath,
+              onTap: () => setState(() {
+                isScanningFront = true;
+                isScanningBack = false;
+              }),
+              onTextDetected: (RecognizedText text) {
+                setState(() {
+                  isScanningFront = false; // Stop the scanner
+                  frontAttached = true; // Mark as done
+                });
+                if (widget.onTextDetected != null) {
+                  widget.onTextDetected!(text);
+                }
+              },
             ),
           const SizedBox(height: 12),
           // BACK SLOT (Bottom)
           if (scanBack)
-            Expanded(
-              child: ScannerCardSlot(
-                label: "BACK OF ID",
-                isScanning: isScanningBack,
-                isAttached: backAttached,
-                imagePath: backScannerPath,
-                onTap: () => setState(() {
-                  isScanningBack = true;
-                  isScanningFront = false;
-                }),
-                onTextDetected: (RecognizedText text) {
-                  setState(() {
-                    isScanningBack = false; // Stop the scanner
-                    backAttached = true; // Mark as done
-                  });
-                  if (widget.onTextDetected != null) {
-                    widget.onTextDetected!(text);
-                  }
-                },
-              ),
+            ScannerCardSlot(
+              label: "BACK OF ID",
+              isScanning: isScanningBack,
+              isAttached: backAttached,
+              imagePath: backScannerPath,
+              onTap: () => setState(() {
+                isScanningBack = true;
+                isScanningFront = false;
+              }),
+              onTextDetected: (RecognizedText text) {
+                setState(() {
+                  isScanningBack = false; // Stop the scanner
+                  backAttached = true; // Mark as done
+                });
+                if (widget.onTextDetected != null) {
+                  widget.onTextDetected!(text);
+                }
+              },
             ),
         ],
       ),

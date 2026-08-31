@@ -138,7 +138,7 @@
     },
     {
       "table": "staff",
-      "query": "CREATE TABLE staff (id TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT UNIQUE, gender TEXT, position TEXT, is_specialist INTEGER DEFAULT 0, on_call INTEGER DEFAULT 0, pager TEXT,     phone TEXT );"
+      "query": "CREATE TABLE staff (id TEXT PRIMARY KEY, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT UNIQUE, gender TEXT, position TEXT, is_specialist INTEGER DEFAULT 0, on_call INTEGER DEFAULT 0, pager TEXT,     phone TEXT, photo_path TEXT, clinic_name TEXT, specialty TEXT );"
     },
     {
       "table": "acuity_log",

@@ -8,6 +8,24 @@ import 'date_time_utilities.dart';
 import 'ems_handoff.dart';
 
 class DataSeeder {
+  // Mirrors the asset pool StaffIdCard used to pick from by list position — now
+  // assigned once per seeded row instead, so a demo colleague keeps the same face
+  // no matter how the staff list gets sorted or trimmed later.
+  static const List<String> _demoStaffPhotos = [
+    "assets/images/faces/dr_face_1.png",
+    "assets/images/faces/dr_face_2.png",
+    "assets/images/faces/emerg_face_1.png",
+    "assets/images/faces/emerg_face_2.png",
+    "assets/images/faces/nurse_face_1.png",
+    "assets/images/faces/nurse_face_2.png",
+    "assets/images/faces/police_face_1.png",
+    "assets/images/faces/police_face_2.png",
+    "assets/images/faces/psych_face_1.png",
+    "assets/images/faces/psych_face_2.png",
+    "assets/images/faces/psych_nurse_1.png",
+    "assets/images/faces/psych_nurse_2.png",
+  ];
+
   /// Entry point for seeding data.
   /// Only executes in debug mode to prevent data pollution in release builds.
   /// [onProgress], if given, is called after each batch finishes with
@@ -81,7 +99,7 @@ class DataSeeder {
       final List<dynamic> data = jsonDecode(jsonString);
 
       Batch batch = db.batch();
-      for (var entry in data) {
+      for (var (i, entry) in data.indexed) {
         batch.insert('staff', {
           'id': entry['id'],
           'first_name': entry['first_name'],
@@ -93,6 +111,10 @@ class DataSeeder {
           'on_call': entry['on_call'] ? 1 : 0,
           'pager': entry['pager'],
           'phone': entry['phone'],
+          // A real per-row photo assignment, not derived from list position at
+          // render time (StaffIdCard used to do that, which shifted everyone's
+          // photo around whenever the roster was re-sorted or trimmed).
+          'photo_path': _demoStaffPhotos[i % _demoStaffPhotos.length],
         });
       }
 

@@ -16,6 +16,14 @@ class StaffMember {
   final String? pager;
   final String phone;
   final DepartmentColors color;
+  // Null for anyone who hasn't set a real photo yet (the license holder's own
+  // auto-seeded record, or any staff member added by hand) — StaffIdCard shows an
+  // empty avatar + pencil affordance in that case instead of a demo stock photo.
+  final String? photoPath;
+  // What onboarding actually collected for the license holder (clinic + specialty) —
+  // real staff-record data, not the hardcoded demo "department" banner below.
+  final String? clinicName;
+  final String? specialty;
 
   const StaffMember({
     required this.id,
@@ -31,6 +39,9 @@ class StaffMember {
     required this.color,
     required this.department,
     required this.phone,
+    this.photoPath,
+    this.clinicName,
+    this.specialty,
   });
 
   factory StaffMember.fromJson(Map<String, dynamic> json) {
@@ -40,7 +51,7 @@ class StaffMember {
       firstName: json["first_name"],
       lastName: json["last_name"],
       email: json["email"] ?? "",
-      gender: json["gender"],
+      gender: json["gender"] ?? "",
       position: json["position"] ?? "",
       hireDate: DateTime.now().subtract(Duration(days: 365)),
       isSpecialist: (json["is_specialist"] == 1),
@@ -49,6 +60,9 @@ class StaffMember {
       phone: json["phone"] ?? "",
       color: DepartmentColors.purple,
       department: "Mental Health",
+      photoPath: json["photo_path"],
+      clinicName: json["clinic_name"],
+      specialty: json["specialty"],
     );
   }
 
@@ -65,6 +79,9 @@ class StaffMember {
       "on_call": onCall ? 1 : 0,
       "pager": pager,
       "phone": phone,
+      "photo_path": photoPath,
+      "clinic_name": clinicName,
+      "specialty": specialty,
     };
   }
 }
@@ -96,6 +113,16 @@ class StaffFactory {
        StaffMember member = StaffMember.fromJson(item);
        staff[member.id] = member;
     }
+  }
+
+  // Re-reads from the database, dropping every entry currently cached — needed
+  // after a license wipe replaces the whole staff table (initialize() alone only
+  // adds/overwrites by id, so a wiped fake colleague would linger in memory forever
+  // since nothing ever removes a key that vanished from the database).
+  Future<void> reload() async {
+    staff.clear();
+    _cachedKeys = null;
+    await initialize();
   }
 
   // 5. Easy access

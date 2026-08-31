@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carbon_ui/carbon_ui.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../classes/tracked_metric.dart';
@@ -20,6 +21,11 @@ class TrackedMetricsScreen extends StatefulWidget {
 }
 
 class _TrackedMetricsScreenState extends State<TrackedMetricsScreen> {
+  // Matched by name rather than the seeder's catalog ids — stays correct even if
+  // those ids are ever renumbered, since this only cares which definitions exist,
+  // not what row they landed on.
+  static const List<String> _vitalsSuiteNames = ['Systolic BP', 'Diastolic BP', 'Pulse', 'O2 Saturation', 'Temperature'];
+
   List<TrackedMetricDefinition> _all = [];
   Set<int> _trackedIds = {};
   Map<int, Map<String, dynamic>> _ranges = {};
@@ -60,6 +66,17 @@ class _TrackedMetricsScreenState extends State<TrackedMetricsScreen> {
     await _load();
   }
 
+  bool get _allVitalsTracked =>
+      _all.where((m) => _vitalsSuiteNames.contains(m.name)).every((m) => _trackedIds.contains(m.id));
+
+  Future<void> _trackVitalsSuite() async {
+    final toTrack = _all.where((m) => _vitalsSuiteNames.contains(m.name) && !_trackedIds.contains(m.id));
+    for (final metric in toTrack) {
+      await TrackedMetrics.track(patientUuid: widget.patientUuid, metricId: metric.id);
+    }
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double notchPadding = MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : 47.0;
@@ -82,6 +99,13 @@ class _TrackedMetricsScreenState extends State<TrackedMetricsScreen> {
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  CarbonCompactButton(
+                    icon: Symbols.vital_signs,
+                    label: "Vitals Suite",
+                    style: CarbonButtonStyle.primary,
+                    onTap: _allVitalsTracked ? null : _trackVitalsSuite,
+                  ),
+                  const SizedBox(height: 24),
                   if (tracked.isNotEmpty) ...[
                     Text("TRACKED", style: CarbonTheme.carbonLabelTextStyle),
                     const SizedBox(height: 8),
@@ -135,6 +159,14 @@ class _TrackedMetricCardState extends State<_TrackedMetricCard> {
     super.dispose();
   }
 
+  void _confirm() {
+    widget.onLogReading(_controller.text);
+    _controller.clear();
+    setState(() {});
+  }
+
+  void _cancel() => setState(() => _controller.clear());
+
   @override
   Widget build(BuildContext context) {
     final double? current = (widget.range?['current_value'] as num?)?.toDouble();
@@ -175,18 +207,14 @@ class _TrackedMetricCardState extends State<_TrackedMetricCard> {
                 child: CarbonNumberInput(
                   label: "New reading (${widget.metric.unit})",
                   controller: _controller,
-                  decimals: true,
                   accentColor: widget.metric.color,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
-              const SizedBox(width: 8),
-              CarbonButton(
-                label: "Add",
-                onPressed: () {
-                  widget.onLogReading(_controller.text);
-                  _controller.clear();
-                },
-              ),
+              if (_controller.text.isNotEmpty) ...[
+                IconButton(icon: const Icon(Symbols.close, size: 18, color: carbonColorIconSecondary), onPressed: _cancel),
+                IconButton(icon: const Icon(Symbols.check, size: 20, color: carbonColorSupportSuccess), onPressed: _confirm),
+              ],
             ],
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:triage/classes/scanned_data.dart';
 import 'package:triage/widgets/patient_information_card.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
@@ -25,6 +26,11 @@ class PatientRosterState extends State<PatientRoster> {
   List<dynamic> _patients = [];
   String _searchQuery = "";
   late TextEditingController _searchController;
+  // Distinct from "the list happens to be empty" — conflating the two showed a
+  // spinner that spun forever the first time this roster was ever genuinely empty
+  // (right after a license wipe clears the seeded demo patients), since nothing was
+  // actually loading anymore.
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -45,6 +51,7 @@ class PatientRosterState extends State<PatientRoster> {
 
     setState(() {
       _patients = data.map((p) => Patient.fromJson(p)).toList();
+      _isLoading = false;
     });
   }
 
@@ -74,7 +81,22 @@ class PatientRosterState extends State<PatientRoster> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const IntakeScreen(),
+        builder: (context) => IntakeScreen(
+          // Never actually wired up before now — Save just popped the screen with no
+          // database write, so a manually-added patient silently vanished. Reuses
+          // createPatientFromEmsHandoff (its own doc comment already anticipated this
+          // exact caller) rather than a second insert path for the same table.
+          onScannedData: (ScannedData data) async {
+            await DatabaseManager().createPatientFromEmsHandoff(
+              firstName: data.firstName.trim().isEmpty ? 'New' : data.firstName.trim(),
+              lastName: data.lastName.trim().isEmpty ? 'Patient' : data.lastName.trim(),
+              phn: data.phn.trim().isEmpty ? null : data.phn.trim(),
+              dob: DateTime.tryParse(data.dob.trim()),
+              acuityIndex: 0,
+            );
+            await _loadPatientData();
+          },
+        ),
         // This ensures the screen slides up like a focused task
         fullscreenDialog: true,
       ),
@@ -101,6 +123,51 @@ class PatientRosterState extends State<PatientRoster> {
         patient.assessments = patient.assessments + 1;
       });
     }
+  }
+
+  // Shown the first time this roster is ever genuinely empty — most visibly right
+  // after a license wipe clears the seeded demo patients, but equally correct for a
+  // brand-new install that skipped or never had demo data.
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Symbols.frame_person, size: 56, color: AppTheme.deepLogicViolet.withValues(alpha: 0.4)),
+            const SizedBox(height: 16),
+            const Text(
+              "Ready to start receiving patients.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Click the button below to start entering your first patient.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // A real patient list exists but the current search text matches none of it — a
+  // different message than the roster being genuinely empty, so someone doesn't read
+  // "start entering your first patient" while they already have a full caseload.
+  Widget _buildNoSearchResults() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Text(
+          "No patients match that search.",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+      ),
+    );
   }
 
   // Groups patients by their real current phase (blueprint order), sorted
@@ -202,12 +269,14 @@ class PatientRosterState extends State<PatientRoster> {
             ),
           ),
           Expanded(
-            child: filteredPatients.isEmpty
+            child: _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(
                       color: AppTheme.deepLogicViolet, // Navy indicator for a "smart" feel
                     ),
                   )
+                : filteredPatients.isEmpty
+                ? (_patients.isEmpty ? _buildEmptyState() : _buildNoSearchResults())
                 : ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 80),
                     // Added top padding for breathing room

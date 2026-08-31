@@ -42,11 +42,10 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
     ]);
 
     if (!mounted) return;
-    // Skip the wizard entirely once a profile is on file — it's a one-time setup
-    // step, not something shown on every launch.
-    final profile = await DatabaseManager().getProfessionalProfile();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(profile == null ? '/onboarding' : '/roster');
+    // The roster (with its demo data) is reachable immediately, profile or not —
+    // registering is no longer a forced gate, it's an affordance under the avatar
+    // button (a license icon until a profile is verified). See LuminescaHomeState.
+    Navigator.of(context).pushReplacementNamed('/roster');
   }
 
   @override
@@ -64,12 +63,12 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "Progressor",
+              "CWICare - Progressor",
               style: TextStyle(
                 color: AppTheme.deepLogicViolet,
-                fontSize: 36,
+                fontSize: 30,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 4,
+                letterSpacing: 2,
               ),
             ),
             ClipRect(
@@ -77,7 +76,7 @@ class _StartupScreenState extends State<StartupScreen> with SingleTickerProvider
               child: SlideTransition(
                 position: _slideAnimation,
                 child: Text(
-                  "CASELOAD, INTAKE TO RELEASE",
+                  "CARE PROVIDER",
                   style: TextStyle(
                     color: AppTheme.clinicalCyan, // Your brand action color
                     fontSize: 16,

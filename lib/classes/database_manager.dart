@@ -75,7 +75,7 @@ class DatabaseManager {
     // CRITICAL: You must await this call.
     final db = await openDatabase(
       path,
-      version: 3,
+      version: 5,
       onCreate: (db, version) async {
         // 4. Ensure Foreign Keys are enabled for the session
         await db.execute('PRAGMA foreign_keys = ON;');
@@ -94,6 +94,25 @@ class DatabaseManager {
       // pattern, used there since schema v1).
       onUpgrade: (db, oldVersion, newVersion) async {
         await db.execute('PRAGMA foreign_keys = ON;');
+        // createSqlObjects only helps a brand-new table — CREATE TABLE staff (...)
+        // just hits "already exists" and is swallowed on an install that already has
+        // one, so a column added to an existing table needs its own ALTER TABLE here.
+        if (oldVersion < 4) {
+          try {
+            await db.execute('ALTER TABLE staff ADD COLUMN photo_path TEXT');
+          } on DatabaseException catch (e) {
+            if (!e.toString().toLowerCase().contains('duplicate column')) rethrow;
+          }
+        }
+        if (oldVersion < 5) {
+          for (final column in ['clinic_name', 'specialty']) {
+            try {
+              await db.execute('ALTER TABLE staff ADD COLUMN $column TEXT');
+            } on DatabaseException catch (e) {
+              if (!e.toString().toLowerCase().contains('duplicate column')) rethrow;
+            }
+          }
+        }
         await createSqlObjects(db);
       },
     );
@@ -1412,6 +1431,39 @@ class DatabaseManager {
   ''');
   }
 
+  Future<void> addStaffMember({
+    required String firstName,
+    required String lastName,
+    String? position,
+    String? email,
+    String? phone,
+    String? pager,
+    String? clinicName,
+    String? specialty,
+    bool isSpecialist = false,
+    bool onCall = false,
+  }) async {
+    final db = await database;
+    await db.insert('staff', {
+      'id': uuid.v4(),
+      'first_name': firstName,
+      'last_name': lastName,
+      'position': position,
+      'email': (email == null || email.isEmpty) ? null : email,
+      'phone': phone,
+      'pager': pager,
+      'clinic_name': clinicName,
+      'specialty': specialty,
+      'is_specialist': isSpecialist ? 1 : 0,
+      'on_call': onCall ? 1 : 0,
+    });
+  }
+
+  Future<void> updateStaffPhoto({required String id, required String photoPath}) async {
+    final db = await database;
+    await db.update('staff', {'photo_path': photoPath}, where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<List<Map<String, dynamic>>> getStaffMember({required String id}) async {
     final db = await database;
 
@@ -1449,11 +1501,11 @@ class DatabaseManager {
   // link (direct or via foreign key) to any patient/incident, derived from the actual
   // schema in assets/sql/sql.json rather than guessed. `staff` deliberately does NOT
   // appear here despite having no such link: it's seeded fake colleagues, not a real
-  // universal catalog. No professional or user profile survives the wipe,
-  // professional_profile included: the signed license grant from the Go server (plus
-  // the DeviceIdentity keys in secure storage) is the real source of truth for who
-  // this professional is going forward, not whatever was entered locally before the
-  // license existed.
+  // universal catalog. `professional_profile` DOES appear here, reversing an earlier
+  // decision: once verification actually lands, this row holds a real, human-reviewer-
+  // confirmed identity, not demo content — wiping it just to immediately re-run the
+  // onboarding wizard for the same professional was confirmed live to be wrong, not a
+  // deliberate design.
   static const Set<String> _preserveOnLicenseWipe = {
     'action',
     'assessment',
@@ -1461,6 +1513,7 @@ class DatabaseManager {
     'datasheet',
     'drug_name',
     'interaction',
+    'professional_profile',
     'question',
     'tracked_metric_definition',
   };
@@ -1476,11 +1529,16 @@ class DatabaseManager {
   // won't let the pragma change take effect mid-transaction anyway.
   Future<void> wipeDemoDataForLicensedInstall() async {
     final db = await database;
-    final List<dynamic> createScripts = sqlConfig?['CREATE'] ?? [];
-    final List<String> tables = [
-      for (final entry in createScripts)
-        if (entry['table'] is String) entry['table'] as String,
-    ];
+    // Queried from SQLite's own catalog, not sql.json's CREATE list — some entries
+    // there are triggers tagged with a `table` field that doesn't name a real table
+    // (found live: a "patient_metric" entry that's actually a trigger on
+    // patient_metrics), and DELETE FROM a nonexistent table throws inside the
+    // transaction below, silently rolling back the entire wipe with no visible sign
+    // anything went wrong.
+    final tableRows = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name != 'android_metadata'",
+    );
+    final tables = tableRows.map((r) => r['name'] as String).toList();
     await db.execute('PRAGMA foreign_keys = OFF;');
     await db.transaction((txn) async {
       for (final table in tables) {
@@ -1489,5 +1547,31 @@ class DatabaseManager {
       }
     });
     await db.execute('PRAGMA foreign_keys = ON;');
+    await _seedStaffRecordForLicenseHolder(db);
+  }
+
+  // The clinic's own staff directory is empty right after the wipe (staff is fake
+  // demo colleagues, not preserved — see _preserveOnLicenseWipe), but the licensed
+  // professional using this app is a real staff member of their own clinic: the
+  // license holder. Rather than making them retype what onboarding already
+  // collected, this becomes their own first staff record automatically.
+  Future<void> _seedStaffRecordForLicenseHolder(Database db) async {
+    final rows = await db.query('professional_profile', where: 'id = ?', whereArgs: [_professionalProfileId], limit: 1);
+    if (rows.isEmpty) return;
+    final profile = ProfessionalProfile.fromRow(rows.first);
+    // "Full name" from onboarding, not separate first/last fields — split on the last
+    // space as the closest approximation without asking the professional to re-enter
+    // something they already typed once.
+    final nameParts = profile.name.trim().split(RegExp(r'\s+'));
+    final lastName = nameParts.length > 1 ? nameParts.last : '';
+    final firstName = nameParts.length > 1 ? nameParts.sublist(0, nameParts.length - 1).join(' ') : profile.name.trim();
+    await db.insert('staff', {
+      'id': uuid.v4(),
+      'first_name': firstName,
+      'last_name': lastName,
+      'position': profile.designation,
+      'clinic_name': profile.clinicName,
+      'specialty': profile.specialty,
+    });
   }
 }
