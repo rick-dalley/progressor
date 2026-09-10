@@ -35,6 +35,15 @@ migrate_working_dir/
 # Ignore local assets folder if used for temp storage
 /assets/screen_captures/
 /assets/interactions/
+
+# ...but generated platform icons are not disposable user data — the blanket
+# *.png rule above would otherwise silently leave them untracked, breaking
+# the build for anyone else who clones this repo.
+!ios/Runner/Assets.xcassets/**/*.png
+!android/app/src/main/res/mipmap-*/*.png
+!macos/Runner/Assets.xcassets/**/*.png
+!web/icons/*.png
+!web/favicon.png
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
