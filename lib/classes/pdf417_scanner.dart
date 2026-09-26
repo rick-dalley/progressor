@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:cwicare_vision/cwicare_vision.dart';
 
 /// A type-safe container representing the extracted demographic fields
 /// from a North American (AAMVA compliant) ID card or Driver's License.

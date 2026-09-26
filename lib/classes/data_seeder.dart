@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
@@ -48,7 +47,10 @@ class DataSeeder {
       _seedStaff,
       _seedCareOrders,
       _seedDispositionDecisions,
-      _seedInteractions,
+      // No _seedInteractions: interactions ship read-only in the shared
+      // cwicare_interactions package (see InteractionStore). The old seed read a
+      // DrugBank-derived CSV that can't ship in a paid app, and ran in debug builds
+      // only, so release builds always had an empty table.
     ];
 
     for (int i = 0; i < batches.length; i++) {
@@ -56,33 +58,6 @@ class DataSeeder {
       onProgress?.call(i + 1, batches.length);
     }
     debugPrint('--- Seeding Complete ---');
-  }
-
-  static Future<void> _seedInteractions(Database db) async {
-    final rawData = await rootBundle.loadString('assets/interactions/db_drug_interactions.csv');
-
-    //Parse the CSV (assumes first row is header)
-    List<List<dynamic>> rows = const CsvToListConverter(
-      fieldDelimiter: ',', // Double check this: is it actually a comma?
-      eol: '\n', // Or '\r\n' for Windows-style files
-      shouldParseNumbers: false,
-    ).convert(rawData);
-
-    //Batch insert using a transaction
-    await db.transaction((txn) async {
-      // Skip the header row (index 0)
-      for (int i = 1; i < rows.length; i++) {
-        var row = rows[i];
-        await txn.insert('interaction', {
-          // 'id': row[0].toString(),
-          // 'rx_norm_id': '',
-          'name_a': row[0].toString(),
-          'name_b': row[1].toString(),
-          'explanation': row[2].toString(),
-          // 'local_datasheet_id': row[5].toString(),
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
-      }
-    });
   }
 
   static Future<void> _seedStaff(Database db) async {

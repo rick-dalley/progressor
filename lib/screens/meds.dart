@@ -36,13 +36,16 @@ final Map<BannerType, BannerData> banners = {
   ),
   BannerType.acknowledged: const BannerData(
     color: Color(0xFF673AB7),
-    message: "All Risks Acknowledged & Accepted",
+    message: "Warnings reviewed",
     icon: Icons.check_circle_outline,
   ),
+  // Never a checkmark or "none detected": the check only knows what the FDA labels in
+  // the interaction list say, so an empty result means "nothing found", not "safe".
+  // Same wording as Ally.
   BannerType.none: const BannerData(
-    color: Color(0xFF2E7D32),
-    message: "No Interactions Detected",
-    icon: Symbols.verified,
+    color: Color(0xFF888888),
+    message: "No matches in the interaction list. Check with pharmacy.",
+    icon: Symbols.info,
   ),
   BannerType.unknown: const BannerData(
     color: Color(0xFF888888),

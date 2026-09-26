@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:carbon_ui/carbon_ui.dart';
+import 'package:cwicare_interactions/cwicare_interactions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -142,21 +143,12 @@ class DatabaseManager {
   }
 
   // Drugs
+  /// The strongest interaction between two medications, as a self-contained
+  /// explanation quoting the FDA label, or null when neither label names the other.
+  /// From InteractionStore (the shared cwicare_interactions package), not the app db.
   Future<String?> getInteractions(String drugNameA, String drugNameB) async {
-    final db = await database;
-    final List<Map<String, dynamic>> results = await db.query(
-      'interaction',
-      columns: ['explanation'],
-      where: '(name_a = ? AND name_b = ?) OR (name_a = ? AND name_b = ?)',
-      whereArgs: [drugNameA, drugNameB, drugNameB, drugNameA],
-    );
-    // Return the interaction description if found, otherwise the default message
-    if (results.isNotEmpty) {
-      String explanation = results.first['explanation'] as String;
-      return explanation;
-    } else {
-      return null;
-    }
+    final rows = await InteractionStore.instance.between(drugNameA, drugNameB);
+    return rows.isEmpty ? null : rows.first.explanation;
   }
 
   Future<String?> getTemplateTextForCode(String code) async {

@@ -1,6 +1,6 @@
 import 'package:carbon_ui/carbon_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:cwicare_vision/cwicare_vision.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:triage/classes/pdf417_scanner.dart';
 import 'package:triage/classes/scanned_data.dart';

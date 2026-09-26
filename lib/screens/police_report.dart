@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:cwicare_vision/cwicare_vision.dart';
 import '../app_theme.dart';
 import '../classes/database_manager.dart';
 import '../widgets/text_scanner.dart';
