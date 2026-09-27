@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    // No kotlin-android on AGP 9: the Flutter Gradle Plugin sets Kotlin up (see
+    // android.builtInKotlin in gradle.properties), as in Flutter's own template.
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -46,7 +47,6 @@ flutter {
     source = "../.."
 }
 
-// Kotlin 2.3 rejects the old android { kotlinOptions { jvmTarget = "11" } } form.
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
